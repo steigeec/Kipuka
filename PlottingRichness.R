@@ -33,8 +33,8 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
 #Create an NMDS plot with columns MDS1 and MDS2
 richness_mod <- richness
 richness_mod$Arealog[richness_mod$Site=="Lava" & is.na(richness_mod$Arealog)] <- 1.5
-richness_mod$Arealog[richness_mod$Site=="Kona" & is.na(richness_mod$Arealog)] <- 8
-richness_mod$Arealog[richness_mod$Site=="Stainbeck" & is.na(richness_mod$Arealog)] <- 8
+richness_mod$Arealog[richness_mod$Site=="Kona" & is.na(richness_mod$Arealog)] <- 10
+richness_mod$Arealog[richness_mod$Site=="Stainbeck" & is.na(richness_mod$Arealog)] <- 10
 richness_mod$Arealog<-richness_mod$Arealog*2
 
 jpeg("Figures/NMDS.jpg", width=1000, height=1000)
@@ -42,7 +42,7 @@ ggplot() +
   geom_point(data=richness_mod,aes(x=MDS1,y=MDS2,colour=Site, size=(Arealog)), alpha=0.5) + 
   #geom_polygon(data=hull.data,aes(x=MDS1,y=MDS2,fill=grp,group=grp),alpha=0.30) + # add the convex hulls
   scale_colour_manual(values=SiteColors) +
-  scale_size_continuous(labels = c("Lava", "3", "4", "5", "6", "7", "Continuous forest"), range=c(3, 16), breaks=c(3, 6, 8, 10, 12, 14, 16)) +
+  scale_size_continuous(labels = c("Lava", "3", "4", "5", "6", "7", "Continuous forest"), range=c(3, 20), breaks=c(3, 6, 8, 10, 12, 14, 20)) +
   labs(title="NMDS plot", x="NMDS1", y="NMDS2") +
   coord_equal() +
   guides(colour = guide_legend(override.aes = list(size=10))) + 
