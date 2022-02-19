@@ -39,10 +39,17 @@ rain_spdf <- as(rain, "SpatialPixelsDataFrame")
 rain_df <- as.data.frame(rain_spdf)
 colnames(rain_df) <- c("value", "x", "y")
 
+kona<-readOGR("Mapping/extent/Kona_extent.shp")
+stainbeck<-readOGR("Mapping/extent/Stainbeck_extent.shp")
+kipuka<-readOGR("Mapping/extent/Kipuka_extent.shp")
+
 jpeg("Figures/BigIsland.jpg", width=1000, height=1000)
 ggplot() +  
   geom_tile(data=rain_df, aes(x=x, y=y, fill=value^.5)) +  
   scale_fill_viridis_c(direction=-1, breaks=c(2000^.5, 4000^.5, 6000^.5), labels=c(2000, 4000, 6000)) +
+  geom_polygon(data=kona, color="black", lwd=2, color="black", fill=NA, mapping=aes(long, lat))+
+  geom_polygon(data=kipuka, color="black", lwd=2, color="black", fill=NA,  mapping=aes(long, lat))+
+  geom_polygon(data=stainbeck, color="black", lwd=2, color="black", fill=NA,  mapping=aes(long, lat))+  
   KipukaTheme
 dev.off()
 
