@@ -14,7 +14,7 @@ library(raster)
 font_import()
 library(viridis)
 
-SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
+SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#999933", "Stainbeck"="#117733")
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=30), 
         axis.text = element_text(size=25), 
