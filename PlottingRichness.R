@@ -150,7 +150,7 @@ dev.off()
 
 #################################################################################
 #Beta diversity across orders
-
+#For everything except hymenoptera,   calculate Bray-Curtis distances between site pairs
 
 
 #################################################################################
