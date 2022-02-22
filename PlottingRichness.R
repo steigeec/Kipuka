@@ -14,6 +14,8 @@ font_import()
 
 
 richness <- read.csv("merged_by_site_2.csv")
+dist_beta <- read.csv("Distance_v_beta.csv")
+dist_diff <- read.csv("Distance_v_differentiation.csv")
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -34,6 +36,77 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.title = element_text(size=25), 
         text = element_text(family = "serif")) 
 
+
+#################################################################################
+#Beta diversity vesus distance
+
+#Maybe join together tables of each part...?
+Center <- dis_beta[dis_beta$Center>]
+
+jpeg("Figures/dist_v_beta.jpg", width=1000, height=1000)
+ggplot() + 
+  geom_smooth(method='lm', data=richness_mod,aes(x=Arealog, y=value, colour=Site, linetype=variable), size=1, alpha=0.20)+
+  geom_point(data=richness_mod,aes(x=Arealog, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
+  scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15)) +
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  #scale_linetype_discrete(values=c(2,5)) +
+  labs(title="Size vs species richness", x="Log area ("~km^2~")", y="Species richness") +
+  KipukaTheme +
+  guides(color="none", shape="none") +
+  theme(panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "top")
+dev.off()
+
+#################################################################################
+#How is Araenea (predator!!!) richness impacted by fragment size as opposed to Pscoptera (barklice-- scavenger/detritovore) 
+#richness_mod_0 <- richness[richness$Site=="Center" | richness$Site=="Edge",]
+richness_mod_0 <- melt(richness, idvars = c("SiteID", "Arealog"), measure = c("Araneae", "Pscoptera"))
+richness_mod_0$Arealog <- round(richness_mod_0$Arealog, 0)
+richness_mod_0$Arealog[richness_mod_0$Site=="Lava" & is.na(richness_mod_0$Arealog)] <- "Lava"
+richness_mod_0$Arealog[richness_mod_0$Site=="Kona" & is.na(richness_mod_0$Arealog)] <- "Kona"
+richness_mod_0$Arealog[richness_mod_0$Site=="Stainbeck" & is.na(richness_mod_0$Arealog)] <- "Stainbeck"
+
+#Put in correct order
+richness_mod_0$Arealog <- factor(richness_mod_0$Arealog, levels=c("Lava", "3", "4", "5", "Stainbeck", "Kona"))
+
+jpeg("Figures/PredatorVsDetritovore.jpg", width=1000, height=1000)
+ggplot() + 
+  geom_boxplot(data=richness_mod_0,aes(x=Arealog, y=value, fill=Site), color="black", size=1)+
+  scale_fill_manual(values=SiteColors) +
+  facet_wrap(~variable, nrow=1, scales="free") +
+  guides(fill=guide_legend(nrow=2)) +
+  labs(title="Predator v scavenger richness", x="Log area ("~km^2~")", y="Species richness") +
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40, angle=45), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "top")
+dev.off()
+
+
 #################################################################################
 #Kipuka size versus SR/SROTU
 
@@ -49,6 +122,7 @@ a <- ggplot() +
   #scale_linetype_discrete(values=c(2,5)) +
   labs(title="Size vs species richness", x="Log area ("~km^2~")", y="Species richness") +
   KipukaTheme +
+  guides(color="none", shape="none") +
   theme(panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -105,7 +179,7 @@ c <- ggplot() +
   labs(title="Size vs haplotype richness within OTUs", x="") +
   KipukaTheme +
   theme(strip.text = element_text(size = 30), 
-        axis.text = element_text(angle=45), 
+        axis.text = element_text(angle=45, size=40), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -115,7 +189,6 @@ c <- ggplot() +
         linetype = "dotted", 
         size = 0.5), 
        axis.title=element_text(size=45), 
-        axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
