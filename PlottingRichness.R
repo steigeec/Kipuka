@@ -8,6 +8,8 @@
 setwd("G:/My Drive/Kipuka")
 library(ggplot2)
 library(extrafont)
+library(reshape2)
+library(cowplot)
 font_import()
 
 
@@ -31,6 +33,85 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.background = element_blank(),
         legend.title = element_text(size=25), 
         text = element_text(family = "serif")) 
+
+#################################################################################
+#Kipuka size versus SR/SROTU
+
+richness_mod <- richness[richness$Site=="Center" | richness$Site=="Edge",]
+richness_mod <- melt(richness_mod, idvars = c("SiteID", "Arealog"), measure = c("SR", "SROTU"))
+
+
+a <- ggplot() + 
+  geom_smooth(method='lm', data=richness_mod,aes(x=Arealog, y=value, colour=Site, linetype=variable), size=1, alpha=0.20)+
+  geom_point(data=richness_mod,aes(x=Arealog, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
+  scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15)) +
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  #scale_linetype_discrete(values=c(2,5)) +
+  labs(title="Size vs species richness", x="Log area ("~km^2~")", y="Species richness") +
+  KipukaTheme +
+  theme(panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5))
+
+################################################################################
+#haplotype richness within OTUs for Kipuka Centers and Kipuka edges
+
+richness_mod_1 <- richness[richness$Site=="Center" | richness$Site=="Edge",]
+
+b <- ggplot() + 
+  geom_smooth(method='lm', data=richness_mod_1,aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site), size=1, alpha=0.20)+
+  geom_point(data=richness_mod_1,aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site), shape=18, alpha=0.70, size=6, stroke = 3) + 
+  facet_wrap(~Site)+
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  labs(title="Size vs haplotype richness within OTUs", x="Log area ("~km^2~")", y="Haplotype richness within OTUs") +
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5))
+
+################################################################################
+#OTu richness, zOTU richness and haplotype diversity in different site types
+
+richness_mod_2 <- melt(richness, idvars = c("SiteID", "Site"), measure = c("SR", "SROTU", "HaplotypeRichnessWithin"))
+richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
+
+c <- ggplot() + 
+  geom_boxplot(data=richness_mod_2,aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
+  facet_wrap(~variable, scales="free")+
+  scale_fill_manual(values=SiteColors) +
+  labs(title="Size vs haplotype richness within OTUs", x="") +
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        axis.text = element_text(angle=45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5))
+
+###########################################################
+#Plot these three together
+
+jpeg("Figures/Figure2.jpg", width=3000, height=1000)
+plot_grid(a, b, c, ncol = 3)
+dev.off()
+
+#################################################################################
+#NMDS plot
 
 #Create an NMDS plot with columns MDS1 and MDS2
 richness_mod <- richness
