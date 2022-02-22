@@ -61,7 +61,8 @@ a <- ggplot() +
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
-        legend.title = element_text(size=40))
+        legend.title = element_text(size=40),
+       legend.position = "top")
 
 ################################################################################
 #haplotype richness within OTUs for Kipuka Centers and Kipuka edges
@@ -88,7 +89,8 @@ b <- ggplot() +
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
-        legend.title = element_text(size=40))
+        legend.title = element_text(size=40),
+       legend.position = "top")
 
 ################################################################################
 #OTu richness, zOTU richness and haplotype diversity in different site types
@@ -116,7 +118,8 @@ c <- ggplot() +
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
-        legend.title = element_text(size=40))
+        legend.title = element_text(size=40),
+       legend.position = "top")
 
 ###########################################################
 #Plot these three together
