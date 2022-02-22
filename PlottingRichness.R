@@ -106,6 +106,52 @@ ggplot() +
        legend.position = "top")
 dev.off()
 
+#################################################################################
+#Let's just try all the orders! 
+#richness_mod_0 <- richness[richness$Site=="Center" | richness$Site=="Edge",]
+richness_mod_0 <- melt(richness, idvars = c("SiteID", "Arealog"), measure = c("Araneae", "Pscoptera", "Hemiptera", "Hymenoptera", "Lepidoptera", "Acari", "Coleoptera", "Diptera"))
+richness_mod_0$Arealog <- round(richness_mod_0$Arealog, 0)
+richness_mod_0$Arealog[richness_mod_0$Site=="Lava" & is.na(richness_mod_0$Arealog)] <- "Lava"
+richness_mod_0$Arealog[richness_mod_0$Site=="Kona" & is.na(richness_mod_0$Arealog)] <- "Kona"
+richness_mod_0$Arealog[richness_mod_0$Site=="Stainbeck" & is.na(richness_mod_0$Arealog)] <- "Stainbeck"
+
+#Put in correct order
+richness_mod_0$Arealog <- factor(richness_mod_0$Arealog, levels=c("Lava", "3", "4", "5", "Stainbeck", "Kona"))
+
+jpeg("Figures/Order_Richness.jpg", width=4000, height=2000)
+ggplot() + 
+  geom_boxplot(data=richness_mod_0,aes(x=Arealog, y=value, fill=Site), color="black", size=1)+
+  scale_fill_manual(values=SiteColors) +
+  facet_wrap(~variable, nrow=2, scales="free") +
+  guides(fill=guide_legend(nrow=2)) +
+  labs(title="Predator v scavenger richness", x="Log area ("~km^2~")", y="Species richness") +
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40, angle=45), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "top")
+dev.off()
+
+
+#################################################################################
+#Stacked bar plot, each site being its own stacked bar, all same height so proportional representation
+
+
+#################################################################################
+#Beta diversity across orders
+
+
 
 #################################################################################
 #Kipuka size versus SR/SROTU
