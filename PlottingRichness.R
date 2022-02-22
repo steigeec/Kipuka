@@ -56,7 +56,12 @@ a <- ggplot() +
       panel.grid.minor = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
-        size = 0.5))
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40))
 
 ################################################################################
 #haplotype richness within OTUs for Kipuka Centers and Kipuka edges
@@ -78,7 +83,12 @@ b <- ggplot() +
       panel.grid.minor = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
-        size = 0.5))
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40))
 
 ################################################################################
 #OTu richness, zOTU richness and haplotype diversity in different site types
@@ -101,13 +111,18 @@ c <- ggplot() +
       panel.grid.minor = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
-        size = 0.5))
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40))
 
 ###########################################################
 #Plot these three together
 
 jpeg("Figures/Figure2.jpg", width=3000, height=1000)
-plot_grid(a, b, c, ncol = 3)
+plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1.5))
 dev.off()
 
 #################################################################################
