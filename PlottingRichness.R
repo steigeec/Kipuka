@@ -10,6 +10,7 @@ library(ggplot2)
 library(extrafont)
 library(reshape2)
 library(cowplot)
+library(tidyverse)
 font_import()
 
 
@@ -41,16 +42,39 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
 #Beta diversity vesus distance
 
 #Maybe join together tables of each part...?
-Center <- dis_beta[dis_beta$Center>]
+dist_beta <- dist_beta[1:6]
+i<-c(3, 4, 5, 6)
+dist_beta[ , i] <- apply(dist_beta[ , i], 2,            # Specify own function within apply
+                    function(x) as.numeric(as.character(x)))
 
-jpeg("Figures/dist_v_beta.jpg", width=1000, height=1000)
-ggplot() + 
-  geom_smooth(method='lm', data=richness_mod,aes(x=Arealog, y=value, colour=Site, linetype=variable), size=1, alpha=0.20)+
-  geom_point(data=richness_mod,aes(x=Arealog, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
-  scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15)) +
-  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
-  #scale_linetype_discrete(values=c(2,5)) +
-  labs(title="Size vs species richness", x="Log area ("~km^2~")", y="Species richness") +
+Center <- dist_beta[!is.na(dist_beta$Center),]
+Center$site <- "Center"
+Center <- rename(Center, beta = Center)
+Center <- Center[ , colSums(is.na(Center)) < nrow(Center)]                    
+                         
+Stainbeck <- dist_beta[!is.na(dist_beta$Stainbeck),]
+Stainbeck$site <- "Stainbeck"  
+Stainbeck <- rename(Stainbeck, beta = Stainbeck)
+Stainbeck <- Stainbeck[ , colSums(is.na(Stainbeck)) < nrow(Stainbeck)]   
+                         
+Kona <- dist_beta[!is.na(dist_beta$Kona),]
+Kona$site <- "Kona"
+Kona <- rename(Kona, beta = Kona)
+Kona <- Kona[ , colSums(is.na(Kona)) < nrow(Kona)]   
+                         
+Edge <- dist_beta[!is.na(dist_beta$Edge),]
+Edge$site <- "Edge"
+Edge <- rename(Edge, beta = Edge)
+Edge <- Edge[ , colSums(is.na(Edge)) < nrow(Edge)] 
+                         
+dist_beta <- rbind(Center, Stainbeck, Kona, Edge)
+dist_beta <- rename(dist_beta, dist = ï..dist)                         
+
+a <- ggplot(data=dist_beta) + 
+  geom_smooth(method='lm', aes(x=logidst, y=beta, colour=site), size=1, alpha=0.20)+
+  geom_point(aes(x=logidst, y=beta, colour=site), alpha=0.70, size=6, shape=18) + 
+  scale_colour_manual(values=SiteColors) +
+  labs(title="Distance vs zOTU beta diversity", x="Distance (km)", y="zOTU beta diversity") +
   KipukaTheme +
   guides(color="none", shape="none") +
   theme(panel.grid.major = element_line(
@@ -67,8 +91,65 @@ ggplot() +
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
        legend.position = "top")
-dev.off()
 
+#################################################################################
+#Genetic differentiation wi OTUs vesus distance
+dist_diff <- rename(dist_diff, site = ï..Both) 
+                         
+CC <- dist_diff[!is.na(dist_diff$CenterCenter),]
+CC <- rename(CC, diff = CenterCenter)
+CC$site<-"Center"                         
+CC <- CC[ , colSums(is.na(CC)) < nrow(CC)]                    
+                         
+EE <- dist_diff[!is.na(dist_diff$EdgeEdge),]
+EE <- rename(EE, diff = EdgeEdge)
+EE$site<-"Edge"                         
+EE <- EE[ , colSums(is.na(EE)) < nrow(EE)]  
+                         
+HH <- dist_diff[!is.na(dist_diff$HiloHilo),]
+HH <- rename(HH, diff = HiloHilo)
+HH$site<-"Stainbeck"                         
+HH <- HH[ , colSums(is.na(HH)) < nrow(HH)]  
+                         
+KK <- dist_diff[!is.na(dist_diff$KonaKona),]
+KK <- rename(KK, diff = KonaKona)
+KK$site<-"Kona"                         
+KK <- KK[ , colSums(is.na(KK)) < nrow(KK)] 
+                         
+LL <- dist_diff[!is.na(dist_diff$Lavalava),]
+LL <- rename(LL, diff = Lavalava)
+LL$site<-"Lava"                         
+LL <- LL[ , colSums(is.na(LL)) < nrow(LL)]                          
+                         
+dist_diff <- rbind(CC, EE, HH, KK, LL)
+                      
+b <- ggplot(data=dist_diff) + 
+  geom_smooth(method='lm', aes(x=logdist, y=diff, colour=site), size=1, alpha=0.20)+
+  geom_point(aes(x=logdist, y=diff, colour=site), alpha=0.70, size=6, shape=18) + 
+  scale_colour_manual(values=SiteColors) +
+  labs(title="Distance vs differentiation within OTUs", x="Distance (km)", y="Differentiation within OTUs") +
+  KipukaTheme +
+  guides(color="none", shape="none") +
+  theme(panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "top")
+
+                         
+jpeg("Figures/distance.jpg", width=2000, height=1000)   
+plot_grid(a, b, ncol = 2)                         
+dev.off()
+                         
 #################################################################################
 #How is Araenea (predator!!!) richness impacted by fragment size as opposed to Pscoptera (barklice-- scavenger/detritovore) 
 #richness_mod_0 <- richness[richness$Site=="Center" | richness$Site=="Edge",]
