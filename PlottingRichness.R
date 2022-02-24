@@ -226,9 +226,31 @@ dev.off()
 
 
 #################################################################################
+#Proportional representation of orders by site                         
 #Stacked bar plot, each site being its own stacked bar, all same height so proportional representation
 
-
+rep <- richness[1:22]
+i<-seq(15, 21, 1)
+rep[ , i] <- apply(rep[ , i], 2,            # Specify own function within apply
+                    function(x) as.numeric(as.character(x)))                         
+rep$totalRichness <- rep$Hemiptera + rep$Hymenoptera + rep$Lepidoptera + rep$Pscoptera +  rep$Acari +  rep$Araneae + rep$Coleoptera + rep$Diptera
+                   
+rep <- melt(rep, idvars = c("SiteID", "Site", "totalRichness"), measure.vars = c("Araneae", "Pscoptera", "Hemiptera", "Hymenoptera", "Lepidoptera", "Acari", "Coleoptera", "Diptera"))
+rep$prop <- rep$value/rep$totalRichness
+                   
+#I want ordered by my sites
+rep$Site <- factor(rep$Site, levels = rev(c("Lava", "Edge", "Center", "Stainbeck", "Kona")))                  
+rep <- rename(rep, id = ï..ID)
+                   
+jpeg("Figures/Order_Representation.jpg", width=1000, height=1000)
+ggplot(data=rep, aes(x=id, y=prop, width=1, fill=variable)) +
+  geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
+  labs(title="Proportion") +
+  scale_fill_manual(values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
+  scale_y_continuous(name="Proportion", limits=c(0,1.01), expand = c(0,0))+
+  KipukaTheme +
+  theme(axis.text = element_text(angle=45))
+dev.off()
 #################################################################################
 #Beta diversity across orders
 #For everything except hymenoptera,   calculate Bray-Curtis distances between site pairs
