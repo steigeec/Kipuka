@@ -17,6 +17,7 @@ font_import()
 richness <- read.csv("merged_by_site_2.csv")
 dist_beta <- read.csv("Distance_v_beta.csv")
 dist_diff <- read.csv("Distance_v_differentiation.csv")
+OTU <- read.csv("OTUs.csv")
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -37,6 +38,13 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.title = element_text(size=25), 
         text = element_text(family = "serif")) 
 
+                   
+#################################################################################
+#Beta diversity across orders
+#For everything except hymenoptera,   calculate Bray-Curtis distances between site pairs
+
+OTU <- OTU[8:67, 29:3051] 
+acari <- OTU[, "Acari"] 
 
 #################################################################################
 #Beta diversity vesus distance
@@ -236,25 +244,24 @@ rep[ , i] <- apply(rep[ , i], 2,            # Specify own function within apply
 rep$totalRichness <- rep$Hemiptera + rep$Hymenoptera + rep$Lepidoptera + rep$Pscoptera +  rep$Acari +  rep$Araneae + rep$Coleoptera + rep$Diptera
                    
 rep <- melt(rep, idvars = c("SiteID", "Site", "totalRichness"), measure.vars = c("Araneae", "Pscoptera", "Hemiptera", "Hymenoptera", "Lepidoptera", "Acari", "Coleoptera", "Diptera"))
+rep$my_site <- paste(rep$Site, rep$SiteID)
 rep$prop <- rep$value/rep$totalRichness
                    
 #I want ordered by my sites
-rep$Site <- factor(rep$Site, levels = rev(c("Lava", "Edge", "Center", "Stainbeck", "Kona")))                  
+rep$Site <- factor(rep$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava")))  
 rep <- rename(rep, id = ï..ID)
-                   
-jpeg("Figures/Order_Representation.jpg", width=1000, height=1000)
-ggplot(data=rep, aes(x=id, y=prop, width=1, fill=variable)) +
+       facet_grid(. ~ SP, scales = "free", space='free') +
+                
+jpeg("Figures/Order_Representation.jpg", width=1500, height=1000)
+ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=prop, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
   labs(title="Proportion") +
+  facet_grid(cols=vars(Site), scales="free", space="free") +             
   scale_fill_manual(values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
   scale_y_continuous(name="Proportion", limits=c(0,1.01), expand = c(0,0))+
   KipukaTheme +
-  theme(axis.text = element_text(angle=45))
+  theme(axis.text = element_text(angle=45, size=15, vjust=-1, hjust=1), strip.text = element_text(size = 30))
 dev.off()
-#################################################################################
-#Beta diversity across orders
-#For everything except hymenoptera,   calculate Bray-Curtis distances between site pairs
-
 
 #################################################################################
 #Kipuka size versus SR/SROTU
