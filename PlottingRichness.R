@@ -463,8 +463,7 @@ rep$prop <- rep$value/rep$totalRichness
                    
 #I want ordered by my sites
 rep$Site <- factor(rep$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava")))  
-rep <- rename(rep, id = ï..ID)
-       facet_grid(. ~ SP, scales = "free", space='free') +
+rep <- rename(rep, id = ï..ID)                   
                 
 jpeg("Figures/Order_Representation.jpg", width=1500, height=1000)
 ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=prop, width=1, fill=variable)) +
@@ -485,14 +484,15 @@ richness_mod <- melt(richness_mod, idvars = c("SiteID", "Arealog"), measure = c(
 
 
 a <- ggplot() + 
-  geom_smooth(method='lm', data=richness_mod,aes(x=Arealog, y=value, colour=Site, linetype=variable), size=1, alpha=0.20)+
+  geom_smooth(method='lm', data=richness_mod,aes(x=Arealog, y=value, colour=Site, linetype=variable, fill=Site), size=1, alpha=0.20)+
   geom_point(data=richness_mod,aes(x=Arealog, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
   scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15)) +
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  scale_fill_manual(values=SiteColors)+                 
   #scale_linetype_discrete(values=c(2,5)) +
   labs(title="Size vs species richness", x="Log area ("~km^2~")", y="Species richness") +
   KipukaTheme +
-  guides(color="none", shape="none") +
+  guides(color="none", shape="none", fill="none") +
   theme(panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -505,7 +505,7 @@ a <- ggplot() +
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
+        legend.title = element_blank(),
        legend.position = "top")
 
 ################################################################################
@@ -514,12 +514,14 @@ a <- ggplot() +
 richness_mod_1 <- richness[richness$Site=="Center" | richness$Site=="Edge",]
 
 b <- ggplot() + 
-  geom_smooth(method='lm', data=richness_mod_1,aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site), size=1, alpha=0.20)+
+  geom_smooth(method='lm', data=richness_mod_1,aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site, fill=Site), size=1, alpha=0.20)+
   geom_point(data=richness_mod_1,aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site), shape=18, alpha=0.70, size=6, stroke = 3) + 
   facet_wrap(~Site)+
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  scale_fill_manual(values=SiteColors, limits = c("Center", "Edge"))+                 
   labs(title="Size vs haplotype richness within OTUs", x="Log area ("~km^2~")", y="Haplotype richness within OTUs") +
   KipukaTheme +
+  guides(color="none") +
   theme(strip.text = element_text(size = 30), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -533,7 +535,7 @@ b <- ggplot() +
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
+        legend.title = element_blank(),
        legend.position = "top")
 
 ################################################################################
@@ -561,7 +563,7 @@ c <- ggplot() +
        axis.title=element_text(size=45), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
+        legend.title = element_blank(),
        legend.position = "top")
 
 ###########################################################
