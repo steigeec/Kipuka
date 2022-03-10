@@ -162,7 +162,34 @@ ggplot(data=order_all) +
        legend.position = "top")
 dev.off()
 
-
+#Save another version of this jpeg, now only highlighting edge and center turnover
+jpeg("Figures/Order_beta_diversity_kipukas.jpg", width=1500, height=2000)
+ggplot(data=order_all) + 
+  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
+  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  scale_fill_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  labs(title="Distance vs OTU beta diversity", x="Log distance (km)", y="OTU beta diversity") +
+  facet_wrap(~order, ncol=2, nrow=4)+
+  KipukaTheme +
+  coord_cartesian(ylim=c(0.4, 1))+
+  guides(colour="none")+
+  theme(strip.text = element_text(size = 45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "top")
+dev.off()
 #################################################################################
 #Repeat the same as above, now for method jaccard
 
@@ -253,7 +280,34 @@ ggplot(data=order_all) +
 dev.off()
 
 
-
+#Save an alternate version of this jpeg, highlighting only kipuka data
+jpeg("Figures/Order_beta_diversity_JACCARD_kipukas.jpg", width=1500, height=2000)
+ggplot(data=order_all) + 
+  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
+  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  scale_fill_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  labs(title="Distance vs OTU beta diversity (Jaccard)", x="Log distance (km)", y="OTU beta diversity") +
+  facet_wrap(~order, ncol=2, nrow=4)+
+  KipukaTheme +
+  coord_cartesian(ylim=c(0.6, 1))+
+  guides(colour="none")+
+  theme(strip.text = element_text(size = 45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "top")
+dev.off()
 
 
 
