@@ -474,7 +474,7 @@ richness_mod_0$Arealog[richness_mod_0$Site=="Stainbeck" & is.na(richness_mod_0$A
 #Put in correct order
 richness_mod_0$Arealog <- factor(richness_mod_0$Arealog, levels=c("Lava", "3", "4", "5", "Stainbeck", "Kona"))
 
-jpeg("Figures/Order_Richness.jpg", width=4000, height=2000)
+jpeg("Figures/Order_Richness_1.jpg", width=4000, height=2000)
 ggplot() + 
   geom_boxplot(data=richness_mod_0,aes(x=Arealog, y=value, fill=Site), color="black", size=1)+
   scale_fill_manual(values=SiteColors) +
@@ -482,7 +482,7 @@ ggplot() +
   guides(fill=guide_legend(nrow=2)) +
   labs(title="Predator v scavenger richness", x="Log area ("~km^2~")", y="Species richness") +
   KipukaTheme +
-  theme(strip.text = element_text(size = 30), 
+  theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -491,12 +491,14 @@ ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
-        axis.text = element_text(size=40, angle=45), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
-       legend.position = "top")
+       axis.title=element_text(size=55), 
+        axis.text.y = element_text(size=50, angle=45), 
+        axis.text.x = element_text(size=50, angle=45, vjust=0), 
+        plot.title=element_text(size=55), 
+        legend.text=element_text(size=50), 
+        legend.title = element_text(size=50),
+       legend.position = "top", 
+        plot.margin = margin(1,1,.01,1, "cm"))
 dev.off()
 
 
@@ -522,14 +524,14 @@ jpeg("Figures/Order_Representation.jpg", width=1500, height=1000)
 ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=prop, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
   labs(title="Proportion") +
-  xlab("         [       By increasing size                      ]                                                 ")+                 
+  xlab("         [                By increasing size                               ]                                                             ")+                 
   facet_grid(cols=vars(Site), scales="free", space="free") +             
   scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
   scale_y_continuous(name="Proportion", limits=c(0,1.01), expand = c(0,0))+
   KipukaTheme +
   theme(axis.text.y = element_text(angle=45, size=15, vjust=-1, hjust=1),
         axis.text.x = element_blank(),
-        axis.title.x=element_text(angle=0, size=40),
+        axis.title.x=element_text(angle=0, size=30),
         strip.text = element_text(size = 30))
 dev.off()
 
