@@ -348,7 +348,7 @@ a <- ggplot(data=dist_beta) +
   geom_point(aes(x=logidst, y=beta, colour=site), alpha=0.70, size=6, shape=18) + 
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="Distance vs zOTU beta diversity", x="Distance (km)", y="zOTU beta diversity") +
+  labs(title="Distance vs zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
   KipukaTheme +
   guides(color="none", shape="none", fill ="none", linetype="none") +
   theme(panel.grid.major = element_line(
@@ -402,7 +402,7 @@ b <- ggplot(data=dist_diff) +
   geom_point(aes(x=logdist, y=diff, colour=site), alpha=0.70, size=6, shape=18) + 
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="Distance vs differentiation within OTUs", x="Distance (km)", y="Differentiation within OTUs") +
+  labs(title="Distance vs differentiation within OTUs", x="Log distance (km)", y="Differentiation within OTUs") +
   KipukaTheme +
   guides(color="none", shape="none", fill = guide_legend(ncol=1), linetype="none") +
   theme(panel.grid.major = element_line(
@@ -522,11 +522,15 @@ jpeg("Figures/Order_Representation.jpg", width=1500, height=1000)
 ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=prop, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
   labs(title="Proportion") +
+  xlab("         [       By increasing size                      ]                                                 ")+                 
   facet_grid(cols=vars(Site), scales="free", space="free") +             
-  scale_fill_manual(values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
+  scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
   scale_y_continuous(name="Proportion", limits=c(0,1.01), expand = c(0,0))+
   KipukaTheme +
-  theme(axis.text = element_text(angle=45, size=15, vjust=-1, hjust=1), strip.text = element_text(size = 30))
+  theme(axis.text.y = element_text(angle=45, size=15, vjust=-1, hjust=1),
+        axis.text.x = element_blank(),
+        axis.title.x=element_text(angle=0, size=40),
+        strip.text = element_text(size = 30))
 dev.off()
 
 #################################################################################
@@ -543,7 +547,7 @@ a <- ggplot() +
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual(values=SiteColors)+                 
   #scale_linetype_discrete(values=c(2,5)) +
-  labs(title="Size vs species richness", x="Log area ("~km^2~")", y="Species richness") +
+  labs(title="A.   Size vs species richness", x="Log area ("~km^2~")", y="Species richness") +
   KipukaTheme +
   guides(color="none", shape="none", fill="none") +
   theme(panel.grid.major = element_line(
@@ -554,10 +558,10 @@ a <- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
-        axis.text = element_text(size=40), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
+       axis.title=element_text(size=50), 
+        axis.text = element_text(size=45), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
         legend.title = element_blank(),
        legend.position = "top")
 
@@ -572,7 +576,7 @@ b <- ggplot() +
   facet_wrap(~Site)+
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual(values=SiteColors, limits = c("Center", "Edge"))+                 
-  labs(title="Size vs haplotype richness within OTUs", x="Log area ("~km^2~")", y="Haplotype richness within OTUs") +
+  labs(title="B.   Size vs haplotype richness within OTUs", x="Log area ("~km^2~")", y="Haplotype richness within OTUs") +
   KipukaTheme +
   guides(color="none") +
   theme(strip.text = element_text(size = 30), 
@@ -584,10 +588,10 @@ b <- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
-        axis.text = element_text(size=40), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
+       axis.title=element_text(size=50), 
+        axis.text = element_text(size=45), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
         legend.title = element_blank(),
        legend.position = "top")
 
@@ -599,12 +603,17 @@ richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),
 
 c <- ggplot() + 
   geom_boxplot(data=richness_mod_2,aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
-  facet_wrap(~variable, scales="free")+
+  facet_wrap(~variable, scales="free", 
+             labeller = labeller(cyl = 
+                c("SR" = "Species richness",
+                "SROTU" = "OTU richness",
+                "HaplotypeRichnessWithin" = "Haplotype richness")))+
   scale_fill_manual(values=SiteColors) +
-  labs(title="Size vs haplotype richness within OTUs", x="") +
+  labs(title="    C.   Size vs haplotype richness within OTUs", x="") +
   KipukaTheme +
   theme(strip.text = element_text(size = 30), 
         axis.text = element_text(angle=45, size=40), 
+        axis.title.y = element_blank(), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -613,17 +622,18 @@ c <- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
+       axis.title=element_text(size=50), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
         legend.title = element_blank(),
-       legend.position = "top")
+       legend.position = "top", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))
 
 ###########################################################
 #Plot these three together
 
 jpeg("Figures/Figure2.jpg", width=3000, height=1000)
-plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1.5))
+plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1.3))
 dev.off()
 
 #################################################################################
@@ -636,7 +646,7 @@ richness_mod$Arealog[richness_mod$Site=="Kona" & is.na(richness_mod$Arealog)] <-
 richness_mod$Arealog[richness_mod$Site=="Stainbeck" & is.na(richness_mod$Arealog)] <- 9
 richness_mod$Arealog<-richness_mod$Arealog^1.5
 
-jpeg("Figures/NMDS_1.jpg", width=1000, height=1000)
+jpeg("Figures/NMDS.jpg", width=1000, height=1000)
 ggplot() + 
   geom_point(data=richness_mod,aes(x=MDS1,y=MDS2,colour=Site, size=(Arealog), shape=Site), alpha=0.70, stroke=3) + 
   #geom_polygon(data=hull.data,aes(x=MDS1,y=MDS2,fill=grp,group=grp),alpha=0.30) + # add the convex hulls
