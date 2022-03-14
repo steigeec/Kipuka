@@ -23,7 +23,7 @@ OTU <- read.csv("OTUs.csv")
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
-SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#999933", "Stainbeck"="#117733")
+SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=30), 
         axis.text = element_text(size=25, angle=45), 
@@ -644,21 +644,21 @@ dev.off()
 #Create an NMDS plot with columns MDS1 and MDS2
 richness_mod <- richness
 richness_mod$Arealog[richness_mod$Site=="Lava" & is.na(richness_mod$Arealog)] <- 2
-richness_mod$Arealog[richness_mod$Site=="Kona" & is.na(richness_mod$Arealog)] <- 9
-richness_mod$Arealog[richness_mod$Site=="Stainbeck" & is.na(richness_mod$Arealog)] <- 9
-richness_mod$Arealog<-richness_mod$Arealog^1.5
+richness_mod$Arealog[richness_mod$Site=="Kona" & is.na(richness_mod$Arealog)] <- 2
+richness_mod$Arealog[richness_mod$Site=="Stainbeck" & is.na(richness_mod$Arealog)] <- 2
+richness_mod$Arealog<-richness_mod$Arealog^2
 
-jpeg("Figures/NMDS.jpg", width=1000, height=1000)
+jpeg("Figures/NMDS_2.jpg", width=1000, height=1000)
 ggplot() + 
   geom_point(data=richness_mod,aes(x=MDS1,y=MDS2,colour=Site, size=(Arealog), shape=Site), alpha=0.70, stroke=3) + 
   #geom_polygon(data=hull.data,aes(x=MDS1,y=MDS2,fill=grp,group=grp),alpha=0.30) + # add the convex hulls
   scale_colour_manual(values=SiteColors) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=16, "Stainbeck"=16)) +
-  scale_size_continuous("Log area ("~km^2~")", labels = c("3", "4", "5", "6", "7", "Continuous forest"), range=c(5.20,27), breaks=c(5.20, 8, 13.13, 14.70, 18.52, 27)) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
+  scale_size_continuous("Log area ("~m^2~")", labels = c("2", "3", "4", "5"), range=c(4,25), breaks=c(4, 9, 16, 25)) +
   labs(title="NMDS plot", x="NMDS1", y="NMDS2") +
   coord_equal() +
   scale_y_continuous(limits=c(-1,1.20)) +
-  guides(colour = guide_legend(override.aes = list(size=10))) + 
+  guides(colour = guide_legend(override.aes = list(size=4))) + 
   KipukaTheme +
   theme(panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
