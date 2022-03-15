@@ -59,18 +59,18 @@ rep$Arealog<-round(as.numeric(rep$Arealog),1)
 rep<-rep %>% dplyr::mutate(Arealog = tidyr::replace_na(Arealog, ""))                   
                 
 jpeg("Figures/Order_Representation_1.jpg", width=1500, height=1000)
-ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=prop, width=1, fill=variable)) +
+ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=value, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
-  labs(title="Proportion") +
-  xlab("         [                By increasing size                               ]                                                             ")+                 
+  labs(title="zOTU count per order") +
+  xlab(expression("         [                By increasing size (log"~m^2~")                       ]                                                             "))+                 
   facet_grid(cols=vars(Site), rows=vars(variable), scales="free", space="free") +             
   scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
-  scale_y_continuous(name="Proportion", expand = c(0,0.2), breaks=seq(0,0.6,0.2))+
+  scale_y_continuous(name="Proportion", expand = c(0,0.3), breaks=seq(0,100,20))+
   #geom_text(aes(label = round(Arealog,1)),vjust=-.25, size=8) +
   scale_x_discrete(breaks=rep$my_site, labels=rep$Arealog)+                 
   KipukaTheme +
-  theme(axis.text.y = element_text(angle=45, size=25, vjust=-1, hjust=1),
-        axis.text.x = element_text(size=25),
+  theme(axis.text.y = element_text(angle=45, size=25, vjust=-.1, hjust=1),
+        axis.text.x = element_text(size=25, vjust=-.001, hjust=-.001),
         axis.title.x=element_text(angle=0, size=30),
         strip.background.y = element_blank(),
         strip.text.y = element_blank(), 
