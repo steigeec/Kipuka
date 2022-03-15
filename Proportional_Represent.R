@@ -65,12 +65,12 @@ ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=prop, width=1, fill=variable
   xlab("         [                By increasing size                               ]                                                             ")+                 
   facet_grid(cols=vars(Site), rows=vars(variable), scales="free", space="free") +             
   scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
-  scale_y_continuous(name="Proportion", expand = c(0,0.2))+
+  scale_y_continuous(name="Proportion", expand = c(0,0.2), breaks=seq(0,0.6,0.2))+
   #geom_text(aes(label = round(Arealog,1)),vjust=-.25, size=8) +
   scale_x_discrete(breaks=rep$my_site, labels=rep$Arealog)+                 
   KipukaTheme +
-  theme(axis.text.y = element_text(angle=45, size=15, vjust=-1, hjust=1),
-        axis.text.x = element_text(size=20),
+  theme(axis.text.y = element_text(angle=45, size=25, vjust=-1, hjust=1),
+        axis.text.x = element_text(size=25),
         axis.title.x=element_text(angle=0, size=30),
         strip.background.y = element_blank(),
         strip.text.y = element_blank(), 
