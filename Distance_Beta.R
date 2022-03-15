@@ -83,7 +83,7 @@ acari_beta<-acari_beta[acari_beta$Site.x!="Lava",]
 a <- ggplot(data=acari_beta) + 
   geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+ #, linetype=site
   geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=6, shape=18) + 
-  facet_wrap(~Site.x, nrow=4)+
+  facet_wrap(~Site.x, ncol=4)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
   labs(title="A.     Distance by 3% OTU beta diversity", x="Log distance (km)", y="3% OTU beta diversity") +
@@ -140,7 +140,7 @@ dist_beta <- rename(dist_beta, dist = ï..dist)
 b <- ggplot(data=dist_beta) + 
   geom_smooth(method='lm', aes(x=logidst, y=beta, colour=site, fill=site, linetype=site), size=1, alpha=0.20)+
   geom_point(aes(x=logidst, y=beta, colour=site), alpha=0.70, size=6, shape=18) + 
-  facet_wrap(~site, nrow=4)+
+  facet_wrap(~site, ncol=4)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
   labs(title="A.     Distance by zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
@@ -191,7 +191,7 @@ dist_diff <- rbind(CC, EE, HH, KK)
 c <- ggplot(data=dist_diff) + 
   geom_smooth(method='lm', aes(x=logdist, y=diff, colour=site, fill=site), size=1, alpha=0.20)+ #, linetype=site
   geom_point(aes(x=logdist, y=diff, colour=site), alpha=0.70, size=6, shape=18) + 
-  facet_wrap(~site, nrow=4) +                       
+  facet_wrap(~site, ncol=4) +                       
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
   labs(title="C.     Distance by haplotype differentiation", x="Log distance (km)", y="Haplotype differentiation") +
@@ -214,7 +214,7 @@ c <- ggplot(data=dist_diff) +
        legend.position = "right")
 
                          
-jpeg("Figures/Figure4.jpg", width=3000, height=4000)   
-plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1))                         
+jpeg("Figures/Figure4.jpg", width=4000, height=3000)   
+plot_grid(a, b, c, nrow = 3, rel_heights = c(1, 1, 1))                         
 dev.off()
                          
