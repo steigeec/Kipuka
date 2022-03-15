@@ -61,11 +61,11 @@ rep<-rep %>% dplyr::mutate(Arealog = tidyr::replace_na(Arealog, ""))
 jpeg("Figures/Order_Representation_1.jpg", width=1500, height=1000)
 ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=value, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
-  labs(title="zOTU count per order") +
+  labs(title="zOTU count per order by size type") +
   xlab(expression("         [                By increasing size (log"~m^2~")                       ]                                                             "))+                 
   facet_grid(cols=vars(Site), rows=vars(variable), scales="free", space="free") +             
   scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
-  scale_y_continuous(name="Proportion", expand = c(0,0.3), breaks=seq(0,100,20))+
+  scale_y_continuous(name="zOTU count per order", expand = c(0,0.3), breaks=seq(0,100,20))+
   #geom_text(aes(label = round(Arealog,1)),vjust=-.25, size=8) +
   scale_x_discrete(breaks=rep$my_site, labels=rep$Arealog)+                 
   KipukaTheme +
