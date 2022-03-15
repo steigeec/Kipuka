@@ -14,12 +14,12 @@ library(tidyverse)
 library(vegan)
 font_import()
 
-
-richness <- read.csv("merged_by_site_2.csv")
-dist_beta <- read.csv("Distance_v_beta.csv")
+dist_beta_0 <- read.csv("Distance_v_beta.csv")
+otu <- read.csv("3OTU.csv")
 dist_diff <- read.csv("Distance_v_differentiation.csv")
 geo_dist<-read.csv("geo_dist.csv")
-OTU <- read.csv("OTUs.csv")
+richness <- read.csv("merged_by_site_2.csv")
+
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -40,15 +40,76 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.title = element_text(size=25), 
         text = element_text(family = "serif"), 
         legend.box.background = element_rect(fill = "white", color = "black"), 
-        legend.spacing.y = unit(0.1,"cm")) 
-
-                   
+        legend.spacing.y = unit(0.1,"cm"))               
 
 #################################################################################
 #Beta diversity vesus distance
 
+#Wrange geo distances
+rownames(geo_dist) <- geo_dist[,1]
+geo_dist <- geo_dist[,-1]
+#remove x from all the column names
+names(geo_dist)<-sub("X*", "", names(geo_dist))
+geo_dist<-as.matrix(geo_dist)
+geo_dist<-data.frame(col=colnames(geo_dist)[col(geo_dist)], row=rownames(geo_dist)[row(geo_dist)], dist=c(geo_dist))
+#make an index column that reps this particular combination of sites
+geo_dist$index<-paste(geo_dist$col, geo_dist$row, sep="_")
+geo_dist$log_dist<-log(geo_dist$dist+0.00001)
+geo_dist<-geo_dist[,c(4, 5)]
+
+#Grab 3% OTU beta diversity metrics
+acari_beta<-as.matrix(otu)
+#Remove all the XXXX from colnames
+colnames(acari_beta)<- gsub('[X]', '', colnames(acari_beta))
+rownames(acari_beta)<-acari_beta[,1]
+acari_beta<-acari_beta[,-1]
+acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
+#Add attributes of each site
+#First we add whether it's center, edge, etc etc etc
+acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
+acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
+#If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
+acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
+#Now add the distances between these sites
+acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
+acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
+#remove the same-site pairs
+acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]     
+#Remove flipped pairs
+acari_beta <- acari_beta%>% distinct(dist, .keep_all= TRUE)
+acari_beta$dist<-as.numeric(acari_beta$dist)
+acari_beta<-acari_beta[acari_beta$Site.x!="Lava",]
+
+a <- ggplot(data=acari_beta) + 
+  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+ #, linetype=site
+  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=6, shape=18) + 
+  facet_wrap(~Site.x, nrow=4)+
+  scale_colour_manual(values=SiteColors) +
+  scale_fill_manual(values=SiteColors) +
+  labs(title="A.     Distance by 3% OTU beta diversity", x="Log distance (km)", y="3% OTU beta diversity") +
+  KipukaTheme +
+  guides(color="none", shape="none", fill ="none", linetype="none") +
+  theme(strip.text=element_text(size=45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "right")
+                           
+#################################################################################
+#Beta diversity vesus distance
+
 #Maybe join together tables of each part...?
-dist_beta <- dist_beta[1:6]
+dist_beta <- dist_beta_0[,1:6]
 i<-c(3, 4, 5, 6)
 dist_beta[ , i] <- apply(dist_beta[ , i], 2,            # Specify own function within apply
                     function(x) as.numeric(as.character(x)))
@@ -76,15 +137,17 @@ Edge <- Edge[ , colSums(is.na(Edge)) < nrow(Edge)]
 dist_beta <- rbind(Center, Stainbeck, Kona, Edge)
 dist_beta <- rename(dist_beta, dist = ï..dist)                         
 
-a <- ggplot(data=dist_beta) + 
+b <- ggplot(data=dist_beta) + 
   geom_smooth(method='lm', aes(x=logidst, y=beta, colour=site, fill=site, linetype=site), size=1, alpha=0.20)+
   geom_point(aes(x=logidst, y=beta, colour=site), alpha=0.70, size=6, shape=18) + 
+  facet_wrap(~site, nrow=4)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="Distance vs zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
+  labs(title="A.     Distance by zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
   KipukaTheme +
   guides(color="none", shape="none", fill ="none", linetype="none") +
-  theme(panel.grid.major = element_line(
+  theme(strip.text=element_text(size=45),
+        panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size=1),   
@@ -121,24 +184,21 @@ HH <- HH[ , colSums(is.na(HH)) < nrow(HH)]
 KK <- dist_diff[!is.na(dist_diff$KonaKona),]
 KK <- rename(KK, diff = KonaKona)
 KK$site<-"Kona"                         
-KK <- KK[ , colSums(is.na(KK)) < nrow(KK)] 
+KK <- KK[ , colSums(is.na(KK)) < nrow(KK)]                        
                          
-LL <- dist_diff[!is.na(dist_diff$Lavalava),]
-LL <- rename(LL, diff = Lavalava)
-LL$site<-"Lava"                         
-LL <- LL[ , colSums(is.na(LL)) < nrow(LL)]                          
-                         
-dist_diff <- rbind(CC, EE, HH, KK, LL)
+dist_diff <- rbind(CC, EE, HH, KK) 
                       
-b <- ggplot(data=dist_diff) + 
-  geom_smooth(method='lm', aes(x=logdist, y=diff, colour=site, fill=site, linetype=site), size=1, alpha=0.20)+
+c <- ggplot(data=dist_diff) + 
+  geom_smooth(method='lm', aes(x=logdist, y=diff, colour=site, fill=site), size=1, alpha=0.20)+ #, linetype=site
   geom_point(aes(x=logdist, y=diff, colour=site), alpha=0.70, size=6, shape=18) + 
+  facet_wrap(~site, nrow=4) +                       
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="Distance vs differentiation within OTUs", x="Log distance (km)", y="Differentiation within OTUs") +
+  labs(title="C.     Distance by haplotype differentiation", x="Log distance (km)", y="Haplotype differentiation") +
   KipukaTheme +
-  guides(color="none", shape="none", fill = guide_legend(ncol=1), linetype="none") +
-  theme(panel.grid.major = element_line(
+  guides(color="none", shape="none", fill="none") +
+  theme(strip.text=element_text(size=45),
+        panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size=1),   
@@ -154,7 +214,7 @@ b <- ggplot(data=dist_diff) +
        legend.position = "right")
 
                          
-jpeg("Figures/distance.jpg", width=2200, height=1000)   
-plot_grid(a, b, ncol = 2, rel_widths = c(1, 1.2))                         
+jpeg("Figures/Figure4.jpg", width=3000, height=4000)   
+plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1))                         
 dev.off()
                          
