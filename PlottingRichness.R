@@ -538,49 +538,22 @@ dev.off()
 #################################################################################
 #Kipuka size versus SR/SROTU
 
-richness_mod <- richness[richness$Site=="Center" | richness$Site=="Edge",]
-richness_mod <- melt(richness_mod, idvars = c("SiteID", "Arealog"), measure = c("SR", "SROTU"))
+#richness_mod <- richness[richness$Site=="Center" | richness$Site=="Edge",]
+#richness_mod <- melt(richness_mod, idvars = c("SiteID", "Arealog"), measure = c("SR", "SROTU"))
+richness_mod_1 <- richness[richness$Site=="Center" | richness$Site=="Edge",]
 
 
 a <- ggplot() + 
-  geom_smooth(method='lm', data=richness_mod,aes(x=Arealog, y=value, colour=Site, linetype=variable, fill=Site), size=1, alpha=0.20)+
-  geom_point(data=richness_mod,aes(x=Arealog, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
-  scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15)) +
+  geom_smooth(method='lm', data=richness_mod_1, aes(x=Arealog, y=SROTU, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
+  geom_point(data=richness_mod_1,aes(x=Arealog, y=SROTU, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
+  #scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15)) +
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
-  scale_fill_manual(values=SiteColors)+                 
+  scale_fill_manual(values=SiteColors)+  
+  facet_wrap(~Site)+                 
   #scale_linetype_discrete(values=c(2,5)) +
-  labs(title="A.   Size vs species richness", x="Log area ("~km^2~")", y="Species richness") +
+  labs(title="A.   Size by 3% OTU richness", x="Log area ("~m^2~")", y="3% OTU richness") +
   KipukaTheme +
-  guides(color="none", shape="none", fill="none") +
-  theme(panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=50), 
-        axis.text = element_text(size=45), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=45), 
-        legend.title = element_blank(),
-       legend.position = "top")
-
-################################################################################
-#haplotype richness within OTUs for Kipuka Centers and Kipuka edges
-
-richness_mod_1 <- richness[richness$Site=="Center" | richness$Site=="Edge",]
-
-b <- ggplot() + 
-  geom_smooth(method='lm', data=richness_mod_1,aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site, fill=Site), size=1, alpha=0.20)+
-  geom_point(data=richness_mod_1,aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site), shape=18, alpha=0.70, size=6, stroke = 3) + 
-  facet_wrap(~Site)+
-  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
-  scale_fill_manual(values=SiteColors, limits = c("Center", "Edge"))+                 
-  labs(title="B.   Size vs haplotype richness within OTUs", x="Log area ("~km^2~")", y="Haplotype richness within OTUs") +
-  KipukaTheme +
-  guides(color="none") +
+  guides(color="none", fill="none") +#shape="none", 
   theme(strip.text = element_text(size = 30), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -597,6 +570,70 @@ b <- ggplot() +
         legend.title = element_blank(),
        legend.position = "top")
 
+b <- ggplot() + 
+  geom_smooth(method='lm', data=richness_mod_1, aes(x=Arealog, y=SR, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
+  geom_point(data=richness_mod_1,aes(x=Arealog, y=SR, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
+  #scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15)) +
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  scale_fill_manual(values=SiteColors)+  
+  facet_wrap(~Site)+                              
+  #scale_linetype_discrete(values=c(2,5)) +
+  labs(title="B.   Size by zOTU richness", x="Log area ("~m^2~")", y="zOTU richness") +
+  KipukaTheme +
+  guides(color="none", fill="none") +#shape="none", 
+  theme(strip.text = element_text(size = 30), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        axis.text = element_text(size=45), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "top")    
+                   
+################################################################################
+#haplotype richness within OTUs for Kipuka Centers and Kipuka edges
+
+#richness_mod_1 <- richness[richness$Site=="Center" | richness$Site=="Edge",]
+
+c <- ggplot() + 
+  geom_smooth(method='lm', data=richness_mod_1,aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site, fill=Site), size=1, alpha=0.20)+
+  geom_point(data=richness_mod_1,aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site), shape=18, alpha=0.70, size=6, stroke = 3) + 
+  facet_wrap(~Site)+
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  scale_fill_manual(values=SiteColors, limits = c("Center", "Edge"))+                 
+  labs(title="B.   Size vs haplotype richness", x="Log area ("~m^2~")", y="Haplotype richness within OTUs") +
+  KipukaTheme +
+  guides(color="none", fill="none") +
+  theme(strip.text = element_text(size = 30), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        axis.text = element_text(size=45), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "top")
+
+###########################################################
+#Plot these three together
+
+jpeg("Figures/Figure3.jpg", width=3000, height=1000)
+plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1))
+dev.off()
+                   
 ################################################################################
 #OTu richness, zOTU richness and haplotype diversity in different site types
 #(Figure 2)
@@ -642,12 +679,6 @@ ggplot() +
         plot.margin = margin(0.2,1,0,1.35, "cm"))
 dev.off()
                    
-###########################################################
-#Plot these three together
-
-#jpeg("Figures/Figure2.jpg", width=3000, height=1000)
-#plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1.3))
-#dev.off()
 
 #################################################################################
 #NMDS plot
