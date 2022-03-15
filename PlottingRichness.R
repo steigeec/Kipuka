@@ -599,19 +599,29 @@ b <- ggplot() +
 
 ################################################################################
 #OTu richness, zOTU richness and haplotype diversity in different site types
-
+#(Figure 2)
+                   
 richness_mod_2 <- melt(richness, idvars = c("SiteID", "Site"), measure = c("SR", "SROTU", "HaplotypeRichnessWithin"))
 richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
 
-c <- ggplot() + 
+# New facet label names for supp variable
+supp.labs <- c("zOTU richness", "3% OTU richness", "Haplotype richness")
+names(supp.labs) <- c("SR", "SROTU", "HaplotypeRichnessWithin")                   
+
+#Reorder facets
+richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("HaplotypeRichnessWithin", "SR", "SROTU")))                     
+                   
+jpeg("Figures/Figure2.jpg", width=1000, height=1000)                   
+ggplot() + 
   geom_boxplot(data=richness_mod_2,aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
   facet_wrap(~variable, scales="free", 
-             labeller = labeller(cyl = 
-                c("SR" = "Species richness",
-                "SROTU" = "OTU richness",
-                "HaplotypeRichnessWithin" = "Haplotype richness")))+
+             #labeller = labeller(cyl = 
+             #   c("SR" = "zOTU richness",
+             #   "SROTU" = "3% OTU richness",
+             #   "HaplotypeRichnessWithin" = "Haplotype richness")))+
+             labeller = labeller(variable = supp.labs)) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="    C.   Size vs haplotype richness within OTUs", x="") +
+  labs(title="Size vs richness by site type", x="") +
   KipukaTheme +
   theme(strip.text = element_text(size = 30), 
         axis.text = element_text(angle=45, size=40), 
@@ -630,13 +640,14 @@ c <- ggplot() +
         legend.title = element_blank(),
        legend.position = "top", 
         plot.margin = margin(0.2,1,0,1.35, "cm"))
-
+dev.off()
+                   
 ###########################################################
 #Plot these three together
 
-jpeg("Figures/Figure2.jpg", width=3000, height=1000)
-plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1.3))
-dev.off()
+#jpeg("Figures/Figure2.jpg", width=3000, height=1000)
+#plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1.3))
+#dev.off()
 
 #################################################################################
 #NMDS plot
