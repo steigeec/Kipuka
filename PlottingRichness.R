@@ -608,7 +608,7 @@ c <- ggplot() +
   facet_wrap(~Site)+
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual(values=SiteColors, limits = c("Center", "Edge"))+                 
-  labs(title="B.   Size vs haplotype richness", x="Log area ("~m^2~")", y="Haplotype richness within OTUs") +
+  labs(title="C.   Size vs haplotype richness", x="Log area ("~m^2~")", y="Haplotype richness within OTUs") +
   KipukaTheme +
   guides(color="none", fill="none") +
   theme(strip.text = element_text(size = 30), 
