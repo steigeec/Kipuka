@@ -1,0 +1,17 @@
+Here is the github:
+https://github.com/tokebe/niclassify
+
+Input file looks exactly like this:
+hdim_beating_niclassify.csv
+join your sequences with mine at the first step (before feature classification)
+in case you decide to add your own seqs to this dataset, you'll need to be careful about aligning them
+NIClassify often messes up the alignment by inserting gaps and/or cutting off the last few bp. 
+definitely make sure to check the alignments that NIClassify produces
+H-trainn.csv: Not all columns in this dataset will be relevant for your project (e.g. "total_reads" and "sort" are just there to help me keep my data organized). The important columns are A-C, J, N, and Q
+I've included some zOTUs with unknown status because as I understand it, you're supposed to have a few unknowns in your training data. So those ones probably won't be of much use to you
+
+Mid stage output file (after features calculation from the sequences, with known status filled in for species greater than 98% confidence):
+HDIM-full3785OTUS
+
+Final output file (with status predictions from machine learning, and a few it got wrong that I replaced):
+niclassify-predictions
