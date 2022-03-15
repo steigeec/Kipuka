@@ -217,4 +217,44 @@ c <- ggplot(data=dist_diff) +
 jpeg("Figures/Figure4.jpg", width=4000, height=3000)   
 plot_grid(a, b, c, nrow = 3, rel_heights = c(1, 1, 1))                         
 dev.off()
-                         
+
+
+#Now summarize beta diversity between site types
+acari_beta<-acari_beta[,c(4, 5, 7)]
+acari_beta$metric <- "3% OTU"
+dist_beta<-dist_beta[,c(2, 3, 4)]
+dist_beta$metric <- "zOTU"
+names(dist_beta)<-c( "log_dist", "dist", "Site.x", "metric")
+dist_diff<-dist_diff[,c(1, 3, 4)] 
+dist_diff$metric <- "Haplotype"
+names(dist_diff)<-c("Site.x", "log_dist", "dist",  "metric")
+
+beta <- rbind(dist_diff, dist_beta, acari_beta) 
+#Reorder facets
+beta$metric <- factor(beta$metric, levels = rev(c("Haplotype", "zOTU", "3% OTU")))                     
+                   
+jpeg("Figures/BetaSummary.jpg", width=1000, height=1000)                   
+ggplot() + 
+  geom_boxplot(data=beta,aes(x=reorder(Site.x, dist), y=dist, fill=Site.x), color="black", size=1)+
+  facet_wrap(~metric, scales="free") +
+  scale_fill_manual(values=SiteColors) +
+  labs(title="Beta diversity by site type", x="") +
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        axis.text = element_text(angle=45, size=40), 
+        axis.title.y = element_blank(), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "top", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))
+dev.off()
