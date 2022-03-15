@@ -54,19 +54,25 @@ rep$prop <- rep$value/rep$totalRichness
                    
 #I want ordered by my sites
 rep$Site <- factor(rep$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava")))  
-rep <- rename(rep, id = ï..ID)                   
+rep <- rename(rep, id = ï..ID) 
+rep$Arealog<-round(as.numeric(rep$Arealog),1)
+rep<-rep %>% dplyr::mutate(Arealog = tidyr::replace_na(Arealog, ""))                   
                 
-jpeg("Figures/Order_Representation.jpg", width=1500, height=1000)
+jpeg("Figures/Order_Representation_1.jpg", width=1500, height=1000)
 ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=prop, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
   labs(title="Proportion") +
   xlab("         [                By increasing size                               ]                                                             ")+                 
-  facet_grid(cols=vars(Site), scales="free", space="free") +             
+  facet_grid(cols=vars(Site), rows=vars(variable), scales="free", space="free") +             
   scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
-  scale_y_continuous(name="Proportion", limits=c(0,1.01), expand = c(0,0))+
+  scale_y_continuous(name="Proportion", expand = c(0,0.2))+
+  #geom_text(aes(label = round(Arealog,1)),vjust=-.25, size=8) +
+  scale_x_discrete(breaks=rep$my_site, labels=rep$Arealog)+                 
   KipukaTheme +
   theme(axis.text.y = element_text(angle=45, size=15, vjust=-1, hjust=1),
-        axis.text.x = element_blank(),
+        axis.text.x = element_text(size=20),
         axis.title.x=element_text(angle=0, size=30),
-        strip.text = element_text(size = 30))
+        strip.background.y = element_blank(),
+        strip.text.y = element_blank(), 
+        strip.text.x = element_text(size=30))
 dev.off()
