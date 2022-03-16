@@ -19,7 +19,7 @@ richness <- read.csv("merged_by_site_2.csv")
 dist_beta <- read.csv("Distance_v_beta.csv")
 dist_diff <- read.csv("Distance_v_differentiation.csv")
 geo_dist<-read.csv("geo_dist.csv")
-OTU <- read.csv("OTUs.csv")
+otu <- read.csv("OTUs.csv")
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -61,10 +61,10 @@ geo_dist<-geo_dist[,c(4, 5)]
 #xy <- t(combn(colnames(geo_dist), 2))
 #geo_dist <- data.frame(xy, dist=geo_dist[xy])
 
-OTU <- OTU[8:67, 29:3051] 
+OTU <- otu[8:67, 29:3051] 
 #Make first column the row names
 OTU["13",1]<-"ZotuID"
-OTU["15",1]<-"OtuID"
+OTU["15",1]<-"3%OTU"
 rownames(OTU) <- OTU[,1]
 OTU <- OTU[,-1]
 OTU<- t(OTU)
@@ -75,7 +75,7 @@ unique(OTU$Order)
 #Classes: Acari
 #Order: (1) "Coleoptera"       (2) "Diptera"          (3) "Hemiptera"        (4) "Lepidoptera"        (5) "Psocoptera"      (6) Aranea 
 
-orders<-c("Coleoptera", "Diptera", "Hemiptera", "Lepidoptera", "Psocoptera", "Araneae")
+orders<-c("Diptera", "Hemiptera", "Lepidoptera", "Psocoptera", "Araneae")
 #
 for (ORDER in 1:length(orders)){
         O<-orders[ORDER]
@@ -130,7 +130,7 @@ acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]
 acari_beta$order <- "Acari"
 
 #Paste all these various dataframes together
-order_all<-rbind(acari_beta, Araneae_beta, Coleoptera_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta) 
+order_all<-rbind(acari_beta, Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta) 
 
 
 jpeg("Figures/Order_beta_diversity.jpg", width=1500, height=2000)
@@ -139,8 +139,8 @@ ggplot(data=order_all) +
   geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual("Site type", values=SiteColors) +
-  labs(title="Distance vs OTU beta diversity", x="Log distance (km)", y="OTU beta diversity") +
-  facet_wrap(~order, ncol=2, nrow=4)+
+  labs(title="Distance vs zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
+  facet_wrap(~order, ncol=2, nrow=3)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.4, 1))+
   guides(colour="none")+
@@ -168,7 +168,7 @@ ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) +
   geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
-  labs(title="Distance vs OTU beta diversity", x="Log distance (km)", y="OTU beta diversity") +
+  labs(title="Distance vs zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
   facet_wrap(~order, ncol=2, nrow=4)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.4, 1))+
@@ -192,7 +192,7 @@ dev.off()
 #################################################################################
 #Repeat the same as above, now for method jaccard
 
-orders<-c("Coleoptera", "Diptera", "Hemiptera", "Lepidoptera", "Psocoptera", "Araneae")
+orders<-c("Diptera", "Hemiptera", "Lepidoptera", "Psocoptera", "Araneae")
 #
 for (ORDER in 1:length(orders)){
         O<-orders[ORDER]
@@ -290,6 +290,95 @@ ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) +
   facet_wrap(~order, ncol=2, nrow=4)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.6, 1))+
+  guides(colour="none")+
+  theme(strip.text = element_text(size = 45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "top")
+dev.off()
+##################################################################################################################################
+#NOW, FOR 3% OTU BETA DIVERSITY
+
+##HERE IS WHERE I'm at... NEED TO POOL FOR 3%OTU
+
+for (ORDER in 1:length(orders)){
+        O<-orders[ORDER]
+        acari <- OTU[OTU$Order==O,] 
+        #get rid of empty rows
+        acari <- acari[rowSums(is.na(acari)) != ncol(acari), ]  
+        acari<-acari[,9:60]
+        #Sites must be rows, and species are columns
+        acari<-as.data.frame(t(as.matrix(acari)))
+        acari[] <- lapply(acari, as.numeric)
+        acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=FALSE)
+        #Convert distance matrix into longform
+        acari_beta<-as.matrix(acari_beta)
+        acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
+        #Add attributes of each site
+        #First we add whether it's center, edge, etc etc etc
+        acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
+        acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
+        #If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
+        acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
+        #Now add the distances between these sites
+        acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
+        acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
+        #remove the same-site pairs
+        acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]
+        acari_beta$order <- O
+        assign(paste0(O, "_beta"), acari_beta)  
+}
+
+# acari!!
+acari <- OTU[OTU$Class=="Acari",] 
+acari <- acari[rowSums(is.na(acari)) != ncol(acari), ]  
+acari<-acari[,9:60]
+#Sites must be rows, and species are columns
+acari<-as.data.frame(t(as.matrix(acari)))
+acari[] <- lapply(acari, as.numeric)
+acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=FALSE)
+#Convert distance matrix into longform
+acari_beta<-as.matrix(acari_beta)
+acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
+#Add attributes of each site
+#First we add whether it's center, edge, etc etc etc
+acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
+acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
+#If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
+acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
+#Now add the distances between these sites
+acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
+acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
+#remove the same-site pairs
+acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]
+acari_beta$order <- "Acari"
+
+#Paste all these various dataframes together
+order_all<-rbind(acari_beta, Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta) 
+
+
+#Save another version of this jpeg, now only highlighting edge and center turnover
+jpeg("Figures/Order_beta_diversity_kipukas.jpg", width=1500, height=2000)
+ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) + 
+  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
+  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
+  labs(title="Distance vs 3% OTU beta diversity", x="Log distance (km)", y="3% OTU beta diversity") +
+  facet_wrap(~order, ncol=2, nrow=4)+
+  KipukaTheme +
+  coord_cartesian(ylim=c(0.4, 1))+
   guides(colour="none")+
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
