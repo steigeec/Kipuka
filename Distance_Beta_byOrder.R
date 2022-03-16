@@ -64,7 +64,7 @@ geo_dist<-geo_dist[,c(4, 5)]
 OTU <- otu[8:67, 29:3051] 
 #Make first column the row names
 OTU["13",1]<-"ZotuID"
-OTU["15",1]<-"3%OTU"
+OTU["14",1]<-"3%OTU"
 rownames(OTU) <- OTU[,1]
 OTU <- OTU[,-1]
 OTU<- t(OTU)
@@ -162,14 +162,14 @@ ggplot(data=order_all) +
 dev.off()
 
 #Save another version of this jpeg, now only highlighting edge and center turnover
-jpeg("Figures/Order_beta_diversity_kipukas.jpg", width=1500, height=2000)
+jpeg("Figures/Order_beta_diversity_kipukas_1.jpg", width=1500, height=2000)
 ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) + 
   geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
   geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
   labs(title="Distance vs zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
-  facet_wrap(~order, ncol=2, nrow=4)+
+  facet_wrap(~order, ncol=2, nrow=3)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.4, 1))+
   guides(colour="none")+
@@ -311,6 +311,12 @@ dev.off()
 #NOW, FOR 3% OTU BETA DIVERSITY
 
 ##HERE IS WHERE I'm at... NEED TO POOL FOR 3%OTU
+otu3<-OTU%>%
+        group_by("3%OTU")%>%
+        summarize(Class="Class", Order="Order", across(9:60, sum))
+otu3<-OTU%>%
+        group_by("3%OTU")%>%
+        summarize(Class="Class", Order="Order", across(9:60, sum))
 
 for (ORDER in 1:length(orders)){
         O<-orders[ORDER]
