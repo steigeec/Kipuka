@@ -55,14 +55,14 @@ richness_mod_0$Area <- round(richness_mod_0$Area, 10)
 #Put in correct order
 #richness_mod_0$Area <- factor(richness_mod_0$Area, levels=c("Lava", "3", "4", "5", "Stainbeck", "Kona"))
 
-jpeg("Figures/Order_Richness_continuous.jpg", width=2000, height=2000)
+jpeg("Figures/Order_Richness_continuous.jpg", width=3000, height=2000)
 ggplot() + 
   geom_point(data=richness_mod_0,aes(x=Area, y=value, colour=Site, fill=Site), size=1)+
   geom_smooth(method='lm', data=richness_mod_0, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
   scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +
   scale_colour_manual(values=SiteColors) +
   facet_wrap(~variable, nrow=2, scales="free") +
-  guides(fill=guide_legend(nrow=2), colour="none") +
+  guides(fill=guide_legend(nrow=1), colour="none") +
   labs(title="", x="Kipuka area ("~m^2~")", y="zOTU richness") +
   scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
