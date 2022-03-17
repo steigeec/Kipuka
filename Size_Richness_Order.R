@@ -13,6 +13,7 @@ library(cowplot)
 library(tidyverse)
 library(vegan)
 font_import()
+library(scales)
 
 
 richness <- read.csv("merged_by_site_2.csv")
@@ -56,12 +57,16 @@ richness_mod_0$Area <- round(richness_mod_0$Area, 10)
 
 jpeg("Figures/Order_Richness_continuous.jpg", width=2000, height=2000)
 ggplot() + 
-  geom_point(data=richness_mod_0,aes(x=Area, y=value, fill=Site), color="black", size=1)+
-  geom_smooth(method='lm', aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
-  scale_fill_manual(values=SiteColors) +
+  geom_point(data=richness_mod_0,aes(x=Area, y=value, colour=Site, fill=Site), size=1)+
+  geom_smooth(method='lm', data=richness_mod_0, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
+  scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +
+  scale_colour_manual(values=SiteColors) +
   facet_wrap(~variable, nrow=2, scales="free") +
-  guides(fill=guide_legend(nrow=2)) +
-  labs(title="Predator v scavenger richness", x="Kipuka area ("~m^2~")", y="zOTU richness") +
+  guides(fill=guide_legend(nrow=2), colour="none") +
+  labs(title="", x="Kipuka area ("~m^2~")", y="zOTU richness") +
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  + 
   KipukaTheme +
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
@@ -74,7 +79,7 @@ ggplot() +
         size = 0.5), 
        axis.title=element_text(size=55), 
         axis.text.y = element_text(size=50, angle=45), 
-        axis.text.x = element_text(size=50, angle=45, vjust=0), 
+        axis.text.x = element_text(size=50, angle=45, vjust=0.5, hjust=0.5), 
         plot.title=element_text(size=55), 
         legend.text=element_text(size=50), 
         legend.title = element_text(size=50),
