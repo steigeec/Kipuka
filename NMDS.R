@@ -47,18 +47,18 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
 
 #Create an NMDS plot with columns MDS1 and MDS2
 richness_mod <- richness
-richness_mod$Arealog[richness_mod$Site=="Lava" & is.na(richness_mod$Arealog)] <- 2
-richness_mod$Arealog[richness_mod$Site=="Kona" & is.na(richness_mod$Arealog)] <- 2
-richness_mod$Arealog[richness_mod$Site=="Stainbeck" & is.na(richness_mod$Arealog)] <- 2
-richness_mod$Arealog<-richness_mod$Arealog^2
+richness_mod$Area<-as.numeric(gsub(",","",as.character(richness_mod$Area)))
+richness_mod$pointsize<-round(sqrt(richness_mod$Area)/10,0)
+richness_mod$pointsize[richness_mod$Site=="Lava" & is.na(richness_mod$pointsize)] <- 2
+richness_mod$pointsize[richness_mod$Site=="Kona" & is.na(richness_mod$pointsize)] <- 2
+richness_mod$pointsize[richness_mod$Site=="Stainbeck" & is.na(richness_mod$pointsize)] <- 2
 
-jpeg("Figures/NMDS_2.jpg", width=1000, height=1000)
+jpeg("Figures/NMDS_4.jpg", width=1000, height=1000)
 ggplot() + 
-  geom_point(data=richness_mod,aes(x=MDS1,y=MDS2,colour=Site, size=(Arealog), shape=Site), alpha=0.70, stroke=3) + 
-  #geom_polygon(data=hull.data,aes(x=MDS1,y=MDS2,fill=grp,group=grp),alpha=0.30) + # add the convex hulls
+  geom_point(data=richness_mod,aes(x=MDS1,y=MDS2,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
   scale_colour_manual(values=SiteColors) +
   scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
-  scale_size_continuous("Log area ("~m^2~")", labels = c("2", "3", "4", "5"), range=c(4,25), breaks=c(4, 9, 16, 25)) +
+  scale_size_continuous("Log area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5)) +
   labs(title="NMDS plot", x="NMDS1", y="NMDS2") +
   coord_equal() +
   scale_y_continuous(limits=c(-1,1.20)) +
