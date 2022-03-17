@@ -12,10 +12,11 @@ library(reshape2)
 library(cowplot)
 library(tidyverse)
 font_import()
+library(scales)
 
 
 richness <- read.csv("merged_by_site_2.csv")
-
+richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -37,26 +38,30 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         text = element_text(family = "serif"), 
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
-
                    
 #################################################################################
 #Kipuka size versus SR/SROTU
+richness_mod_2 <- melt(richness, idvars = c("SiteID", "Site"), measure = c("SR", "SROTU"))
+richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
 
+# New facet label names for supp variable
+supp.labs <- c("zOTU richness", "3% OTU richness")
+names(supp.labs) <- c("SR", "SROTU")                   
+
+#Reorder facets
+richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("SR", "SROTU")))                     
+                               
 a <- ggplot() + 
-  geom_smooth(method='lm', data=richness[richness$Site=="Center" | richness$Site=="Edge",], aes(x=Arealog, y=SROTU, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
-  geom_point(data=richness[richness$Site=="Center" | richness$Site=="Edge",],aes(x=Arealog, y=SROTU, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
-  geom_hline(yintercept=mean(richness$SROTU[richness$Site=="Kona"]), colour="#117733", lwd=3)+
-  geom_hline(yintercept=mean(richness$SROTU[richness$Site=="Stainbeck"]), colour="#999933", lwd=3)+
-  geom_hline(yintercept=mean(richness$SROTU[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
- #scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15)) +
-  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainbeck")) +
-  scale_fill_manual(values=SiteColors)+  
-  facet_wrap(~Site)+                 
-  #scale_linetype_discrete(values=c(2,5)) +
-  labs(title="A.", x="Log area ("~m^2~")", y="3% OTU richness") +
+  geom_boxplot(data=richness_mod_2,aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
+  facet_wrap(~variable, scales="free", 
+             labeller = labeller(variable = supp.labs)) +
+  scale_fill_manual(values=SiteColors) +
+  labs(title="A.", x="") +
   KipukaTheme +
-  guides(color="none", fill="none") +#shape="none", 
-  theme(strip.text = element_text(size = 30), 
+  theme(strip.text = element_text(size = 35), 
+        axis.text.y = element_text(angle=45, size=45), 
+        axis.text.x = element_text(angle=45, size=45, vjust=0.6), 
+        axis.title.y = element_blank(), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -66,12 +71,63 @@ a <- ggplot() +
         linetype = "dotted", 
         size = 0.5), 
        axis.title=element_text(size=50), 
-        axis.text = element_text(size=45), 
         plot.title=element_text(size=50), 
         legend.text=element_text(size=45), 
         legend.title = element_blank(),
-       legend.position = "top")
+       legend.position = "top", 
+        plot.margin = margin(0.2,0,0,0, "cm"))
 
+b<-ggplot() + 
+
+  geom_smooth(method='lm', data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",], aes(x=Area, y=value, colour=Site, fill=Site, linetype=variable), size=1, alpha=0.20)+  
+  geom_point(data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",],aes(x=Area, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
+
+  #geom_hline(yintercept=mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Kona"]), colour="#117733", lwd=2, alpha=0.6, linetype=2)+
+  #geom_text(x=10000, y=(mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Kona"])+20), label="Kona", size=50)+
+  #geom_hline(yintercept=mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Stainbeck"]), colour="#999933", lwd=2, alpha=0.6, linetype=2)+
+  #geom_text(x=10000, y=(mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Stainbeck"])+20), label="Stainbeck", size=50)+
+  #geom_hline(yintercept=mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Lava"]), colour="#888888", lwd=2, alpha=0.6, linetype=2)+
+  #geom_text(x=10000, y=(mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Stainbeck"])+20), label="Lava", size=50)+
+
+  #geom_hline(yintercept=mean(richness$SR[richness$Site=="Kona"]), colour="#117733", lwd=3)+
+  #geom_hline(yintercept=mean(richness$SR[richness$Site=="Stainbeck"]), colour="#999933", lwd=3)+
+  #geom_hline(yintercept=mean(richness$SR[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
+  #geom_text()+
+  scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15), labels=c("SR"="zOTU","SROTU"="3% OTU")) +
+  scale_colour_manual(values=SiteColors) +
+  scale_fill_manual(values=SiteColors)+ 
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +                 
+  facet_wrap(~Site)+                 
+  labs(title="B.", x="Kipuka area ("~m^2~")", y="OTU richness") +
+  KipukaTheme +
+  guides(color="none", fill="none", linetype="none") + 
+  theme(strip.text = element_text(size = 45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        axis.text.y = element_text(size=45), 
+        axis.text.x = element_text(size=45, vjust=0.6), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "top", 
+        plot.margin = margin(0,2.5,0,2.5, "cm"))
+
+jpeg("Figures/Figure3.jpg", width=2000, height=1000)
+plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
+dev.off()                     
+                     
+                     
+##########################################
+#old plot format                     
 b <- ggplot() + 
   geom_smooth(method='lm', data=richness[richness$Site=="Center" | richness$Site=="Edge",], aes(x=Arealog, y=SR, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
   geom_point(data=richness[richness$Site=="Center" | richness$Site=="Edge",],aes(x=Arealog, y=SR, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
@@ -85,7 +141,7 @@ b <- ggplot() +
   labs(title="B.", x="Log area ("~m^2~")", y="zOTU richness") +
   KipukaTheme +
   guides(color="none", fill="none") +#shape="none", 
-  theme(strip.text = element_text(size = 30), 
+  theme(strip.text = element_text(size = 35), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -95,7 +151,8 @@ b <- ggplot() +
         linetype = "dotted", 
         size = 0.5), 
        axis.title=element_text(size=50), 
-        axis.text = element_text(size=45), 
+        axis.text.y = element_text(size=45), 
+        axis.text.x = element_text(size=45, vjust=0.6),  
         plot.title=element_text(size=50), 
         legend.text=element_text(size=45), 
         legend.title = element_blank(),
@@ -135,7 +192,7 @@ c <- ggplot() +
 ###########################################################
 #Plot these three together
 
-jpeg("Figures/Figure3_!.jpg", width=2000, height=1000)
-plot_grid(a, b, ncol = 2, rel_widths = c(1, 1))
-dev.off()
+#jpeg("Figures/Figure3.jpg", width=2000, height=1000)
+#plot_grid(a, b, ncol = 2, rel_widths = c(1, 1))
+#dev.off()
                    
