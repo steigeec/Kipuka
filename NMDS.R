@@ -58,7 +58,7 @@ ggplot() +
   geom_point(data=richness_mod,aes(x=MDS1,y=MDS2,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
   scale_colour_manual(values=SiteColors) +
   scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
-  scale_size_continuous("Log area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5)) +
+  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
   labs(title="NMDS plot", x="NMDS1", y="NMDS2") +
   coord_equal() +
   scale_y_continuous(limits=c(-1,1.20)) +
