@@ -63,9 +63,9 @@ jpeg("Figures/Order_Richness_1.jpg", width=3000, height=2000)
 ggplot() + 
   geom_boxplot(data=richness_mod_0,aes(x=Site, y=value, fill=Site), color="black", size=1)+
   scale_fill_manual(values=SiteColors) +
-  facet_wrap(~variable, nrow=2, ncol=3,scales="free") +
+  facet_wrap(~variable, nrow=2, ncol=3,scales="free_y") +
   guides(fill=guide_legend(nrow=2)) +
-  labs(title="Predator v scavenger richness", x="Log area ("~km^2~")", y="Species richness") +
+  labs(title="", x="", y="zOTU richness") +
   KipukaTheme +
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
@@ -78,7 +78,7 @@ ggplot() +
         size = 0.5), 
        axis.title=element_text(size=55), 
         axis.text.y = element_text(size=50, angle=45), 
-        axis.text.x = element_text(size=50, angle=45, vjust=0), 
+        axis.text.x = element_text(size=50, angle=45, vjust=0.5), 
         plot.title=element_text(size=55), 
         legend.text=element_text(size=50), 
         legend.title = element_text(size=50),
