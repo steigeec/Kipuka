@@ -45,14 +45,15 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
 a <- ggplot() + 
   geom_smooth(method='lm', data=richness[richness$Site=="Center" | richness$Site=="Edge",], aes(x=Arealog, y=SROTU, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
   geom_point(data=richness[richness$Site=="Center" | richness$Site=="Edge",],aes(x=Arealog, y=SROTU, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
-  geom_hline(yintercept=mean(richness$SROTU[richness$Site=="Kona"]), colour="#117733", lwd=1.5)+
-  geom_hline(yintercept=mean(richness$SROTU[richness$Site=="Stainbeck"]), colour="#999933", lwd=1.5)+
+  geom_hline(yintercept=mean(richness$SROTU[richness$Site=="Kona"]), colour="#117733", lwd=3)+
+  geom_hline(yintercept=mean(richness$SROTU[richness$Site=="Stainbeck"]), colour="#999933", lwd=3)+
+  geom_hline(yintercept=mean(richness$SROTU[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
  #scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15)) +
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainbeck")) +
   scale_fill_manual(values=SiteColors)+  
   facet_wrap(~Site)+                 
   #scale_linetype_discrete(values=c(2,5)) +
-  labs(title="A.   Size by 3% OTU richness", x="Log area ("~m^2~")", y="3% OTU richness") +
+  labs(title="A.", x="Log area ("~m^2~")", y="3% OTU richness") +
   KipukaTheme +
   guides(color="none", fill="none") +#shape="none", 
   theme(strip.text = element_text(size = 30), 
@@ -74,13 +75,14 @@ a <- ggplot() +
 b <- ggplot() + 
   geom_smooth(method='lm', data=richness[richness$Site=="Center" | richness$Site=="Edge",], aes(x=Arealog, y=SR, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
   geom_point(data=richness[richness$Site=="Center" | richness$Site=="Edge",],aes(x=Arealog, y=SR, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
-  geom_hline(yintercept=mean(richness$SR[richness$Site=="Kona"]), colour="#117733", lwd=1.5)+
-  geom_hline(yintercept=mean(richness$SR[richness$Site=="Stainbeck"]), colour="#999933", lwd=1.5)+
+  geom_hline(yintercept=mean(richness$SR[richness$Site=="Kona"]), colour="#117733", lwd=3)+
+  geom_hline(yintercept=mean(richness$SR[richness$Site=="Stainbeck"]), colour="#999933", lwd=3)+
+  geom_hline(yintercept=mean(richness$SR[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainbeck")) +
   scale_fill_manual(values=SiteColors)+  
   facet_wrap(~Site)+                              
   #scale_linetype_discrete(values=c(2,5)) +
-  labs(title="B.   Size by zOTU richness", x="Log area ("~m^2~")", y="zOTU richness") +
+  labs(title="B.", x="Log area ("~m^2~")", y="zOTU richness") +
   KipukaTheme +
   guides(color="none", fill="none") +#shape="none", 
   theme(strip.text = element_text(size = 30), 
@@ -105,12 +107,13 @@ b <- ggplot() +
 c <- ggplot() + 
   geom_smooth(method='lm', data=richness[richness$Site=="Center" | richness$Site=="Edge",], aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
   geom_point(data=richness[richness$Site=="Center" | richness$Site=="Edge",],aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
-  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Kona"]), colour="#117733", lwd=1.5)+
-  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Stainbeck"]), colour="#999933", lwd=1.5)+
+  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Kona"]), colour="#117733", lwd=3)+
+  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Stainbeck"]), colour="#999933", lwd=3)+
+  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
   facet_wrap(~Site)+
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainbeck")) +
   scale_fill_manual(values=SiteColors, limits = c("Center", "Edge"))+                 
-  labs(title="C.   Size vs haplotype richness", x="Log area ("~m^2~")", y="Haplotype richness within OTUs") +
+  labs(title="C.", x="Log area ("~m^2~")", y="Haplotype richness within OTUs") +
   KipukaTheme +
   guides(color="none", fill="none") +
   theme(strip.text = element_text(size = 30), 
@@ -132,7 +135,7 @@ c <- ggplot() +
 ###########################################################
 #Plot these three together
 
-jpeg("Figures/Figure3_!.jpg", width=3000, height=1000)
-plot_grid(a, b, c, ncol = 3, rel_widths = c(1, 1, 1))
+jpeg("Figures/Figure3_!.jpg", width=2000, height=1000)
+plot_grid(a, b, ncol = 2, rel_widths = c(1, 1))
 dev.off()
                    
