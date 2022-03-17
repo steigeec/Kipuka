@@ -1,0 +1,104 @@
+#Project: Kipukas                     #
+#Script: NativeNonative_Proportions.R #
+#Author: Emma Steigerwald             #
+#Date:17 Mar 2022                     #
+#######################################
+
+#Set up my working environment
+setwd("G:/My Drive/Kipuka")
+library(ggplot2)
+library(extrafont)
+library(reshape2)
+library(cowplot)
+library(tidyverse)
+font_import()
+library(data.table)
+
+#Establish some color schemes up top to apply to all
+#Colors are from color-blind friendly, rcartocolor "Safe" palette
+SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
+#Establish some themes up top to apply to all
+KipukaTheme <- theme(axis.title=element_text(size=30), 
+        axis.text = element_text(size=25, angle=45), 
+        plot.margin = unit(c(0, 0, 0, 0), "cm"), 
+        plot.title=element_text(size=30), 
+        legend.text=element_text(size=25), 
+        legend.key.height = unit(1, "cm"), 
+        legend.key.width = unit(1.5,"cm"), 
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.background = element_blank(), 
+        legend.background = element_blank(),
+        legend.title = element_text(size=25), 
+        text = element_text(family = "serif"), 
+        legend.box.background = element_rect(fill = "white", color = "black"), 
+        legend.spacing.y = unit(0.1,"cm")) 
+
+richness <- read.csv("NatNonNat.csv")
+                   
+#################################################################################
+#Proportional representation of nat/nonnat                        
+#Stacked bar plot, each site being its own stacked bar, all same height so proportional representation
+
+OTU <- richness[2:nrow(richness),29:814] 
+#Make first column the row names
+OTU["16",1]<-"ZotuID"
+OTU["18",1]<-"3%OTU"
+OTU <- OTU[-c(10),]
+rownames(OTU) <- OTU[,1]
+OTU <- OTU[,-1]
+OTU<- t(OTU)
+OTU<-as.data.frame(OTU)
+OTU<-OTU[,-c(2:16)]
+i <- c(2:ncol(OTU))                                  
+OTU[i] <- apply(OTU[i], 2,            
+                    function(x) as.numeric(as.character(x)))
+sapply(OTU, class) 
+
+#Now summarize native/non-native species per site using apply
+#needs to be data.table for apply to work
+OTU<-setDT(OTU)
+otu<-OTU[, lapply(.SD, sum), by = INVNAT]
+otu<- t(otu)
+otu<-as.data.frame(otu)
+names(otu) <- c("INV", "NAT")
+otu<- otu[-1,]
+i <- c(1:ncol(otu))                                  
+otu[i] <- apply(otu[i], 2,            
+                    function(x) as.numeric(as.character(x)))
+otu$p_nat<-otu$NAT/(otu$INV+otu$NAT)
+otu$p_non<-otu$INV/(otu$INV+otu$NAT)
+otu$Site<-rownames(otu)
+otu<-otu[,-c(1:2)]
+
+#Convert wide to longform for plotting
+otu<- melt(otu, id.vars=c("Site"))
+
+#Join back other data needed to interpret sites
+names(richness)<-richness[c(18),]
+richness<-richness[19:nrow(richness),]
+
+richness<-richness[1:11]
+OTU<-merge(richness, otu, by.x="ID", by.y="Site")
+
+#Order as I want panels to appear in plot
+OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava")))  
+                
+jpeg("Figures/NatNonNat.jpg", width=1500, height=1000)
+ggplot(data=OTU, aes(x=reorder(ID, Arealog), y=value, width=1, fill=variable)) +
+  geom_bar(stat="identity", color="black") + 
+  labs(title="") +
+  xlab(expression("         [                By increasing size ("~m^2~")                          ]                                                             "))+                 
+  facet_grid(cols=vars(Site), scales="free", space="free") +             
+  scale_fill_manual("", values=c('#88CCEE', '#44AA99'), labels=c("p_nat"="Native", "p_non"="Invasive"))+
+  scale_y_continuous(name="Percent composition", expand = c(0,0.3), breaks=seq(0,100,20))+
+  scale_x_discrete(breaks=OTU$ID, labels=OTU$Arealog)+                 
+  KipukaTheme +
+  theme(axis.text.y = element_text(angle=45, size=25, vjust=-.1, hjust=1),
+        axis.text.x = element_text(size=25, vjust=-.001, hjust=-.001),
+        axis.title.x=element_text(angle=0, size=30),
+        strip.background.y = element_blank(),
+        strip.text.y = element_blank(), 
+        strip.text.x = element_text(size=30))
+dev.off()
