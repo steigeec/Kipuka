@@ -56,8 +56,9 @@ geo_dist<-as.matrix(geo_dist)
 geo_dist<-data.frame(col=colnames(geo_dist)[col(geo_dist)], row=rownames(geo_dist)[row(geo_dist)], dist=c(geo_dist))
 #make an index column that reps this particular combination of sites
 geo_dist$index<-paste(geo_dist$col, geo_dist$row, sep="_")
-geo_dist$log_dist<-log(geo_dist$dist+0.00001)
-geo_dist<-geo_dist[,c(4, 5)]
+#geo_dist$log_dist<-log(geo_dist$dist+0.00001)
+geo_dist<-geo_dist[,c(3, 4)]
+names(geo_dist)<c("geo_dist", "index")
 #xy <- t(combn(colnames(geo_dist), 2))
 #geo_dist <- data.frame(xy, dist=geo_dist[xy])
 
@@ -75,7 +76,7 @@ unique(OTU$Order)
 #Classes: Acari
 #Order: (1) "Coleoptera"       (2) "Diptera"          (3) "Hemiptera"        (4) "Lepidoptera"        (5) "Psocoptera"      (6) Aranea 
 
-orders<-c("Diptera", "Hemiptera", "Lepidoptera", "Psocoptera", "Araneae")
+orders<-c("Diptera", "Hemiptera", "Lepidoptera", "Psocoptera", "Araneae", "Coleoptera")
 #
 for (ORDER in 1:length(orders)){
         O<-orders[ORDER]
@@ -86,7 +87,7 @@ for (ORDER in 1:length(orders)){
         #Sites must be rows, and species are columns
         acari<-as.data.frame(t(as.matrix(acari)))
         acari[] <- lapply(acari, as.numeric)
-        acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=FALSE)
+        acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
         #Convert distance matrix into longform
         acari_beta<-as.matrix(acari_beta)
         acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
@@ -112,7 +113,7 @@ acari<-acari[,9:60]
 #Sites must be rows, and species are columns
 acari<-as.data.frame(t(as.matrix(acari)))
 acari[] <- lapply(acari, as.numeric)
-acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=FALSE)
+acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
 #Convert distance matrix into longform
 acari_beta<-as.matrix(acari_beta)
 acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
@@ -135,8 +136,8 @@ order_all<-rbind(acari_beta, Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidop
 
 jpeg("Figures/Order_beta_diversity.jpg", width=1500, height=2000)
 ggplot(data=order_all) + 
-  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual("Site type", values=SiteColors) +
   labs(title="Distance vs zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
@@ -203,7 +204,7 @@ for (ORDER in 1:length(orders)){
         #Sites must be rows, and species are columns
         acari<-as.data.frame(t(as.matrix(acari)))
         acari[] <- lapply(acari, as.numeric)
-        acari_beta <- vegdist(acari, method="jaccard", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=FALSE)
+        acari_beta <- vegdist(acari, method="jaccard", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
         #Convert distance matrix into longform
         acari_beta<-as.matrix(acari_beta)
         acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
@@ -229,7 +230,7 @@ acari<-acari[,9:60]
 #Sites must be rows, and species are columns
 acari<-as.data.frame(t(as.matrix(acari)))
 acari[] <- lapply(acari, as.numeric)
-acari_beta <- vegdist(acari, method="jaccard", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=FALSE)
+acari_beta <- vegdist(acari, method="jaccard", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
 #Convert distance matrix into longform
 acari_beta<-as.matrix(acari_beta)
 acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
@@ -252,8 +253,8 @@ order_all<-rbind(acari_beta, Araneae_beta, Coleoptera_beta, Diptera_beta, Hemipt
 
 jpeg("Figures/Order_beta_diversity_JACCARD.jpg", width=1500, height=2000)
 ggplot(data=order_all) + 
-  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual("Site type", values=SiteColors) +
   labs(title="Distance vs OTU beta diversity (Jaccard)", x="Log distance (km)", y="OTU beta diversity") +
@@ -282,8 +283,8 @@ dev.off()
 #Save an alternate version of this jpeg, highlighting only kipuka data
 jpeg("Figures/Order_beta_diversity_JACCARD_kipukas.jpg", width=1500, height=2000)
 ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) + 
-  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
   labs(title="Distance vs OTU beta diversity (Jaccard)", x="Log distance (km)", y="OTU beta diversity") +
@@ -327,7 +328,7 @@ for (ORDER in 1:length(orders)){
         #Sites must be rows, and species are columns
         acari<-as.data.frame(t(as.matrix(acari)))
         acari[] <- lapply(acari, as.numeric)
-        acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=FALSE)
+        acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
         #Convert distance matrix into longform
         acari_beta<-as.matrix(acari_beta)
         acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
@@ -353,7 +354,7 @@ acari<-acari[,9:60]
 #Sites must be rows, and species are columns
 acari<-as.data.frame(t(as.matrix(acari)))
 acari[] <- lapply(acari, as.numeric)
-acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=FALSE)
+acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
 #Convert distance matrix into longform
 acari_beta<-as.matrix(acari_beta)
 acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
@@ -377,8 +378,8 @@ order_all<-rbind(acari_beta, Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidop
 #Save another version of this jpeg, now only highlighting edge and center turnover
 jpeg("Figures/Order_beta_diversity_kipukas.jpg", width=1500, height=2000)
 ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) + 
-  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
   labs(title="Distance vs 3% OTU beta diversity", x="Log distance (km)", y="3% OTU beta diversity") +
