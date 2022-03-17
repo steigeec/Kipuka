@@ -78,27 +78,39 @@ otu<- melt(otu, id.vars=c("Site"))
 #Join back other data needed to interpret sites
 names(richness)<-richness[c(18),]
 richness<-richness[19:nrow(richness),]
+richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))                       
 
 richness<-richness[1:11]
 OTU<-merge(richness, otu, by.x="ID", by.y="Site")
 
 #Order as I want panels to appear in plot
-OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava")))  
+OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
+OTU$Area<-round(OTU$Area,10)                
+OTU <-OTU[order(OTU$Site, OTU$Area),]
+#Reindex data frame so that it plots this way
+rownames(OTU) <- seq(1,nrow(OTU),1)
+            
+                
+                
+              
                 
 jpeg("Figures/NatNonNat.jpg", width=1500, height=1000)
-ggplot(data=OTU, aes(x=reorder(ID, Arealog), y=value, width=1, fill=variable)) +
+ggplot(data=OTU, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + 
   labs(title="") +
-  xlab(expression("         [                By increasing size ("~m^2~")                          ]                                                             "))+                 
   facet_grid(cols=vars(Site), scales="free", space="free") +             
   scale_fill_manual("", values=c('#88CCEE', '#44AA99'), labels=c("p_nat"="Native", "p_non"="Invasive"))+
-  scale_y_continuous(name="Percent composition", expand = c(0,0.3), breaks=seq(0,100,20))+
-  scale_x_discrete(breaks=OTU$ID, labels=OTU$Arealog)+                 
+  scale_y_continuous(name="Percent composition", expand = c(0,0), breaks=seq(0,1,.2))+
+  scale_x_discrete(labels=my_labels)+              
+  #scale_x_discrete(breaks=OTU$ID, labels=OTU$Area)+ 
+  xlab(expression("         [                By increasing size ("~m^2~")                          ]                                                             "))+                             
   KipukaTheme +
-  theme(axis.text.y = element_text(angle=45, size=25, vjust=-.1, hjust=1),
-        axis.text.x = element_text(size=25, vjust=-.001, hjust=-.001),
+  theme(axis.text.y = element_text(angle=45, size=25, vjust=-.5, hjust=.5),
+        axis.text.x = element_blank(),
+ #       axis.text.x = element_text(size=25, vjust=0.1, hjust=0.1, angle=90),
         axis.title.x=element_text(angle=0, size=30),
         strip.background.y = element_blank(),
         strip.text.y = element_blank(), 
-        strip.text.x = element_text(size=30))
+        strip.text.x = element_text(size=30), 
+        plot.margin = margin(0,0,0,0, "cm"))
 dev.off()
