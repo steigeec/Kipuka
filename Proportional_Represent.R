@@ -62,8 +62,8 @@ rep<-rep %>% dplyr::mutate(Arealog = tidyr::replace_na(Arealog, ""))
                 
 a<- ggplot(data=rep, aes(x=reorder(my_site, Area), y=prop, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
-  labs(title="B.") +
-  xlab(expression("         [                By increasing size (log"~m^2~")                       ]                                                             "))+                 
+  labs(title="A.") +
+  xlab(expression("         [                 By increasing size ("~m^2~")                         ]                                                             "))+                 
   facet_grid(cols=vars(Site), rows=vars(variable), scales="free", space="free") +             
   scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
   scale_y_continuous(name="proportional zOTU representation", expand = c(0,0.1), breaks=seq(0,.60,.20))+
@@ -80,7 +80,7 @@ a<- ggplot(data=rep, aes(x=reorder(my_site, Area), y=prop, width=1, fill=variabl
 b<- ggplot(data=rep, aes(x=reorder(my_site, Area), y=value, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
   labs(title="B.") +
-  xlab(expression("         [                By increasing size (log"~m^2~")                       ]                                                             "))+                 
+  xlab(expression("         [                 By increasing size ("~m^2~")                         ]                                                             "))+                 
   facet_grid(cols=vars(Site), rows=vars(variable), scales="free", space="free") +             
   scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
   scale_y_continuous(name="zOTU count per order", expand = c(0,0.1), breaks=seq(0,100,20))+
