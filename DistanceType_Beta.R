@@ -88,7 +88,7 @@ a <- ggplot(data=acari_beta) +
   facet_wrap(~Site.x, ncol=4)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="A.", x="Log distance (km)", y="3% OTU beta diversity") +
+  labs(title="A.", x="Distance (km)", y="3% OTU beta diversity") +
   KipukaTheme +
   guides(color="none", shape="none", fill ="none", linetype="none") +
   scale_x_continuous(trans='log10',
@@ -148,7 +148,7 @@ b <- ggplot(data=dist_beta) +
   facet_wrap(~site, ncol=4)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="B.", x="Log distance (km)", y="zOTU beta diversity") +
+  labs(title="B.", x="Distance (km)", y="zOTU beta diversity") +
   KipukaTheme +
   guides(color="none", shape="none", fill ="none", linetype="none") +
   scale_x_continuous(trans='log10',
@@ -202,7 +202,7 @@ c <- ggplot(data=dist_diff) +
   facet_wrap(~site, ncol=4) +                       
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="C.", x="Log distance (km)", y="Haplotype differentiation") +
+  labs(title="C.", x="Distance (km)", y="Haplotype differentiation") +
   KipukaTheme +
   guides(color="none", shape="none", fill="none") +
   scale_x_continuous(trans='log10',
@@ -225,8 +225,8 @@ c <- ggplot(data=dist_diff) +
        legend.position = "right")
 
                          
-jpeg("Figures/Figure4.jpg", width=4000, height=3000)   
-plot_grid(a, b, c, nrow = 3, rel_heights = c(1, 1, 1))                         
+jpeg("Figures/Figure4.jpg", width=4000, height=2000)   
+plot_grid(a, b, nrow = 2, rel_heights = c(1, 1))                         
 dev.off()
 
 
