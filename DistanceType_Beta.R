@@ -19,6 +19,8 @@ otu <- read.csv("3OTU.csv")
 dist_diff <- read.csv("Distance_v_differentiation.csv")
 geo_dist<-read.csv("geo_dist.csv")
 richness <- read.csv("merged_by_site_2.csv")
+richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
+
 
 
 #Establish some color schemes up top to apply to all
@@ -86,9 +88,12 @@ a <- ggplot(data=acari_beta) +
   facet_wrap(~Site.x, ncol=4)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="A.     Distance by 3% OTU beta diversity", x="Log distance (km)", y="3% OTU beta diversity") +
+  labs(title="A.", x="Log distance (km)", y="3% OTU beta diversity") +
   KipukaTheme +
   guides(color="none", shape="none", fill ="none", linetype="none") +
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +
   theme(strip.text=element_text(size=45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -143,9 +148,12 @@ b <- ggplot(data=dist_beta) +
   facet_wrap(~site, ncol=4)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="A.     Distance by zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
+  labs(title="B.", x="Log distance (km)", y="zOTU beta diversity") +
   KipukaTheme +
   guides(color="none", shape="none", fill ="none", linetype="none") +
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +
   theme(strip.text=element_text(size=45),
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -194,9 +202,12 @@ c <- ggplot(data=dist_diff) +
   facet_wrap(~site, ncol=4) +                       
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="C.     Distance by haplotype differentiation", x="Log distance (km)", y="Haplotype differentiation") +
+  labs(title="C.", x="Log distance (km)", y="Haplotype differentiation") +
   KipukaTheme +
   guides(color="none", shape="none", fill="none") +
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +                   
   theme(strip.text=element_text(size=45),
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
