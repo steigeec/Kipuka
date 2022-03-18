@@ -19,6 +19,7 @@ dist_beta_0 <- read.csv("Distance_v_beta.csv")
 otu <- read.csv("3OTU.csv")
 dist_diff <- read.csv("Distance_v_differentiation.csv")
 geo_dist<-read.csv("geo_dist.csv")
+nmds<-read.csv("nmds3otu.csv")
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -43,7 +44,37 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
 
                    
 #################################################################################
-#NMDS plot
+#NMDS plot for 3%OTU
+
+#Create an NMDS plot with columns MDS1 and MDS2
+nmds$Area<-as.numeric(gsub(",","",as.character(nmds$Area)))
+nmds$pointsize<-round(sqrt(nmds$Area)/10,0)
+nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 2
+nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
+nmds$pointsize[nmds$Site=="Stainbeck" & is.na(nmds$pointsize)] <- 2
+
+a<- ggplot() + 
+  geom_point(data=nmds,aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  scale_colour_manual(values=SiteColors) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
+  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
+  labs(title="A. ", x="NMDS1", y="NMDS2") +
+  #coord_equal() +
+  scale_y_continuous(limits=c(-1,1.20)) +
+  guides(colour = guide_legend(override.aes = list(size=4))) + 
+  KipukaTheme +
+  theme(panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5),
+        plot.title=element_text(size=50))
+
+#################################################################################
+#NMDS plot for zOTU
 
 #Create an NMDS plot with columns MDS1 and MDS2
 richness_mod <- richness
@@ -178,6 +209,6 @@ c<- ggplot() +
        legend.position = "top", 
         plot.margin = margin(0.2,1,0,1.35, "cm"))
 
-jpeg("Figures/BetaSummary_NMDS.jpg", width=2000, height=1000) 
-plot_grid(b,c)                         
+jpeg("Figures/BetaSummary_NMDS_!.jpg", width=3000, height=1000) 
+plot_grid(a,b,c, nrow=1)                         
 dev.off()
