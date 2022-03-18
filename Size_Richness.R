@@ -77,6 +77,15 @@ a <- ggplot() +
        legend.position = "top", 
         plot.margin = margin(0.2,0,0,0, "cm"))
 
+CenterzOTU <- lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"])
+Center3otu<-lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"])
+EdgezOTU<-lm(richness_mod_2$value[richness_mod_2$variable=="SR" & richness_mod_2$Site=="Edge"]~richness_mod_2$value[richness_mod_2$variable=="SR" & richness_mod_2$Site=="Edge"])
+Edge3otu<-lm(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Edge"]~richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Edge"])
+
+m <- lm(y ~ x)
+r2 = format(summary(m)$r.squared, digits = 3)))                     
+                  
+
 b<-ggplot() + 
 
   geom_smooth(method='lm', data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",], aes(x=Area, y=value, colour=Site, fill=Site, linetype=variable), size=1, alpha=0.20)+  
@@ -124,6 +133,23 @@ b<-ggplot() +
 jpeg("Figures/Figure3.jpg", width=2000, height=1000)
 plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
 dev.off()                     
+ 
+                     
+
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
                      
                      
 ##########################################
