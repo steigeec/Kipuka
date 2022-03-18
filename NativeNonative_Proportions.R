@@ -199,7 +199,7 @@ b<-ggplot(data=plotB, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) 
         strip.text.x = element_text(size=30), 
         plot.margin = margin(0,0,0,0, "cm"))              
                 
-jpeg("Figures/NatNonNat.jpg", width=1500, height=1000)
+jpeg("Figures/NatNonNat.jpg", width=1500, height=700)
 plot_grid(a, b, nrow=2)
 dev.off()
                 
@@ -208,7 +208,7 @@ dev.off()
 #NOW THE SAME FOR ARANEAE ONLY                
 #Proportional representation of nat/nonnat                        
 #Stacked bar plot, each site being its own stacked bar, all same height so proportional representation
-
+richness <- read.csv("NatNonNat.csv")
 OTU <- richness[2:nrow(richness),29:814] 
 #Make first column the row names
 OTU["16",1]<-"ZotuID"
@@ -371,7 +371,7 @@ b<-ggplot(data=plotB, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) 
         strip.text.x = element_text(size=30), 
         plot.margin = margin(0,0,0,0, "cm"))              
                 
-jpeg("Figures/NatNonNat_Araneae.jpg", width=1500, height=1000)
+jpeg("Figures/NatNonNat_Araneae.jpg", width=1500, height=700)
 plot_grid(a, b, nrow=2)
 dev.off()
                 
