@@ -15,6 +15,8 @@ font_import()
 
 
 richness <- read.csv("merged_by_site_2.csv")
+richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
+
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -46,7 +48,7 @@ rep <- richness[1:22]
 i<-seq(15, 21, 1)
 rep[ , i] <- apply(rep[ , i], 2,            # Specify own function within apply
                     function(x) as.numeric(as.character(x)))                         
-rep$totalRichness <- rep$Hemiptera + rep$Hymenoptera + rep$Lepidoptera + rep$Pscoptera +  rep$Acari +  rep$Araneae + rep$Coleoptera + rep$Diptera
+rep$totalRichness <- rep$Hemiptera + rep$Lepidoptera + rep$Pscoptera +  rep$Araneae + rep$Coleoptera + rep$Diptera
                    
 rep <- melt(rep, idvars = c("SiteID", "Site", "totalRichness"), measure.vars = c("Araneae", "Pscoptera", "Hemiptera", "Hymenoptera", "Lepidoptera", "Acari", "Coleoptera", "Diptera"))
 rep$my_site <- paste(rep$Site, rep$SiteID)
@@ -58,21 +60,41 @@ rep <- rename(rep, id = ï..ID)
 rep$Arealog<-round(as.numeric(rep$Arealog),1)
 rep<-rep %>% dplyr::mutate(Arealog = tidyr::replace_na(Arealog, ""))                   
                 
-jpeg("Figures/Order_Representation_1.jpg", width=1500, height=1000)
-ggplot(data=rep, aes(x=reorder(my_site, Arealog), y=value, width=1, fill=variable)) +
+a<- ggplot(data=rep, aes(x=reorder(my_site, Area), y=prop, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
-  labs(title="zOTU count per order by size type") +
+  labs(title="B.") +
   xlab(expression("         [                By increasing size (log"~m^2~")                       ]                                                             "))+                 
   facet_grid(cols=vars(Site), rows=vars(variable), scales="free", space="free") +             
   scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
-  scale_y_continuous(name="zOTU count per order", expand = c(0,0.3), breaks=seq(0,100,20))+
+  scale_y_continuous(name="proportional zOTU representation", expand = c(0,0), breaks=seq(0,.60,.20))+
   #geom_text(aes(label = round(Arealog,1)),vjust=-.25, size=8) +
-  scale_x_discrete(breaks=rep$my_site, labels=rep$Arealog)+                 
+  #scale_x_discrete(breaks=rep$my_site, labels=rep$Arealog)+                 
   KipukaTheme +
-  theme(axis.text.y = element_text(angle=45, size=25, vjust=-.1, hjust=1),
-        axis.text.x = element_text(size=25, vjust=-.001, hjust=-.001),
+  theme(axis.text.x = element_blank(), #element_text(angle=45, size=25, vjust=-.1, hjust=1),
+        axis.text.y = element_text(size=25, vjust=-.001, hjust=-.001),
         axis.title.x=element_text(angle=0, size=30),
         strip.background.y = element_blank(),
         strip.text.y = element_blank(), 
         strip.text.x = element_text(size=30))
+
+b<- ggplot(data=rep, aes(x=reorder(my_site, Area), y=value, width=1, fill=variable)) +
+  geom_bar(stat="identity", color="black") + #, size=0.4, key_glyph = "polygon3"
+  labs(title="B.") +
+  xlab(expression("         [                By increasing size (log"~m^2~")                       ]                                                             "))+                 
+  facet_grid(cols=vars(Site), rows=vars(variable), scales="free", space="free") +             
+  scale_fill_manual("Taxon", values=c('#88CCEE', '#44AA99', '#117733', '#332288', '#DDCC77', '#999933','#CC6677', "black"))+
+  scale_y_continuous(name="zOTU count per order", expand = c(0,0), breaks=seq(0,100,20))+
+  #geom_text(aes(label = round(Arealog,1)),vjust=-.25, size=8) +
+  #scale_x_discrete(breaks=rep$my_site, labels=rep$Arealog)+                 
+  KipukaTheme +
+  theme(axis.text.x = element_blank(), #element_text(angle=45, size=25, vjust=-.1, hjust=1),
+        axis.text.y = element_text(size=25, vjust=-.001, hjust=-.001),
+        axis.title.x=element_text(angle=0, size=30),
+        strip.background.y = element_blank(),
+        strip.text.y = element_blank(), 
+        strip.text.x = element_text(size=30))
+
+                   
+jpeg("Figures/Order_Representation.jpg", width=1500, height=1500)
+plot_grid(a, b, nrow=2, rel_heights=c(1, .75))                   
 dev.off()
