@@ -13,6 +13,7 @@ library(cowplot)
 library(tidyverse)
 library(vegan)
 font_import()
+library(scales)
 
 
 richness <- read.csv("merged_by_site_2.csv")
@@ -42,6 +43,18 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
 
+#Create a function for plotting R2
+eq <- function(x,y) {
+  m <- lm(y ~ x)
+  as.character(
+    as.expression(
+      substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2,
+                list(a = format(coef(m)[1], digits = 4),
+                b = format(coef(m)[2], digits = 4),
+                r2 = format(summary(m)$r.squared, digits = 3)))
+    )
+  )
+}
                    
 #################################################################################
 #Beta diversity across orders
@@ -58,7 +71,7 @@ geo_dist<-data.frame(col=colnames(geo_dist)[col(geo_dist)], row=rownames(geo_dis
 geo_dist$index<-paste(geo_dist$col, geo_dist$row, sep="_")
 #geo_dist$log_dist<-log(geo_dist$dist+0.00001)
 geo_dist<-geo_dist[,c(3, 4)]
-names(geo_dist)<c("geo_dist", "index")
+names(geo_dist)<-c("geo_dist", "index")
 #xy <- t(combn(colnames(geo_dist), 2))
 #geo_dist <- data.frame(xy, dist=geo_dist[xy])
 
@@ -106,32 +119,9 @@ for (ORDER in 1:length(orders)){
         assign(paste0(O, "_beta"), acari_beta)  
 }
 
-# acari!!
-acari <- OTU[OTU$Class=="Acari",] 
-acari <- acari[rowSums(is.na(acari)) != ncol(acari), ]  
-acari<-acari[,9:60]
-#Sites must be rows, and species are columns
-acari<-as.data.frame(t(as.matrix(acari)))
-acari[] <- lapply(acari, as.numeric)
-acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
-#Convert distance matrix into longform
-acari_beta<-as.matrix(acari_beta)
-acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
-#Add attributes of each site
-#First we add whether it's center, edge, etc etc etc
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
-#If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
-acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
-#Now add the distances between these sites
-acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
-acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
-#remove the same-site pairs
-acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]
-acari_beta$order <- "Acari"
 
 #Paste all these various dataframes together
-order_all<-rbind(acari_beta, Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta) 
+order_all<-rbind(Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta, Coleoptera_beta) 
 
 
 jpeg("Figures/Order_beta_diversity.jpg", width=1500, height=2000)
@@ -145,6 +135,10 @@ ggplot(data=order_all) +
   KipukaTheme +
   coord_cartesian(ylim=c(0.4, 1))+
   guides(colour="none")+
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +                   
+  #geom_text(x = min(order_all$geo_dist), y = max(order_all$dist), label = eq(order_all$geo_dist,order_all$dist), parse = TRUE)+                                      
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -165,15 +159,18 @@ dev.off()
 #Save another version of this jpeg, now only highlighting edge and center turnover
 jpeg("Figures/Order_beta_diversity_kipukas_1.jpg", width=1500, height=2000)
 ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) + 
-  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
-  labs(title="Distance vs zOTU beta diversity", x="Log distance (km)", y="zOTU beta diversity") +
+  labs(title="", x="Log distance (km)", y="zOTU beta diversity") +
   facet_wrap(~order, ncol=2, nrow=3)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.4, 1))+
   guides(colour="none")+
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -193,7 +190,7 @@ dev.off()
 #################################################################################
 #Repeat the same as above, now for method jaccard
 
-orders<-c("Diptera", "Hemiptera", "Lepidoptera", "Psocoptera", "Araneae")
+orders<-c("Diptera", "Hemiptera", "Lepidoptera", "Psocoptera", "Araneae", "Coleoptera")
 #
 for (ORDER in 1:length(orders)){
         O<-orders[ORDER]
@@ -223,32 +220,10 @@ for (ORDER in 1:length(orders)){
         assign(paste0(O, "_beta"), acari_beta)  
 }
 
-# acari!!
-acari <- OTU[OTU$Class=="Acari",] 
-acari <- acari[rowSums(is.na(acari)) != ncol(acari), ]  
-acari<-acari[,9:60]
-#Sites must be rows, and species are columns
-acari<-as.data.frame(t(as.matrix(acari)))
-acari[] <- lapply(acari, as.numeric)
-acari_beta <- vegdist(acari, method="jaccard", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
-#Convert distance matrix into longform
-acari_beta<-as.matrix(acari_beta)
-acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
-#Add attributes of each site
-#First we add whether it's center, edge, etc etc etc
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
-#If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
-acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
-#Now add the distances between these sites
-acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
-acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
-#remove the same-site pairs
-acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]
-acari_beta$order <- "Acari"
+
 
 #Paste all these various dataframes together
-order_all<-rbind(acari_beta, Araneae_beta, Coleoptera_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta) 
+order_all<-rbind(Araneae_beta, Coleoptera_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta, Coleoptera_beta) 
 
 
 jpeg("Figures/Order_beta_diversity_JACCARD.jpg", width=1500, height=2000)
@@ -262,6 +237,9 @@ ggplot(data=order_all) +
   KipukaTheme +
   coord_cartesian(ylim=c(0.6, 1))+
   guides(colour="none")+
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -292,6 +270,9 @@ ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) +
   KipukaTheme +
   coord_cartesian(ylim=c(0.6, 1))+
   guides(colour="none")+
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +                   
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -347,32 +328,9 @@ for (ORDER in 1:length(orders)){
         assign(paste0(O, "_beta"), acari_beta)  
 }
 
-# acari!!
-acari <- OTU[OTU$Class=="Acari",] 
-acari <- acari[rowSums(is.na(acari)) != ncol(acari), ]  
-acari<-acari[,9:60]
-#Sites must be rows, and species are columns
-acari<-as.data.frame(t(as.matrix(acari)))
-acari[] <- lapply(acari, as.numeric)
-acari_beta <- vegdist(acari, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
-#Convert distance matrix into longform
-acari_beta<-as.matrix(acari_beta)
-acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
-#Add attributes of each site
-#First we add whether it's center, edge, etc etc etc
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
-#If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
-acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
-#Now add the distances between these sites
-acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
-acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
-#remove the same-site pairs
-acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]
-acari_beta$order <- "Acari"
 
 #Paste all these various dataframes together
-order_all<-rbind(acari_beta, Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta) 
+order_all<-rbind(Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta, Coleoptera_beta) 
 
 
 #Save another version of this jpeg, now only highlighting edge and center turnover
@@ -387,6 +345,9 @@ ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) +
   KipukaTheme +
   coord_cartesian(ylim=c(0.4, 1))+
   guides(colour="none")+
+    scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +                   
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
