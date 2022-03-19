@@ -226,7 +226,7 @@ b<-ggplot(data=plotB, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) 
         plot.margin = margin(0,0,0,0, "cm"))              
 
 B<-ggplot() + 
-  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
+  geom_boxplot(data=plotB[plotB$variable=="p_non",],aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
   scale_fill_manual(values=SiteColors) +
   scale_y_continuous(name="Percent invasive OTUs")+              
   labs(title="B.", x="") +
@@ -453,7 +453,7 @@ b<-ggplot(data=plotB, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) 
 
 
 B<-ggplot() + 
-  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
+  geom_boxplot(data=plotB[plotB$variable=="p_non",],aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
   scale_fill_manual(values=SiteColors) +
   scale_y_continuous(name="Percent invasive OTUs")+              
   labs(title="B.", x="") +
