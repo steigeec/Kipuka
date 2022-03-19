@@ -109,6 +109,32 @@ a<-ggplot(data=plotA, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) 
         strip.text.y = element_blank(), 
         strip.text.x = element_text(size=30), 
         plot.margin = margin(0,0,0,0, "cm"))
+
+                  
+A<-ggplot() + 
+  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
+  scale_fill_manual(values=SiteColors) +
+  scale_y_continuous(name="Percent invasive reads")+              
+  labs(title="A.", x="") +
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        axis.text = element_text(angle=45, size=40), 
+        axis.title.y = element_text(size=40), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "right", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))              
+                
                 
 ####################################################################################################
 #Also do in terms of species richness of nat/non-nat
@@ -198,10 +224,39 @@ b<-ggplot(data=plotB, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) 
         strip.text.y = element_blank(), 
         strip.text.x = element_text(size=30), 
         plot.margin = margin(0,0,0,0, "cm"))              
+
+B<-ggplot() + 
+  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
+  scale_fill_manual(values=SiteColors) +
+  scale_y_continuous(name="Percent invasive OTUs")+              
+  labs(title="B.", x="") +
+  guides(fill="none") +             
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        axis.text = element_text(angle=45, size=40), 
+        axis.title.y = element_text(size=40), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "top", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))  
                 
 jpeg("Figures/NatNonNat.jpg", width=1500, height=700)
 plot_grid(a, b, nrow=2)
 dev.off()
+                
+jpeg("Figures/NatNonNat_box.jpg", width=1500, height=1000)
+plot_grid(A, B, ncol=2, rel_widths=c(1, .7))
+dev.off()                
                 
                 
 #################################################################################
@@ -279,6 +334,30 @@ a<-ggplot(data=plotA, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) 
         strip.text.y = element_blank(), 
         strip.text.x = element_text(size=30), 
         plot.margin = margin(0,0,0,0, "cm"))
+
+A<-ggplot() + 
+  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
+  scale_fill_manual(values=SiteColors) +
+  scale_y_continuous(name="Percent invasive reads")+              
+  labs(title="A.", x="") +
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        axis.text = element_text(angle=45, size=40), 
+        axis.title.y = element_text(size=40), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "right", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))                      
                 
 ####################################################################################################
 #Also do in terms of species richness of nat/non-nat
@@ -370,6 +449,38 @@ b<-ggplot(data=plotB, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) 
         strip.text.y = element_blank(), 
         strip.text.x = element_text(size=30), 
         plot.margin = margin(0,0,0,0, "cm"))              
+                
+
+
+B<-ggplot() + 
+  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
+  scale_fill_manual(values=SiteColors) +
+  scale_y_continuous(name="Percent invasive OTUs")+              
+  labs(title="B.", x="") +
+  guides(fill="none") +             
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        axis.text = element_text(angle=45, size=40), 
+        axis.title.y = element_text(size=40), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "top", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))  
+                
+                
+jpeg("Figures/NatNonNat_Araneaebox.jpg", width=1500, height=1000)
+plot_grid(A, B, ncol=2, rel_widths=c(1, .7))
+dev.off()                  
                 
 jpeg("Figures/NatNonNat_Araneae.jpg", width=1500, height=700)
 plot_grid(a, b, nrow=2)
