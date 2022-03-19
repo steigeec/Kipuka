@@ -20,16 +20,19 @@ otu <- read.csv("3OTU.csv")
 dist_diff <- read.csv("Distance_v_differentiation.csv")
 geo_dist<-read.csv("geo_dist.csv")
 nmds<-read.csv("nmds3otu.csv")
+BC<-read.csv("BC.csv")
+BC3<-read.csv("BC3.csv")
+CE<-read.csv("C-E.csv")
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
-SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
+SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933", "C-E"="black", "C-F"="white")
 #Establish some themes up top to apply to all
-KipukaTheme <- theme(axis.title=element_text(size=30), 
-        axis.text = element_text(size=25, angle=45), 
+KipukaTheme <- theme(axis.title=element_text(size=50), 
+        axis.text = element_text(size=25, angle=50), 
         plot.margin = unit(c(0, 0, 0, 0), "cm"), 
-        plot.title=element_text(size=30), 
-        legend.text=element_text(size=25), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=40), 
         legend.key.height = unit(1, "cm"), 
         legend.key.width = unit(1.5,"cm"), 
         panel.background = element_blank(), 
@@ -37,7 +40,7 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         panel.grid.minor = element_blank(), 
         plot.background = element_blank(), 
         legend.background = element_blank(),
-        legend.title = element_text(size=25), 
+        legend.title = element_text(size=40), 
         text = element_text(family = "serif"), 
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
@@ -60,7 +63,7 @@ a<- ggplot() +
   scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
   labs(title="A. ", x="NMDS1", y="NMDS2") +
   #coord_equal() +
-  scale_y_continuous(limits=c(-1,1.20)) +
+  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
   guides(colour = guide_legend(override.aes = list(size=4))) + 
   KipukaTheme +
   theme(panel.grid.major = element_line(
@@ -92,7 +95,7 @@ b<- ggplot() +
   labs(title="B. ", x="NMDS1", y="NMDS2") +
   #coord_equal() +
   scale_y_continuous(limits=c(-1,1.20)) +
-  guides(colour = guide_legend(override.aes = list(size=4))) + 
+  guides(colour = "none", size="none", shape="none") + 
   KipukaTheme +
   theme(panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -107,6 +110,39 @@ b<- ggplot() +
 
 ######################################################33
 #Beta diversity summary plot (C)
+
+#Grab beta diversity between centers and each continuous forest type
+#First, zOTU between them
+colnames(BC)<- gsub('[X]', '', colnames(BC))
+rownames(BC)<-BC[,1]
+BC<-BC[,-1]
+df <- data.frame(matrix(ncol = 4, nrow = 0))
+names(df)<-c("log_dist", "dist", "Site.x", "metric")
+out_row<-1
+for (ROW in 1:nrow(BC)){
+        for (COL in 1:ncol(BC)){             
+                df[out_row,2]<-BC[ROW,COL] 
+                df[out_row,4]<-"zOTU"
+                df[out_row,3]<-"C-F"
+                out_row<-out_row+1
+        }        
+}
+
+#Now for 3%OTU
+colnames(BC3)<- gsub('[X]', '', colnames(BC3))
+rownames(BC3)<-BC3[,1]
+BC3<-BC3[,-1]
+df3 <- data.frame(matrix(ncol = 4, nrow = 0))
+names(df3)<-c("log_dist", "dist", "Site.x", "metric")
+out_row<-1
+for (ROW in 1:nrow(BC3)){
+        for (COL in 1:ncol(BC3)){             
+                df3[out_row,2]<-BC3[ROW,COL] 
+                df3[out_row,4]<-"3% OTU"
+                df3[out_row,3]<-"C-F"
+                out_row<-out_row+1
+        }        
+}
 
 #Wrange geo distances
 rownames(geo_dist) <- geo_dist[,1]
@@ -152,26 +188,26 @@ dist_beta[ , i] <- apply(dist_beta[ , i], 2,            # Specify own function w
 
 Center <- dist_beta[!is.na(dist_beta$Center),]
 Center$site <- "Center"
-Center <- rename(Center, beta = Center)
+Center <- rename(Center, c("Center"="beta"))
 Center <- Center[ , colSums(is.na(Center)) < nrow(Center)]                    
                          
 Stainbeck <- dist_beta[!is.na(dist_beta$Stainbeck),]
 Stainbeck$site <- "Stainbeck"  
-Stainbeck <- rename(Stainbeck, beta = Stainbeck)
+Stainbeck <- rename(Stainbeck, c("Stainbeck"="beta"))
 Stainbeck <- Stainbeck[ , colSums(is.na(Stainbeck)) < nrow(Stainbeck)]   
                          
 Kona <- dist_beta[!is.na(dist_beta$Kona),]
 Kona$site <- "Kona"
-Kona <- rename(Kona, beta = Kona)
+Kona <- rename(Kona, c("Kona"="beta"))
 Kona <- Kona[ , colSums(is.na(Kona)) < nrow(Kona)]   
                          
 Edge <- dist_beta[!is.na(dist_beta$Edge),]
 Edge$site <- "Edge"
-Edge <- rename(Edge, beta = Edge)
+Edge <- rename(Edge, c("Edge"="beta"))
 Edge <- Edge[ , colSums(is.na(Edge)) < nrow(Edge)] 
                          
 dist_beta <- rbind(Center, Stainbeck, Kona, Edge)
-dist_beta <- rename(dist_beta, dist = ï..dist)                         
+dist_beta <- rename(dist_beta, c("ï..dist"="dist"))                         
 
 
 #Now summarize beta diversity between site types
@@ -181,9 +217,10 @@ dist_beta<-dist_beta[,c(2, 3, 4)]
 dist_beta$metric <- "zOTU"
 names(dist_beta)<-c( "log_dist", "dist", "Site.x", "metric")
 
-beta <- rbind(dist_beta, acari_beta) 
+beta <- rbind(dist_beta, acari_beta, CE, df, df3) 
 #Reorder facets
-beta$metric <- factor(beta$metric, levels = rev(c("zOTU", "3% OTU")))                                                          
+beta$metric <- factor(beta$metric, levels = rev(c("zOTU", "3% OTU")))   
+                        
                    
 c<- ggplot() + 
   geom_boxplot(data=beta,aes(x=reorder(Site.x, dist), y=dist, fill=Site.x), color="black", size=1)+
@@ -191,8 +228,9 @@ c<- ggplot() +
   scale_fill_manual(values=SiteColors) +
   labs(title="C.", x="") +
   KipukaTheme +
-  theme(strip.text = element_text(size = 30), 
-        axis.text = element_text(angle=45, size=40), 
+  theme(strip.text = element_text(size = 50), 
+        axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
+        axis.text.y = element_text(angle=45, size=50), 
         axis.title.y = element_blank(), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -204,11 +242,11 @@ c<- ggplot() +
         size = 0.5), 
        axis.title=element_text(size=50), 
         plot.title=element_text(size=50), 
-        legend.text=element_text(size=45), 
+        legend.text=element_text(size=40), 
         legend.title = element_blank(),
        legend.position = "top", 
         plot.margin = margin(0.2,1,0,1.35, "cm"))
 
 jpeg("Figures/BetaSummary_NMDS_!.jpg", width=3000, height=1000) 
-plot_grid(a,b,c, nrow=1)                         
+plot_grid(a,b,c, nrow=1, rel_widths=c(1.3, .9, 1), rel_heights=c(1,1,1))                         
 dev.off()
