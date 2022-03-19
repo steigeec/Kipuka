@@ -64,7 +64,7 @@ a<- ggplot() +
   labs(title="A. ", x="NMDS1", y="NMDS2") +
   #coord_equal() +
   scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(colour = guide_legend(override.aes = list(size=4))) + 
+  guides(colour = guide_legend(override.aes = list(size=4)), size="none") + 
   KipukaTheme +
   theme(panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
