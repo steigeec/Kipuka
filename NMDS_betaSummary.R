@@ -57,14 +57,14 @@ nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
 nmds$pointsize[nmds$Site=="Stainbeck" & is.na(nmds$pointsize)] <- 2
 
 a<- ggplot() + 
-  geom_point(data=nmds,aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  scale_colour_manual(values=SiteColors) +
+  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainbeck")) +
   scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
   scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
   labs(title="A. ", x="NMDS1", y="NMDS2") +
   #coord_equal() +
   scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(colour = guide_legend(override.aes = list(size=4)), size="none") + 
+  #guides(colour = guide_legend(override.aes = list(size=4))) + 
   KipukaTheme +
   theme(panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
