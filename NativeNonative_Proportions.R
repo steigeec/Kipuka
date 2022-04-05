@@ -326,7 +326,7 @@ dev.off()
 #NOW THE SAME FOR ARANEAE ONLY                
 #Proportional representation of nat/nonnat                        
 #Stacked bar plot, each site being its own stacked bar, all same height so proportional representation
-richness <- read.csv("NatNonNat.csv")
+richness <- read.csv("NatNonNat.csv")               
 OTU <- richness[2:nrow(richness),29:814] 
 #Make first column the row names
 OTU["16",1]<-"ZotuID"
@@ -362,6 +362,7 @@ otu<-otu[,-c(1:2)]
 
 #Convert wide to longform for plotting
 otu<- melt(otu, id.vars=c("Site"))
+otu <- otu[otu$Site != "1K08E" & otu$Site != "1K08C",]                      
 
 #Join back other data needed to interpret sites
 names(richness)<-richness[c(18),]
@@ -381,7 +382,7 @@ plotA$Site <- factor(plotA$Site, levels = rev(c("Kona","Stainbeck",  "Center", "
 bp <- ggplot() + 
   geom_boxplot(data=plotA[plotA$variable!="p_non",],aes(x=Site, y=value, fill=Site), color="black", size=1)+
   scale_fill_manual(values=SiteColors) +
-  labs(title="", x="") +
+  labs(title="A. ", x="") +
   KipukaTheme +
   theme(strip.text = element_text(size = 30), 
         axis.text = element_text(angle=45, size=40), 
@@ -398,7 +399,7 @@ bp <- ggplot() +
         plot.title=element_text(size=50), 
         legend.text=element_text(size=45), 
         legend.title = element_blank(),
-       legend.position = "top", 
+       legend.position = "left", 
         plot.margin = margin(0.2,1,0,1.35, "cm"))
                 
 #######################################                
@@ -457,8 +458,9 @@ A1<-ggplot() +
   geom_smooth(method='lm', data=subsetA, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
   scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +              
   scale_y_continuous(name="Proportion invasive reads")+              
-  labs(title="A.", x="") +
+  labs(title="B.", x="") +
   KipukaTheme +
+  guides(colour="none", fill="none")+
   scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +              
@@ -535,6 +537,7 @@ otu<-otu[,-c(1:2)]
 
 #Convert wide to longform for plotting
 otu<- melt(otu, id.vars=c("Site"))
+otu <- otu[otu$Site != "1K08E" & otu$Site != "1K08C",]                      
 
 #Join back other data needed to interpret sites
 names(richness)<-richness[c(18),]
@@ -606,7 +609,7 @@ B1<-ggplot() +
   geom_smooth(method='lm', data=subsetB, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
   scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +
   scale_y_continuous(name="Proportion invasive OTUs")+              
-  labs(title="B.", x="") +
+  labs(title="C.", x="") +
   guides(colour="none", fill="none")+
   KipukaTheme +              
 scale_x_continuous(trans='log10',
@@ -628,7 +631,7 @@ scale_x_continuous(trans='log10',
         plot.margin = margin(0.2,1,0,1.35, "cm"))
                      
 jpeg("Figures/NatNonNat_AraneaeScatter.jpg", width=3000, height=1000)
-plot_grid(bp, A1, B1, ncol=3, rel_widths=c(1, 1.15, 1))
+plot_grid(bp, A1, B1, ncol=3, rel_widths=c(1.15, 1, 1))
 dev.off()                   
                 
                 
