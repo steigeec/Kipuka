@@ -293,8 +293,8 @@ nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 2
 nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
 nmds$pointsize[nmds$Site=="Stainbeck" & is.na(nmds$pointsize)] <- 2
 
-nmds <- nmds[nmds$Site != "1K08E" & nmds$Site != "1K08C",] 
-nmds <- nmds[nmds$Site != "1K08E" & nmds$Site != "1K08C" & nmds$Area>22000,]                      
+nmds <- nmds[nmds$ID != "1K08E" & nmds$ID != "1K08C",] 
+nmds <- nmds[nmds$Site=="Lava" | nmds$Site=="Kona" | nmds$Site=="Stainbeck" |  nmds$Area>5000,]                      
 
 a <- ggplot() + 
   geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
@@ -316,7 +316,7 @@ a <- ggplot() +
         size = 0.5),
         plot.title=element_text(size=50))
 
-######################################################33
+######################################################
 #Beta diversity summary plot (B)
 
 #Grab beta diversity between centers and each continuous forest type
@@ -386,7 +386,7 @@ acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]
 #Remove flipped pairs
 acari_beta <- acari_beta%>% distinct(dist, .keep_all= TRUE)
 acari_beta$dist<-as.numeric(acari_beta$dist)
-acari_beta<-acari_beta[acari_beta$Area>22000,]                     
+acari_beta<-acari_beta[acari_beta$Site.x=="Lava" | acari_beta$Site.x=="Kona" | acari_beta$Site.x=="Stainbeck" |  acari_beta$Area>5000,]                     
 
 #Maybe join together tables of each part...?
 dist_beta <- dist_beta_0[,1:7]
@@ -468,7 +468,7 @@ b<- ggplot() +
 #######################################################
 #Bray curtis center-edge pairs only
 CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
-CE<- CE[CE$Area>22000]                         
+CE<- CE[CE$Area>5000,]                                              
                          
 c<-ggplot(data=CE[CE$metric=="3% OTU",]) + 
   geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
