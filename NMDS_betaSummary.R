@@ -15,6 +15,7 @@ font_import()
 
 
 richness <- read.csv("merged_by_site_2.csv")
+richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
 dist_beta_0 <- read.csv("Distance_v_beta.csv")
 otu <- read.csv("3OTU.csv")
 dist_diff <- read.csv("Distance_v_differentiation.csv")
@@ -56,15 +57,17 @@ nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 2
 nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
 nmds$pointsize[nmds$Site=="Stainbeck" & is.na(nmds$pointsize)] <- 2
 
-a<- ggplot() + 
+nmds <- nmds[nmds$Site != "1K08E" & nmds$Site != "1K08C",] 
+
+a <- ggplot() + 
   geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainbeck")) +
   scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
   scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="A. ", x="NMDS1", y="NMDS2") +
+  labs(title="A.", x="NMDS1", y="NMDS2") +
   #coord_equal() +
   scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  #guides(colour = guide_legend(override.aes = list(size=4))) + 
+  guides(colour = guide_legend(override.aes = list(size=4))) + 
   KipukaTheme +
   theme(panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -75,41 +78,9 @@ a<- ggplot() +
         linetype = "dotted", 
         size = 0.5),
         plot.title=element_text(size=50))
-
-#################################################################################
-#NMDS plot for zOTU
-
-#Create an NMDS plot with columns MDS1 and MDS2
-richness_mod <- richness
-richness_mod$Area<-as.numeric(gsub(",","",as.character(richness_mod$Area)))
-richness_mod$pointsize<-round(sqrt(richness_mod$Area)/10,0)
-richness_mod$pointsize[richness_mod$Site=="Lava" & is.na(richness_mod$pointsize)] <- 2
-richness_mod$pointsize[richness_mod$Site=="Kona" & is.na(richness_mod$pointsize)] <- 2
-richness_mod$pointsize[richness_mod$Site=="Stainbeck" & is.na(richness_mod$pointsize)] <- 2
-
-b<- ggplot() + 
-  geom_point(data=richness_mod,aes(x=MDS1,y=MDS2,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  scale_colour_manual(values=SiteColors) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
-  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="B. ", x="NMDS1", y="NMDS2") +
-  #coord_equal() +
-  scale_y_continuous(limits=c(-1,1.20)) +
-  guides(colour = "none", size="none", shape="none") + 
-  KipukaTheme +
-  theme(panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5),
-        plot.title=element_text(size=50))
-
 
 ######################################################33
-#Beta diversity summary plot (C)
+#Beta diversity summary plot (B)
 
 #Grab beta diversity between centers and each continuous forest type
 #First, zOTU between them
@@ -188,26 +159,31 @@ dist_beta[ , i] <- apply(dist_beta[ , i], 2,            # Specify own function w
 
 Center <- dist_beta[!is.na(dist_beta$Center),]
 Center$site <- "Center"
-Center <- rename(Center, c("Center"="beta"))
+Center <- rename(Center, c("beta"="Center"))
 Center <- Center[ , colSums(is.na(Center)) < nrow(Center)]                    
                          
 Stainbeck <- dist_beta[!is.na(dist_beta$Stainbeck),]
 Stainbeck$site <- "Stainbeck"  
-Stainbeck <- rename(Stainbeck, c("Stainbeck"="beta"))
+Stainbeck <- rename(Stainbeck, c("beta"="Stainbeck"))
 Stainbeck <- Stainbeck[ , colSums(is.na(Stainbeck)) < nrow(Stainbeck)]   
                          
 Kona <- dist_beta[!is.na(dist_beta$Kona),]
 Kona$site <- "Kona"
-Kona <- rename(Kona, c("Kona"="beta"))
+Kona <- rename(Kona, c("beta"="Kona"))
 Kona <- Kona[ , colSums(is.na(Kona)) < nrow(Kona)]   
                          
 Edge <- dist_beta[!is.na(dist_beta$Edge),]
 Edge$site <- "Edge"
-Edge <- rename(Edge, c("Edge"="beta"))
+Edge <- rename(Edge, c("beta"="Edge"))
 Edge <- Edge[ , colSums(is.na(Edge)) < nrow(Edge)] 
                          
-dist_beta <- rbind(Center, Stainbeck, Kona, Edge)
-dist_beta <- rename(dist_beta, c("ï..dist"="dist"))                         
+Lava <- dist_beta[!is.na(dist_beta$Lava),]
+Lava$site <- "Lava"
+Lava <- rename(Lava, c("beta"="Lava"))
+Lava <- Lava[ , colSums(is.na(Lava)) < nrow(Lava)]                          
+                         
+dist_beta <- rbind(Center, Stainbeck, Kona, Edge, Lava)
+dist_beta <- rename(dist_beta, c("dist"="ï..dist"))                         
 
 
 #Now summarize beta diversity between site types
@@ -220,14 +196,16 @@ names(dist_beta)<-c( "log_dist", "dist", "Site.x", "metric")
 beta <- rbind(dist_beta, acari_beta, CE, df, df3) 
 #Reorder facets
 beta$metric <- factor(beta$metric, levels = rev(c("zOTU", "3% OTU")))   
-                        
+beta <- beta[beta$Site != "1K08E" & beta$Site != "1K08C",]
+beta <- beta[beta$Site.x != "C-F" & beta$Site.x != "C-E",]
                    
-c<- ggplot() + 
-  geom_boxplot(data=beta,aes(x=reorder(Site.x, dist), y=dist, fill=Site.x), color="black", size=1)+
-  facet_wrap(~metric, scales="free") +
+b<- ggplot() + 
+  geom_boxplot(data=beta[beta$metric=="3% OTU",],aes(x=reorder(Site.x, dist), y=dist, fill=Site.x), color="black", size=1)+
+  #facet_wrap(~metric, scales="free") +
   scale_fill_manual(values=SiteColors) +
-  labs(title="C.", x="") +
+  labs(title="B.", x="") +
   KipukaTheme +
+  guides(fill="none")+                       
   theme(strip.text = element_text(size = 50), 
         axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
         axis.text.y = element_text(angle=45, size=50), 
@@ -247,6 +225,86 @@ c<- ggplot() +
        legend.position = "top", 
         plot.margin = margin(0.2,1,0,1.35, "cm"))
 
-jpeg("Figures/BetaSummary_NMDS_!.jpg", width=3000, height=1000) 
+#######################################################
+#Bray curtis center-edge pairs only
+CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
+                         
+c<-ggplot(data=CE[CE$metric=="3% OTU",]) + 
+  geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
+  geom_point(aes(x=Area, y=dist), colour="#6699CC", fill="#332288", alpha=0.70, size=8, shape=21, stroke=5) + 
+  labs(title="C.", x="Kipuka area ("~m^2~")", y="3% OTU beta diversity") +
+  KipukaTheme +
+  #coord_cartesian(ylim=c(0.4, 1))+
+  guides(colour="none")+
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +                   
+  theme(strip.text = element_text(size = 45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "top")                         
+
+
+#######################################################
+jpeg("Figures/NMDS-turnover.jpg", width=3000, height=1000) 
 plot_grid(a,b,c, nrow=1, rel_widths=c(1.3, .9, 1), rel_heights=c(1,1,1))                         
 dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#################################################################################
+#NMDS plot for zOTU
+
+#Create an NMDS plot with columns MDS1 and MDS2
+richness_mod <- richness
+richness_mod$Area<-as.numeric(gsub(",","",as.character(richness_mod$Area)))
+richness_mod$pointsize<-round(sqrt(richness_mod$Area)/10,0)
+richness_mod$pointsize[richness_mod$Site=="Lava" & is.na(richness_mod$pointsize)] <- 2
+richness_mod$pointsize[richness_mod$Site=="Kona" & is.na(richness_mod$pointsize)] <- 2
+richness_mod$pointsize[richness_mod$Site=="Stainbeck" & is.na(richness_mod$pointsize)] <- 2
+richness_mod <- richness_mod[richness_mod$Site != "1K08E" & richness_mod$Site != "1K08C",] 
+
+jpeg("Figures/NMDS_zOTU.jpg", width=1400, height=1100)
+ggplot() + 
+  geom_point(data=richness_mod,aes(x=MDS1,y=MDS2,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  scale_colour_manual(values=SiteColors) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
+  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
+  labs(title="", x="NMDS1", y="NMDS2") +
+  #coord_equal() +
+  scale_y_continuous(limits=c(-1,1.20)) +
+  #guides(colour = "none", size="none", shape="none") + 
+  KipukaTheme +
+  theme(panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5),
+        plot.title=element_text(size=50))
+dev.off()
+
