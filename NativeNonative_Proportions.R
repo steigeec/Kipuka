@@ -374,11 +374,38 @@ OTU<-merge(richness, otu, by.x="ID", by.y="Site")
 #Order as I want panels to appear in plot
 OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
 OTU$variable <- factor(OTU$variable, levels = rev(c("p_nat", "p_non")))                 
-OTU$Area<-round(OTU$Area,10)                
+OTU$Area<-round(OTU$Area,10)    
+plotA<-OTU                
+plotA$Site <- factor(plotA$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
+                
+bp <- ggplot() + 
+  geom_boxplot(data=plotA[plotA$variable!="p_non",],aes(x=Site, y=value, fill=Site), color="black", size=1)+
+  scale_fill_manual(values=SiteColors) +
+  labs(title="", x="") +
+  KipukaTheme +
+  theme(strip.text = element_text(size = 30), 
+        axis.text = element_text(angle=45, size=40), 
+        axis.title.y = element_blank(), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "top", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))
+                
+#######################################                
 plotA <-OTU[order(OTU$Site, OTU$Area),]
 #Reindex data frame so that it plots this way
 rownames(plotA) <- seq(1,nrow(plotA),1)
-
+                
 a<-ggplot(data=plotA, aes(x=reorder(ID,Area), y=value, width=1, fill=variable)) +
   geom_bar(stat="identity", color="black") + 
   labs(title="A.") +
@@ -600,8 +627,8 @@ scale_x_continuous(trans='log10',
         plot.title=element_text(size=50),  
         plot.margin = margin(0.2,1,0,1.35, "cm"))
                      
-jpeg("Figures/NatNonNat_AraneaeScatter.jpg", width=2000, height=1000)
-plot_grid(A1, B1, ncol=2, rel_widths=c(1.15, 1))
+jpeg("Figures/NatNonNat_AraneaeScatter.jpg", width=3000, height=1000)
+plot_grid(bp, A1, B1, ncol=3, rel_widths=c(1, 1.15, 1))
 dev.off()                   
                 
                 
