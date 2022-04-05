@@ -46,9 +46,9 @@ kipuka<-readOGR("Mapping/extent/Kipuka_extent.shp")
 #Now, import countour lines
 contour<-readOGR("Mapping/Contour/conthil010a.shp")
 #Now in NAD83, but need to transform to same CRS (WGS84)
-#contour <- spTransform(contour, CRS("+proj=longlat +datum=WGS84"))
+contour <- spTransform(contour, CRS("+proj=longlat +datum=WGS84"))
 
-jpeg("Figures/BigIsland_1.jpg", width=1000, height=1000)
+jpeg("Figures/BigIsland.jpg", width=1000, height=1000)
 ggplot() +  
   geom_tile(data=rain_df, aes(x=x, y=y, fill=value^.5)) +  
   scale_fill_viridis_c(direction=-1, breaks=c(2000^.5, 4000^.5, 6000^.5), labels=c(2000, 4000, 6000)) +
@@ -56,11 +56,19 @@ ggplot() +
   geom_polygon(data=kona, color="black", lwd=2, fill=NA, mapping=aes(long, lat))+
   geom_polygon(data=kipuka, color="black", lwd=2, fill=NA,  mapping=aes(long, lat))+
   geom_polygon(data=stainbeck, color="black", lwd=2, fill=NA,  mapping=aes(long, lat))+ 
-  #coord_cartesian(xlim = c(-156.5, -154.5), ylim =c(19, 20.5)) +  
   coord_fixed(ratio = 1, xlim = c(-156.1, -154.8), ylim = c(19, 20.4))+
   KipukaTheme
 dev.off()
 
+jpeg("Figures/BigIsland_no rainfall.jpg", width=1000, height=1000)
+ggplot() +  
+  geom_path(data=contour, lwd=0.75, mapping=aes(long, lat, group=group))+ #color="black", 
+  geom_polygon(data=kona, color="black", lwd=2, fill=NA, mapping=aes(long, lat))+
+  geom_polygon(data=kipuka, color="black", lwd=2, fill=NA,  mapping=aes(long, lat))+
+  geom_polygon(data=stainbeck, color="black", lwd=2, fill=NA,  mapping=aes(long, lat))+ 
+  coord_fixed(ratio = 1, xlim = c(-156.1, -154.8), ylim = c(19, 20.4))+
+  KipukaTheme
+dev.off()
 
 coords <- read.csv("merged_by_site_2.csv")
 ggplot() + 
