@@ -12,14 +12,8 @@ library(reshape2)
 library(cowplot)
 library(tidyverse)
 library(vegan)
+library(scales)
 font_import()
-
-dist_beta_0 <- read.csv("Distance_v_beta.csv")
-otu <- read.csv("3OTU.csv")
-dist_diff <- read.csv("Distance_v_differentiation.csv")
-geo_dist<-read.csv("geo_dist.csv")
-richness <- read.csv("merged_by_site_2.csv")
-richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
 
 
 
@@ -42,7 +36,16 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.title = element_text(size=25), 
         text = element_text(family = "serif"), 
         legend.box.background = element_rect(fill = "white", color = "black"), 
-        legend.spacing.y = unit(0.1,"cm"))               
+        legend.spacing.y = unit(0.1,"cm"))        
+
+
+dist_beta_0 <- read.csv("Distance_v_beta.csv")
+otu <- read.csv("Distances_Without_Kona8andsmall_kipuka.csv")
+dist_diff <- read.csv("Distance_v_differentiation.csv")
+geo_dist<-read.csv("geo_dist.csv")
+richness <- read.csv("merged_by_site_2.csv")
+richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
+
 
 #################################################################################
 #Beta diversity vesus distance
@@ -61,36 +64,32 @@ geo_dist<-geo_dist[,c(4, 5)]
 
 #Grab 3% OTU beta diversity metrics
 acari_beta<-as.matrix(otu)
-#Remove all the XXXX from colnames
-colnames(acari_beta)<- gsub('[X]', '', colnames(acari_beta))
-rownames(acari_beta)<-acari_beta[,1]
-acari_beta<-acari_beta[,-1]
-acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
-#Add attributes of each site
-#First we add whether it's center, edge, etc etc etc
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
-#If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
-acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
-#Now add the distances between these sites
-acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
-acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
-#remove the same-site pairs
-acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]     
-#Remove flipped pairs
-acari_beta <- acari_beta%>% distinct(dist, .keep_all= TRUE)
-acari_beta$dist<-as.numeric(acari_beta$dist)
-acari_beta<-acari_beta[acari_beta$Site.x!="Lava",]
+#Remove first 4 cols (unclear what they are)
+acari_beta<-acari_beta[,5:10]
+#Remove entirely NA rows
+acari_beta <- acari_beta[rowSums(is.na(acari_beta)) != ncol(acari_beta), ] 
+
+#Col names need to be formatted so that they match color scheme
+colnames(acari_beta) <- c("Geo", "log.1", "Kona", "Stainbeck", "Center", "Edge")
+acari_beta<-as.data.frame(acari_beta[,c(1, 3, 4, 5, 6)])
+
+#Now rearrange from wide to long format
+library(reshape2)
+acari_beta <- melt(acari_beta, id= c("Geo"))
+
+#Assign to "kipuka" or "forest"
+acari_beta$group[acari_beta$variable=="Center" | acari_beta$variable=="Edge"] <- "Kipuka"
+acari_beta$group[acari_beta$variable=="Kona" | acari_beta$variable=="Stainbeck"] <- "Continuous forest"
+
 
 a <- ggplot(data=acari_beta) + 
-  geom_smooth(method='lm', aes(x=log_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+ #, linetype=site
-  geom_point(aes(x=log_dist, y=dist, colour=Site.x), alpha=0.70, size=6, shape=18) + 
-  facet_wrap(~Site.x, ncol=4)+
-  scale_colour_manual(values=SiteColors) +
-  scale_fill_manual(values=SiteColors) +
+  geom_point(aes(x=Geo, y=value, colour=variable), alpha=0.70, size=8, shape=19) + 
+  geom_smooth(method='lm', aes(x=Geo, y=value, colour=variable), size=1, alpha=0)+ #, linetype=site
+  facet_wrap(~group, ncol=2)+
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Kona", "Stainbeck")) +
   labs(title="A.", x="Distance (km)", y="3% OTU beta diversity") +
   KipukaTheme +
-  guides(color="none", shape="none", fill ="none", linetype="none") +
+  guides(color = guide_legend(title = "Sites")) +
   scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +
@@ -169,7 +168,17 @@ b <- ggplot(data=dist_beta) +
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
        legend.position = "right")
+#################################################################################
+                     
 
+                         
+jpeg("Figures/Fig_4.jpg", width=2000, height=1000)   
+a
+#plot_grid(a, b, nrow = 2, rel_heights = c(1, 1))                         
+dev.off()
+                     
+                     
+                     
 #################################################################################
 #Genetic differentiation wi OTUs vesus distance
 dist_diff <- rename(dist_diff, site = ï..Both) 
@@ -223,11 +232,6 @@ c <- ggplot(data=dist_diff) +
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
        legend.position = "right")
-
-                         
-jpeg("Figures/Figure4.jpg", width=4000, height=2000)   
-plot_grid(a, b, nrow = 2, rel_heights = c(1, 1))                         
-dev.off()
 
 
 #Now summarize beta diversity between site types
