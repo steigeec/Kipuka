@@ -11,12 +11,13 @@ library(extrafont)
 library(reshape2)
 library(cowplot)
 library(tidyverse)
+library(scales)
 font_import()
 
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
-SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933", "C-E"="black", "C-F"="white")
+SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933", "C-E"="black", "C-F"="white")
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=50), 
         axis.text = element_text(size=25, angle=50), 
@@ -46,6 +47,8 @@ otu <- read.csv("3OTU.csv")
 dist_diff <- read.csv("Distance_v_differentiation.csv")
 geo_dist<-read.csv("geo_dist.csv")
 nmds<-read.csv("nmds3otu.csv")
+#Fix spelling error on sheet before proceeding
+nmds$Site<-gsub("Stainbeck","Stainback",as.character(nmds$Site))
 BC<-read.csv("BC.csv")
 BC3<-read.csv("BC3.csv")
 CE<-read.csv("C-E.csv")
@@ -54,17 +57,18 @@ CE<-read.csv("C-E.csv")
 
 #Create an NMDS plot with columns MDS1 and MDS2
 nmds$Area<-as.numeric(gsub(",","",as.character(nmds$Area)))
+
 nmds$pointsize<-round(sqrt(nmds$Area)/10,0)
 nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 2
 nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
-nmds$pointsize[nmds$Site=="Stainbeck" & is.na(nmds$pointsize)] <- 2
+nmds$pointsize[nmds$Site=="Stainback" & is.na(nmds$pointsize)] <- 2
 
 nmds <- nmds[nmds$Site != "1K08E" & nmds$Site != "1K08C",] 
 
 a <- ggplot() + 
   geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainbeck")) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
   scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
   labs(title="A.", x="NMDS1", y="NMDS2") +
   #coord_equal() +
@@ -200,8 +204,12 @@ beta$metric <- factor(beta$metric, levels = rev(c("zOTU", "3% OTU")))
 beta <- beta[beta$Site != "1K08E" & beta$Site != "1K08C",]
 beta <- beta[beta$Site.x != "C-F" & beta$Site.x != "C-E",]
 
+#Fix spelling error on sheet before proceeding
+betaSite<-gsub("Stainbeck","Stainback",as.character(beta$Site))
+                         
 beta$Site.x<-as.factor(beta$Site.x)
-beta$Site.x <- factor(beta$Site.x, levels=c("Lava", "Edge", "Center", "Stainbeck", "Kona"))                         
+beta$Site.x <- factor(beta$Site.x, levels=c("Lava", "Edge", "Center", "Stainback", "Kona"))  
+                         
                          
 b<- ggplot() + 
   geom_boxplot(data=beta[beta$metric=="3% OTU",],aes(x=Site.x, y=dist, fill=Site.x), color="black", size=1)+
@@ -232,10 +240,13 @@ b<- ggplot() +
 #######################################################
 #Bray curtis center-edge pairs only
 CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
+
+#Fix spelling error on sheet before proceeding
+CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))                         
                          
 c<-ggplot(data=CE[CE$metric=="3% OTU",]) + 
   geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
-  geom_point(aes(x=Area, y=dist), colour="#6699CC", fill="#332288", alpha=0.70, size=8, shape=21, stroke=5) + 
+  geom_point(aes(x=Area, y=dist), colour="#6699CC", fill="#332288", alpha=0.70, size=8, shape=21, stroke=7) + 
   labs(title="C.", x="Kipuka area ("~m^2~")", y="3% OTU beta diversity") +
   KipukaTheme +
   #coord_cartesian(ylim=c(0.4, 1))+
