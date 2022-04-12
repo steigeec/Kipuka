@@ -54,8 +54,11 @@ rep <- melt(rep, idvars = c("SiteID", "Site", "totalRichness"), measure.vars = c
 rep$my_site <- paste(rep$Site, rep$SiteID)
 rep$prop <- rep$value/rep$totalRichness
                    
-#I want ordered by my sites
-rep$Site <- factor(rep$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava")))  
+#Fix spelling error on sheet before proceeding
+rep$Site<-gsub("Stainbeck","Stainback",as.character(rep$Site))  
+
+#I want ordered by my sites                   
+rep$Site <- factor(rep$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava")))  
 rep <- rename(rep, id = ï..ID) 
 rep$Arealog<-round(as.numeric(rep$Arealog),1)
 rep<-rep %>% dplyr::mutate(Arealog = tidyr::replace_na(Arealog, ""))                   
