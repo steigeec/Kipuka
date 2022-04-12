@@ -23,7 +23,7 @@ OTU <- read.csv("OTUs.csv")
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
-SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
+SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933")
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=30), 
         axis.text = element_text(size=25, angle=45), 
@@ -40,10 +40,7 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.title = element_text(size=25), 
         text = element_text(family = "serif"), 
         legend.box.background = element_rect(fill = "white", color = "black"), 
-        legend.spacing.y = unit(0.1,"cm")) 
-
-                 
-                         
+        legend.spacing.y = unit(0.1,"cm"))                                          
 
 #################################################################################
 #Let's just try all the orders! 
@@ -57,7 +54,10 @@ richness_mod_0$Arealog[richness_mod_0$Site=="Stainbeck" & is.na(richness_mod_0$A
 my_orders<-c("Araneae", "Coleoptera", "Diptera", "Hemiptera", "Lepidoptera", "Pscoptera")
 richness_mod_0<-richness_mod_0[richness_mod_0$variable %in% my_orders,]
 
-richness_mod_0$Site <- factor(richness_mod_0$Site, levels=c("Lava", "Edge", "Center", "Stainbeck", "Kona"))
+#Fix spelling error on sheet before proceeding
+richness_mod_0$Site<-gsub("Stainbeck","Stainback",as.character(richness_mod_0$Site))
+
+richness_mod_0$Site <- factor(richness_mod_0$Site, levels=c("Lava", "Edge", "Center", "Stainback", "Kona"))
 
 jpeg("Figures/Order_Richness_1.jpg", width=3000, height=2000)
 ggplot() + 
