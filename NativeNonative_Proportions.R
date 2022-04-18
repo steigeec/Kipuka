@@ -14,10 +14,12 @@ library(tidyverse)
 font_import()
 library(data.table)
 library(scales)
+library(extrafont)
+font_import()
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
-SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
+SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933")
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=30), 
         axis.text = element_text(size=25, angle=45), 
@@ -37,7 +39,7 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.spacing.y = unit(0.1,"cm")) 
 
 richness <- read.csv("NatNonNat.csv")
-                   
+
 #################################################################################
 #Proportional representation of nat/nonnat                        
 #Stacked bar plot, each site being its own stacked bar, all same height so proportional representation
@@ -85,7 +87,7 @@ richness<-richness[1:11]
 OTU<-merge(richness, otu, by.x="ID", by.y="Site")
 
 #Order as I want panels to appear in plot
-OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
+OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava"))) 
 OTU$variable <- factor(OTU$variable, levels = rev(c("p_nat", "p_non")))                 
 plotA <-OTU[order(OTU$Site, OTU$Area),]
 #Reindex data frame so that it plots this way
@@ -229,7 +231,7 @@ richness<-richness[1:11]
 OTU<-merge(richness, otu, by.x="ID", by.y="Site")
 
 #Order as I want panels to appear in plot
-OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
+OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava"))) 
 OTU$variable <- factor(OTU$variable, levels = rev(c("p_nat", "p_non")))                                            
 plotB <-OTU[order(OTU$Site, OTU$Area),]
 #Reindex data frame so that it plots this way
@@ -373,20 +375,20 @@ richness<-richness[1:11]
 OTU<-merge(richness, otu, by.x="ID", by.y="Site")
 
 #Order as I want panels to appear in plot
-OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
 OTU$variable <- factor(OTU$variable, levels = rev(c("p_nat", "p_non")))                 
 OTU$Area<-round(OTU$Area,10)    
 plotA<-OTU                
-plotA$Site <- factor(plotA$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
+plotA$Site<-gsub("Stainbeck","Stainback",as.character(plotA$Site)) 
+plotA$Site <- factor(plotA$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava")))
+               
                 
 bp <- ggplot() + 
   geom_boxplot(data=plotA[plotA$variable!="p_non",],aes(x=Site, y=value, fill=Site), color="black", size=1)+
   scale_fill_manual(values=SiteColors) +
-  labs(title="A. ", x="") +
+  labs(title="A. ", x="", y="Proportion of invasive species") +
   KipukaTheme +
-  theme(strip.text = element_text(size = 30), 
+  theme(strip.text = element_text(size = 40), 
         axis.text = element_text(angle=45, size=40), 
-        axis.title.y = element_blank(), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -395,12 +397,14 @@ bp <- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=50), 
+       axis.title=element_text(size=40), 
         plot.title=element_text(size=50), 
-        legend.text=element_text(size=45), 
+        legend.text=element_text(size=40), 
         legend.title = element_blank(),
        legend.position = "left", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"))
+        plot.margin = margin(0.2,1,0,1.35, "cm"),
+       legend.key.height = unit(3, 'cm'), 
+        legend.key.width = unit(1, 'cm'))
                 
 #######################################                
 plotA <-OTU[order(OTU$Site, OTU$Area),]
@@ -451,20 +455,21 @@ A<-ggplot() +
         plot.margin = margin(0.2,1,0,1.35, "cm"))                    
 
 subsetA<-plotA[plotA$variable=="p_non",]
-subsetA<-subsetA[subsetA$Site=="Center" | subsetA$Site== "Edge",]                
+subsetA<-subsetA[subsetA$Site=="Center" | subsetA$Site== "Edge",]   
+subsetA$Site<-gsub("Stainbeck","Stainback",as.character(subsetA$Site))                
 A1<-ggplot() + 
   geom_point(data=subsetA,aes(x=as.numeric(Area), y=value, colour=Site), size=6)+
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge")) +
   geom_smooth(method='lm', data=subsetA, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
   scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +              
-  scale_y_continuous(name="Proportion invasive reads")+              
-  labs(title="B.", x="") +
+  scale_y_continuous(name="Proportion of invasive reads")+              
+  labs(title="B.", x="Kipuka area ("~m^2~")") +
   KipukaTheme +
   guides(colour="none", fill="none")+
   scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +              
-  theme(strip.text = element_text(size = 30), 
+  theme(strip.text = element_text(size = 40), 
         axis.text = element_text(angle=45, size=40), 
         axis.title.y = element_text(size=40), 
         panel.grid.major = element_line(
@@ -475,9 +480,9 @@ A1<-ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=50), 
+       axis.title=element_text(size=40), 
         plot.title=element_text(size=50), 
-        legend.text=element_text(size=45), 
+        legend.text=element_text(size=40), 
         legend.title = element_blank(),
        legend.position = "right", 
         plot.margin = margin(0.2,1,0,1.35, "cm"))                  
@@ -548,7 +553,7 @@ richness<-richness[1:11]
 OTU<-merge(richness, otu, by.x="ID", by.y="Site")
 
 #Order as I want panels to appear in plot
-OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
+OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava"))) 
 OTU$variable <- factor(OTU$variable, levels = rev(c("p_nat", "p_non")))                                 
 OTU$Area<-round(OTU$Area,10)                
 plotB <-OTU[order(OTU$Site, OTU$Area),]
@@ -603,19 +608,20 @@ B<-ggplot() +
 
 subsetB<-plotB[plotB$variable=="p_non",]
 subsetB<-subsetB[subsetB$Site=="Center" | subsetB$Site== "Edge",] 
+subsetB$Site<-gsub("Stainbeck","Stainback",as.character(subsetB$Site))                
 B1<-ggplot() + 
   geom_point(data=subsetB,aes(x=as.numeric(Area), y=value, colour=Site), size=6)+
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge")) +
   geom_smooth(method='lm', data=subsetB, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
   scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +
-  scale_y_continuous(name="Proportion invasive OTUs")+              
-  labs(title="C.", x="") +
+  scale_y_continuous(name="Proportion of invasive OTUs")+              
+  labs(title="C.", x="Kipuka area ("~m^2~")") +
   guides(colour="none", fill="none")+
   KipukaTheme +              
 scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +                                    
-  theme(strip.text = element_text(size = 30), 
+  theme(strip.text = element_text(size = 40), 
         axis.text = element_text(angle=45, size=40), 
         axis.title.y = element_text(size=40), 
         panel.grid.major = element_line(
@@ -626,7 +632,7 @@ scale_x_continuous(trans='log10',
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=50), 
+       axis.title=element_text(size=40), 
         plot.title=element_text(size=50),  
         plot.margin = margin(0.2,1,0,1.35, "cm"))
                      
@@ -693,7 +699,7 @@ richness<-richness[1:22]
 OTU<-merge(richness, otu, by.x="ID", by.y="Site")
 
 #Order as I want panels to appear in plot
-OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
+OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava"))) 
 OTU$variable <- factor(OTU$variable, levels = rev(c("p_nat", "p_non")))                 
 OTU$Area<-round(OTU$Area,10)                
 plotA <-OTU[order(OTU$Site, OTU$Area),]
@@ -782,7 +788,7 @@ richness<-richness[1:22]
 OTU<-merge(richness, otu, by.x="ID", by.y="Site")
 
 #Order as I want panels to appear in plot
-OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainbeck",  "Center", "Edge", "Lava"))) 
+OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava"))) 
 OTU$variable <- factor(OTU$variable, levels = rev(c("p_nat", "p_non")))                                 
 OTU$Area<-round(OTU$Area,10)                
 plotB <-OTU[order(OTU$Site, OTU$Area),]
