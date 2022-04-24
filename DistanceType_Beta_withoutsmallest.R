@@ -38,8 +38,9 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm"))        
 
-
-dist_beta_0 <- read.csv("Distance_v_beta.csv")
+#0% beta diversity
+dist_beta_0 <- read.csv("Distance_v_beta_1.csv")
+#zOTU beta diversity
 otu <- read.csv("Distances_Without_Kona8andsmall_kipuka.csv")
 geo_dist<-read.csv("geo_dist.csv")
 richness <- read.csv("merged_by_site_2.csv")
@@ -61,7 +62,7 @@ geo_dist$index<-paste(geo_dist$col, geo_dist$row, sep="_")
 geo_dist$log_dist<-log(geo_dist$dist+0.00001)
 geo_dist<-geo_dist[,c(4, 5)]
 
-#Grab 3% OTU beta diversity metrics
+#Grab zOTU beta diversity metrics
 acari_beta<-as.matrix(otu)
 #Remove first 4 cols (unclear what they are)
 acari_beta<-acari_beta[,5:10]
@@ -78,16 +79,17 @@ acari_beta <- melt(acari_beta, id= c("Geo"))
 #Assign to "kipuka" or "forest"
 acari_beta$group[acari_beta$variable=="Center" | acari_beta$variable=="Edge"] <- "Kipuka"
 acari_beta$group[acari_beta$variable=="Kona" | acari_beta$variable=="Stainback"] <- "Continuous forest"
+acari_beta<-acari_beta[complete.cases(acari_beta),]
+acari_beta<-acari_beta[!duplicated(acari_beta),]
 
-
-a <- ggplot(data=acari_beta) + 
+b <- ggplot(data=acari_beta) + 
   geom_point(aes(x=Geo, y=value, colour=variable), alpha=0.70, size=8, shape=19) + 
   geom_smooth(method='lm', aes(x=Geo, y=value, colour=variable), size=1, alpha=0)+ #, linetype=site
   facet_wrap(~group, ncol=2)+
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Kona", "Stainbeck")) +
-  labs(title="A.", x="Distance (km)", y="3% OTU beta diversity") +
+  labs(title="B.", x="Distance (km)", y="zOTU beta diversity") +
   KipukaTheme +
-  guides(color = guide_legend(title = "Sites")) +
+  guides(color = guide_legend(title = "Sites", nrow=1)) +
   scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +
@@ -105,60 +107,28 @@ a <- ggplot(data=acari_beta) +
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
-       legend.position = "right")
+       legend.position = "bottom")
                            
 #################################################################################
-#Beta diversity vesus distance
+#now 3%OTU
+                     
+#order acari_beta by site then value... do the same with dist_beta_0                  
+acari_beta$variable  <- factor(acari_beta$variable , levels=c("Center", "Edge", "Stainback", "Kona", "Lava"))                   
+acari_beta <- acari_beta[with(acari_beta, order(variable, value)),] 
+dist_beta_0 <- dist_beta_0[dist_beta_0$Site!="Lava",]                     
+dist_beta_0$Site  <- factor(dist_beta_0$Site , levels=c("Center", "Edge", "Stainback", "Kona"))                                                          
+dist_beta_0 <- dist_beta_0[with(dist_beta_0, order(Site, beta)),]                     
 
-#Maybe join together tables of each part...?
-dist_beta <- dist_beta_0[,1:6]
-i<-c(3, 4, 5, 6)
-dist_beta[ , i] <- apply(dist_beta[ , i], 2,            # Specify own function within apply
-                    function(x) as.numeric(as.character(x)))
-names(dist_beta)[4]<-"Stainback"
-                         
-Center <- dist_beta[!is.na(dist_beta$Center),]
-Center$site <- "Center"
-Center <- dplyr::rename(Center, beta = Center)
-Center <- Center[ , colSums(is.na(Center)) < nrow(Center)]                    
-                         
-Stainback <- dist_beta[!is.na(dist_beta$Stainback),]
-Stainback$site <- "Stainback"  
-Stainback <- dplyr::rename(Stainback, beta = Stainback)
-Stainback <- Stainback[ , colSums(is.na(Stainback)) < nrow(Stainback)]   
-                         
-Kona <- dist_beta[!is.na(dist_beta$Kona),]
-Kona$site <- "Kona"
-Kona <- dplyr::rename(Kona, beta = Kona)
-Kona <- Kona[ , colSums(is.na(Kona)) < nrow(Kona)]   
-                         
-Edge <- dist_beta[!is.na(dist_beta$Edge),]
-Edge$site <- "Edge"
-Edge <- dplyr::rename(Edge, beta = Edge)
-Edge <- Edge[ , colSums(is.na(Edge)) < nrow(Edge)] 
-                         
-dist_beta <- rbind(Center, Stainback, Kona, Edge)
-dist_beta <- dplyr::rename(dist_beta, dist = ï..dist)                         
-
-#Assign to "kipuka" or "forest"
-dist_beta$group[dist_beta$site=="Center" | dist_beta$site=="Edge"] <- "Kipuka"
-dist_beta$group[dist_beta$site=="Kona" | dist_beta$site=="Stainback"] <- "Continuous forest"                         
-
-#Remove smallest kipukas
-#To do so, I remove any "Kipuka" group rows that do not match geographical distance pairs in my groomed dataset (called otu here)                       
-#my_set <- as.numeric(acari_beta$Geo)
-#Only keep dist_beta registers is (1) they are in continuous forest or (2) they are in that set of distance pairs                         
-#to_plot_a <- dist_beta[dist_beta$group=="Continuous forest",]                         
-#to_plot_b <- dist_beta[dist_beta$dist %in% my_set,]  
-#to_plot <- rbind(to_plot_a, to_plot_b)                         
-                         
-b <- ggplot(data=dist_beta) + 
-  geom_smooth(method='lm', aes(x=logidst, y=beta, colour=site, fill=site, linetype=site), size=1, alpha=0)+
-  geom_point(aes(x=logidst, y=beta, colour=site), alpha=0.70, size=8, shape=19) + 
+#join the two... 
+acari_beta$threeotu <- dist_beta_0$beta                    
+                     
+a <- ggplot(data=acari_beta) + 
+  geom_smooth(method='lm', aes(x=Geo, y=threeotu, colour=variable, fill=variable, linetype=variable), size=1, alpha=0)+
+  geom_point(aes(x=Geo, y=threeotu, colour=variable), alpha=0.70, size=8, shape=19) + 
   facet_wrap(~group, ncol=2)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="B.", x="Distance (km)", y="zOTU beta diversity") +
+  labs(title="A.", x="Distance (km)", y="3% OTU beta diversity") +
   KipukaTheme +
   guides(color="none", shape="none", fill ="none", linetype="none") +
   scale_x_continuous(trans='log10',
@@ -178,11 +148,11 @@ b <- ggplot(data=dist_beta) +
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
-       legend.position = "right")
+       legend.position = "bottom")
                                 
                      
 #################################################################################                         
-jpeg("Figures/Fig_4.jpg", width=2000, height=1000)   
-plot_grid(a, b, nrow = 2, rel_heights = c(1, 1))                         
+jpeg("Figures/Fig_4.jpg", width=2000, height=2000)   
+plot_grid(a, b, nrow = 2, rel_heights = c(1, 1.3))                         
 dev.off()
                      
