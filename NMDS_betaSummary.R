@@ -212,7 +212,7 @@ beta$Site.x <- factor(beta$Site.x, levels=c("Lava", "Edge", "Center", "Stainback
                          
                          
 b<- ggplot() + 
-  geom_boxplot(data=beta[beta$metric=="3% OTU",],aes(x=Site.x, y=dist, fill=Site.x), color="black", size=1)+
+  geom_boxplot(data=beta[beta$metric=="3% OTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=dist, fill=Site.x), color="black", size=1)+
   #facet_wrap(~metric, scales="free") +
   scale_fill_manual(values=SiteColors) +
   labs(title="B.", x="") +
