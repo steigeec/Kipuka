@@ -86,7 +86,7 @@ b <- ggplot(data=acari_beta) +
   geom_point(aes(x=Geo, y=value, colour=variable), alpha=0.70, size=8, shape=19) + 
   geom_smooth(method='lm', aes(x=Geo, y=value, colour=variable), size=1, alpha=0)+ #, linetype=site
   facet_wrap(~group, ncol=2)+
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Kona", "Stainbeck")) +
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Kona", "Stainback")) +
   labs(title="B.", x="Distance (km)", y="zOTU beta diversity") +
   KipukaTheme +
   guides(color = guide_legend(title = "Sites", nrow=1)) +
