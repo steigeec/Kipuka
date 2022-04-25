@@ -196,16 +196,16 @@ acari_beta<-acari_beta[,c(4, 5, 7)]
 acari_beta$metric <- "3% OTU"
 dist_beta<-dist_beta[,c(2, 3, 4)]
 dist_beta$metric <- "zOTU"
-names(dist_beta)<-c("dist", "log_dist", "metric", "Site.x")
+names(dist_beta)<-c("dist", "log_dist", "Site.x", "metric")
 
-beta <- rbind(dist_beta, acari_beta, CE, df, df3) 
+beta <- rbind(dist_beta, acari_beta) 
 #Reorder facets
 beta$metric <- factor(beta$metric, levels = rev(c("zOTU", "3% OTU")))   
 beta <- beta[beta$Site != "1K08E" & beta$Site != "1K08C",]
 beta <- beta[beta$Site.x != "C-F" & beta$Site.x != "C-E",]
 
 #Fix spelling error on sheet before proceeding
-betaSite<-gsub("Stainbeck","Stainback",as.character(beta$Site))
+beta$Site.x<-gsub("Stainbeck","Stainback",as.character(beta$Site.x))
                          
 beta$Site.x<-as.factor(beta$Site.x)
 beta$Site.x <- factor(beta$Site.x, levels=c("Lava", "Edge", "Center", "Stainback", "Kona"))  
@@ -215,13 +215,13 @@ b<- ggplot() +
   geom_boxplot(data=beta[beta$metric=="3% OTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=dist, fill=Site.x), color="black", size=1)+
   #facet_wrap(~metric, scales="free") +
   scale_fill_manual(values=SiteColors) +
-  labs(title="B.", x="") +
+  labs(title="B.", y="3% OTU beta diversity", x="") +
   KipukaTheme +
   guides(fill="none")+                       
   theme(strip.text = element_text(size = 50), 
         axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
         axis.text.y = element_text(angle=45, size=50), 
-        axis.title.y = element_blank(), 
+        axis.title.y = element_text(size = 50),
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
