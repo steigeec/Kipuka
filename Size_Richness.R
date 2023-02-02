@@ -35,7 +35,7 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         plot.background = element_blank(), 
         legend.background = element_blank(),
         legend.title = element_text(size=25), 
-        text = element_text(family = "serif"), 
+        text = element_text(face="plain", family="Calibri"),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
                    
