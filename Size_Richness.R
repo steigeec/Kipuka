@@ -26,9 +26,10 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         axis.text = element_text(size=25, angle=45), 
         plot.margin = unit(c(0, 0, 0, 0), "cm"), 
         plot.title=element_text(size=30), 
-        legend.text=element_text(size=25), 
+        legend.text=element_text(size=25, margin = margin(r = 20, unit = "pt")), 
+        legend.spacing.x = unit(0, "char"), # adds spacing to the left too
         legend.key.height = unit(1, "cm"), 
-        legend.key.width = unit(1.5,"cm"), 
+        legend.key.width = unit(6,"cm"), 
         panel.background = element_blank(), 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), 
@@ -37,7 +38,7 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.title = element_text(size=25), 
         text = element_text(face="plain", family="Calibri"),
         legend.box.background = element_rect(fill = "white", color = "black"), 
-        legend.spacing.y = unit(0.1,"cm")) 
+        legend.spacing= unit(0,"cm")) 
                    
 #################################################################################
 #Kipuka size versus SR/SROTU
@@ -87,7 +88,6 @@ r2 = format(summary(m)$r.squared, digits = 3)))
                   
 
 b<-ggplot() + 
-
   geom_smooth(method='lm', data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",], aes(x=Area, y=value, colour=Site, fill=Site, linetype=variable), size=1, alpha=0.20)+  
   geom_point(data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",],aes(x=Area, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
 
@@ -121,14 +121,15 @@ b<-ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=50), 
+       axis.title.y=element_text(size=50, vjust=0, hjust=0.5), 
+       axis.title.x=element_text(size=50, vjust=10, hjust=0.5), 
         axis.text.y = element_text(size=45), 
-        axis.text.x = element_text(size=45, vjust=0.6), 
+        axis.text.x = element_text(size=45, vjust=1), 
         plot.title=element_text(size=50), 
-        legend.text=element_text(size=45), 
+        legend.text=element_text(size=45, hjust=1), 
         legend.title = element_blank(),
        legend.position = "top", 
-        plot.margin = margin(0,2.5,0,2.5, "cm"))
+        plot.margin = margin(0.1,2.5,2.5,3, "cm"))
 
 jpeg("Figures/Figure3.jpg", width=2000, height=1000)
 plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
