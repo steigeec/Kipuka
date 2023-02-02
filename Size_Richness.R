@@ -11,7 +11,6 @@ library(extrafont)
 library(reshape2)
 library(cowplot)
 library(tidyverse)
-font_import()
 library(scales)
 
 
@@ -26,10 +25,9 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         axis.text = element_text(size=25, angle=45), 
         plot.margin = unit(c(0, 0, 0, 0), "cm"), 
         plot.title=element_text(size=30), 
-        legend.text=element_text(size=25, margin = margin(r = 20, unit = "pt")), 
-        legend.spacing.x = unit(0, "char"), # adds spacing to the left too
+        legend.text=element_text(size=25), 
+        legend.spacing.x = unit(1.0, 'cm'),
         legend.key.height = unit(1, "cm"), 
-        legend.key.width = unit(6,"cm"), 
         panel.background = element_blank(), 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), 
@@ -37,8 +35,7 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.background = element_blank(),
         legend.title = element_text(size=25), 
         text = element_text(face="plain", family="Calibri"),
-        legend.box.background = element_rect(fill = "white", color = "black"), 
-        legend.spacing= unit(0,"cm")) 
+        legend.box.background = element_rect(fill = "white", color = "black")) 
                    
 #################################################################################
 #Kipuka size versus SR/SROTU
@@ -73,10 +70,11 @@ a <- ggplot() +
         size = 0.5), 
        axis.title=element_text(size=50), 
         plot.title=element_text(size=50), 
-        legend.text=element_text(size=45), 
+        legend.text=element_text(size=45, hjust=0.4), 
         legend.title = element_blank(),
+        legend.key.width = unit(4,"cm"), 
        legend.position = "top", 
-        plot.margin = margin(0.2,0,0,0, "cm"))
+        plot.margin = margin(0.1,-1.5,2.5,2, "cm"))+ guides(shape = guide_legend(override.aes = list(size = 4)))
 
 CenterzOTU <- lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"])
 Center3otu<-lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"])
@@ -90,18 +88,6 @@ r2 = format(summary(m)$r.squared, digits = 3)))
 b<-ggplot() + 
   geom_smooth(method='lm', data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",], aes(x=Area, y=value, colour=Site, fill=Site, linetype=variable), size=1, alpha=0.20)+  
   geom_point(data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",],aes(x=Area, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
-
-  #geom_hline(yintercept=mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Kona"]), colour="#117733", lwd=2, alpha=0.6, linetype=2)+
-  #geom_text(x=10000, y=(mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Kona"])+20), label="Kona", size=50)+
-  #geom_hline(yintercept=mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Stainbeck"]), colour="#999933", lwd=2, alpha=0.6, linetype=2)+
-  #geom_text(x=10000, y=(mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Stainbeck"])+20), label="Stainbeck", size=50)+
-  #geom_hline(yintercept=mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Lava"]), colour="#888888", lwd=2, alpha=0.6, linetype=2)+
-  #geom_text(x=10000, y=(mean(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Stainbeck"])+20), label="Lava", size=50)+
-
-  #geom_hline(yintercept=mean(richness$SR[richness$Site=="Kona"]), colour="#117733", lwd=3)+
-  #geom_hline(yintercept=mean(richness$SR[richness$Site=="Stainbeck"]), colour="#999933", lwd=3)+
-  #geom_hline(yintercept=mean(richness$SR[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
-  #geom_text()+
   scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15), labels=c("SR"="zOTU","SROTU"="3% OTU")) +
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors)+ 
@@ -121,15 +107,16 @@ b<-ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title.y=element_text(size=50, vjust=0, hjust=0.5), 
-       axis.title.x=element_text(size=50, vjust=10, hjust=0.5), 
+       axis.title.y=element_text(size=50, vjust=-0.5, hjust=0.5), 
+       axis.title.x=element_text(size=50, vjust=2, hjust=0.5), 
         axis.text.y = element_text(size=45), 
         axis.text.x = element_text(size=45, vjust=1), 
         plot.title=element_text(size=50), 
-        legend.text=element_text(size=45, hjust=1), 
+        legend.key.width = unit(7,"cm"), 
+        legend.text=element_text(size=45, hjust=0.5), 
         legend.title = element_blank(),
        legend.position = "top", 
-        plot.margin = margin(0.1,2.5,2.5,3, "cm"))
+        plot.margin = margin(0.1,2.5,2.5,3, "cm"))+ guides(shape = guide_legend(override.aes = list(size = 4)))
 
 jpeg("Figures/Figure3.jpg", width=2000, height=1000)
 plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
