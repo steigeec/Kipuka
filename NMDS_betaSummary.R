@@ -277,6 +277,105 @@ plot_grid(a,b,c, nrow=1, rel_widths=c(1.3, .9, 1), rel_heights=c(1,1,1))
 dev.off()
 
                      
+#################################################################################
+#NMDS plot for zOTU
+
+a <- ggplot() + 
+  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1zOTU,y=MDS2zOTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
+  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
+  labs(title="A.", x="NMDS1", y="NMDS2") +
+  #coord_equal() +
+  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
+  guides(colour = guide_legend(override.aes = list(size=4))) + 
+  KipukaTheme +
+  theme(panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5),
+        plot.title=element_text(size=50))                     
+                     
+b<- ggplot() + 
+  geom_boxplot(data=beta[beta$metric=="zOTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=dist, fill=Site.x), color="black", size=1)+
+  #facet_wrap(~metric, scales="free") +
+  scale_fill_manual(values=SiteColors) +
+  labs(title="B.", y="zOTU beta diversity", x="") +
+  KipukaTheme +
+  guides(fill="none")+                       
+  theme(strip.text = element_text(size = 50), 
+        axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
+        axis.text.y = element_text(angle=45, size=50), 
+        axis.title.y = element_text(size = 50),
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=50), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=40), 
+        legend.title = element_blank(),
+       legend.position = "top", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))                     
+                     
+c<-ggplot(data=CE[CE$metric=="zOTU",]) + 
+  geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
+  geom_point(aes(x=Area, y=dist), colour="#6699CC", fill="#332288", alpha=0.70, size=8, shape=21, stroke=7) + 
+  labs(title="C.", x="Kipuka area ("~m^2~")", y="zOTU beta diversity") +
+  KipukaTheme +
+  #coord_cartesian(ylim=c(0.4, 1))+
+  guides(colour="none")+
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +                   
+  theme(strip.text = element_text(size = 45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=45), 
+        axis.text = element_text(size=40), 
+        plot.title=element_text(size=45), 
+        legend.text=element_text(size=40), 
+        legend.title = element_text(size=40),
+       legend.position = "top")                                   
+                     
+jpeg("Figures/NMDS-turnover-zOTU.jpg", width=3000, height=1000) 
+plot_grid(a,b,c, nrow=1, rel_widths=c(1.3, .9, 1), rel_heights=c(1,1,1))                         
+dev.off()                     
+               
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
                      
                      
                      
@@ -525,85 +624,7 @@ dev.off()
 
 
 
-#################################################################################
-#NMDS plot for zOTU
-
-a <- ggplot() + 
-  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1zOTU,y=MDS2zOTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
-  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="A.", x="NMDS1", y="NMDS2") +
-  #coord_equal() +
-  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(colour = guide_legend(override.aes = list(size=4))) + 
-  KipukaTheme +
-  theme(panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5),
-        plot.title=element_text(size=50))                     
-                     
-b<- ggplot() + 
-  geom_boxplot(data=beta[beta$metric=="zOTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=dist, fill=Site.x), color="black", size=1)+
-  #facet_wrap(~metric, scales="free") +
-  scale_fill_manual(values=SiteColors) +
-  labs(title="B.", y="zOTU beta diversity", x="") +
-  KipukaTheme +
-  guides(fill="none")+                       
-  theme(strip.text = element_text(size = 50), 
-        axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
-        axis.text.y = element_text(angle=45, size=50), 
-        axis.title.y = element_text(size = 50),
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=50), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=40), 
-        legend.title = element_blank(),
-       legend.position = "top", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"))                     
-                     
-c<-ggplot(data=CE[CE$metric=="zOTU",]) + 
-  geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
-  geom_point(aes(x=Area, y=dist), colour="#6699CC", fill="#332288", alpha=0.70, size=8, shape=21, stroke=7) + 
-  labs(title="C.", x="Kipuka area ("~m^2~")", y="zOTU beta diversity") +
-  KipukaTheme +
-  #coord_cartesian(ylim=c(0.4, 1))+
-  guides(colour="none")+
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +                   
-  theme(strip.text = element_text(size = 45), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=45), 
-        axis.text = element_text(size=40), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
-       legend.position = "top")                                   
-                     
-jpeg("Figures/NMDS-turnover-zOTU.jpg", width=3000, height=1000) 
-plot_grid(a,b,c, nrow=1, rel_widths=c(1.3, .9, 1), rel_heights=c(1,1,1))                         
-dev.off()                     
-                     
+      
                      
                      
                      
