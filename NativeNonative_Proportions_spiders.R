@@ -115,45 +115,7 @@ bp <- ggplot() +
         plot.margin = margin(0.2,1,0,1.35, "cm"),
        legend.key.height = unit(3, 'cm'), 
         legend.key.width = unit(1, 'cm'))
-                
-#######################################                
-plotA <-OTU[order(OTU$Site, OTU$Area),]
-#Reindex data frame so that it plots this way
-rownames(plotA) <- seq(1,nrow(plotA),1)
-
-subsetA<-plotA[plotA$variable=="p_non",]
-subsetA<-subsetA[subsetA$Site=="Center" | subsetA$Site== "Edge",]   
-subsetA$Site<-gsub("Stainbeck","Stainback",as.character(subsetA$Site))                
-A1<-ggplot() + 
-  geom_point(data=subsetA,aes(x=as.numeric(Area), y=value, colour=Site), size=6)+
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge")) +
-  geom_smooth(method='lm', data=subsetA, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
-  scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +              
-  scale_y_continuous(name="Proportion of invasive reads")+              
-  labs(title="B.", x="Kipuka area ("~m^2~")") +
-  KipukaTheme +
-  guides(colour="none", fill="none")+
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +              
-  theme(strip.text = element_text(size = 40), 
-        axis.text = element_text(angle=45, size=40), 
-        axis.title.y = element_text(size=40), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=40), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=40), 
-        legend.title = element_blank(),
-       legend.position = "right", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"))                  
-                
+                                        
 ####################################################################################################
 #Also do in terms of species richness of nat/non-nat
 
@@ -231,7 +193,7 @@ subsetB<-plotB[plotB$variable=="p_non",]
 subsetB<-subsetB[subsetB$Site=="Center" | subsetB$Site== "Edge",] 
 subsetB$Site<-gsub("Stainbeck","Stainback",as.character(subsetB$Site))                
 B1<-ggplot() + 
-  geom_point(data=subsetB,aes(x=as.numeric(Area), y=value, colour=Site), size=6)+
+  geom_point(data=subsetB,aes(x=as.numeric(Area), y=value, colour=Site), size=6, shape=15)+
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge")) +
   geom_smooth(method='lm', data=subsetB, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
   scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +
@@ -253,10 +215,54 @@ scale_x_continuous(trans='log10',
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=40), 
+       axis.title.x=element_text(size=40, margin=margin(-20,0,0,0)), 
         plot.title=element_text(size=50),  
         plot.margin = margin(0.2,1,0,1.35, "cm"))
                      
-jpeg("Figures/NatNonNat_AraneaeScatter.jpg", width=3000, height=1000)
-plot_grid(bp, A1, B1, ncol=3, rel_widths=c(1.15, 1, 1))
-dev.off()                   
+jpeg("Figures/NatNonNat_AraneaeScatter.jpg", width=2000, height=1000)
+plot_grid(bp, B1, ncol=2, rel_widths=c(1.15, 1))
+dev.off()   
+           
+                   
+                   
+                   
+####################################### 
+#Here is what used to be panel B, but not I am removing from the plot as it appears to be the same as what was panel C. 
+                   
+plotA <-OTU[order(OTU$Site, OTU$Area),]
+#Reindex data frame so that it plots this way
+rownames(plotA) <- seq(1,nrow(plotA),1)
+
+subsetA<-plotA[plotA$variable=="p_non",]
+subsetA<-subsetA[subsetA$Site=="Center" | subsetA$Site== "Edge",]   
+subsetA$Site<-gsub("Stainbeck","Stainback",as.character(subsetA$Site))                
+A1<-ggplot() + 
+  geom_point(data=subsetA,aes(x=as.numeric(Area), y=value, colour=Site), size=6)+
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge")) +
+  geom_smooth(method='lm', data=subsetA, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
+  scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +              
+  scale_y_continuous(name="Proportion of invasive reads")+              
+  labs(title="B.", x="Kipuka area ("~m^2~")") +
+  KipukaTheme +
+  guides(colour="none", fill="none")+
+  scale_x_continuous(trans='log10',
+                     breaks=trans_breaks('log10', function(x) 10^x),
+                     labels=trans_format('log10', math_format(10^.x)))  +              
+  theme(strip.text = element_text(size = 40), 
+        axis.text = element_text(angle=45, size=40), 
+        axis.title.y = element_text(size=40), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=40), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=40), 
+        legend.title = element_blank(),
+       legend.position = "right", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))                       
+                   
