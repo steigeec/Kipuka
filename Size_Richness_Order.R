@@ -57,7 +57,7 @@ richness_mod_0$Area <- round(richness_mod_0$Area, 10)
 
 jpeg("Figures/Order_Richness_continuous.jpg", width=3000, height=2000)
 ggplot() + 
-  geom_point(data=richness_mod_0,aes(x=Area, y=value, colour=Site, fill=Site), size=1)+
+  geom_point(data=richness_mod_0,aes(x=Area, y=value, colour=Site, fill=Site), size=4.5, shape=0, stroke=2)+
   geom_smooth(method='lm', data=richness_mod_0, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
   scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +
   scale_colour_manual(values=SiteColors) +
@@ -77,7 +77,8 @@ ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=55), 
+       axis.title.x=element_text(size=55, margin=margin(-15,0,0,0)), 
+       axis.title.y=element_text(size=55, margin=margin(0,-15,0,0)), 
         axis.text.y = element_text(size=50, angle=45), 
         axis.text.x = element_text(size=50, angle=45, vjust=0.5, hjust=0.5), 
         plot.title=element_text(size=55), 
