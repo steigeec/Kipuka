@@ -220,9 +220,9 @@ b<- ggplot() +
   KipukaTheme +
   guides(fill="none")+                       
   theme(strip.text = element_text(size = 50), 
-        axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
-        axis.text.y = element_text(angle=45, size=50), 
-        axis.title.y = element_text(size = 50),
+        axis.text.y = element_text(angle=45, size=50, margin=margin(0,-10,0,0)), 
+        axis.text.x = element_text(angle=45, size=50, margin=margin(0,0,0,0)), 
+        axis.title.y = element_text(size = 50, margin=margin(0,-25,0,0)),
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -271,8 +271,8 @@ d<- ggplot() +
   guides(fill="none")+                       
   theme(strip.text = element_text(size = 50), 
         axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
-        axis.text.y = element_text(angle=45, size=50), 
-        axis.title.y = element_text(size = 50),
+        axis.text.y = element_text(angle=45, size=50, margin=margin(0,-10,0,0)), 
+        axis.title.y = element_text(size = 50, margin=margin(0,-25,0,0)),
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -291,7 +291,7 @@ d<- ggplot() +
 #######################################################
                          
 jpeg("Figures/NMDS-turnover.jpg", width=2000, height=2000) 
-plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1.3, .9), rel_heights=c(1,1))                         
+plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1.3, .9), rel_heights=c(1,1.2))                         
 dev.off()                         
  
                          
