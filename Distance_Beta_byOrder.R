@@ -77,7 +77,7 @@ names(geo_dist)<-c("geo_dist", "index")
 OTU <- otu[8:67, 29:3051] 
 #Make first column the row names
 OTU["13",1]<-"ZotuID"
-OTU["14",1]<-"3%OTU"
+OTU["14",1]<-"threepOTU"
 rownames(OTU) <- OTU[,1]
 OTU <- OTU[,-1]
 OTU<- t(OTU)
@@ -300,7 +300,7 @@ sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem)
 jpeg("Figures/Order_beta_diversity_JACCARD_kipukas_zOTU.jpg", width=1500, height=2000)
 ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),]) + 
   geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, stroke=3.5, shape=0) + 
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, stroke=2.5, shape=0) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
   labs(title="", x="Distance (km)", y="zOTU beta diversity") +
@@ -332,12 +332,19 @@ dev.off()
 #NOW, FOR 3% OTU BETA DIVERSITY
 
 ##HERE IS WHERE I'm at... NEED TO POOL FOR 3%OTU
-otu3<-OTU%>%
-        group_by("3%OTU")%>%
-        summarize(Class="Class", Order="Order", across(9:60, sum))
-otu3<-OTU%>%
-        group_by("3%OTU")%>%
-        summarize(Class="Class", Order="Order", across(9:60, sum))
+OTU[] <- lapply(OTU, function(x) if(is.character(x)){
+              factor(trimws(x))
+              } else x
+        )  
+OTU$threepOTU<-as.factor(OTU$threepOTU)
+#Can't be na in 3%otu col
+OTU<-OTU[!(is.na(OTU$threepOTU) | OTU$threepOTU==""), ]
+OTU[9:60]<-sapply(OTU[9:60],as.numeric)     
+                   
+otu3<-OTU[,c(7,9:60)]%>%
+        group_by(threepOTU)%>%
+        mutate(sum = rowSums(across(where(is.numeric)), na.rm=TRUE))
+        #summarize(Class="Class", Order="Order", across(9:60, sum))
 
 for (ORDER in 1:length(orders)){
         O<-orders[ORDER]
@@ -370,13 +377,14 @@ for (ORDER in 1:length(orders)){
 
 #Paste all these various dataframes together
 order_all<-rbind(Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta, Coleoptera_beta) 
-
+to_rem <- c("1K01C", "1K01E", "1K06C", "1K06E", "1K07C", "1K07E", "1K12C", "1K12E", "1K13C", "1K13E")
+sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem),] 
 
 #Save another version of this jpeg, now only highlighting edge and center turnover
-jpeg("Figures/Order_beta_diversity_kipukas.jpg", width=1500, height=2000)
-ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) + 
+jpeg("Figures/Order_beta_diversity_kipukas_3perc.jpg", width=1500, height=2000)
+ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),]) + 
   geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=15) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
   labs(title="", x="Distance (km)", y="3% OTU beta diversity") +
@@ -396,7 +404,8 @@ ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
+       axis.title.x=element_text(size=45, margin=margin(-15,0,0,0)), 
+       axis.title.y=element_text(size=45, margin=margin(0,-15,0,0)), 
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
