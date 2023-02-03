@@ -83,7 +83,7 @@ acari_beta<-acari_beta[complete.cases(acari_beta),]
 acari_beta<-acari_beta[!duplicated(acari_beta),]
 
 b <- ggplot(data=acari_beta) + 
-  geom_point(aes(x=Geo, y=value, colour=variable), alpha=0.70, size=8, shape=19) + 
+  geom_point(aes(x=Geo, y=value, colour=variable), alpha=0.70, size=8, shape=0, stroke=2) + 
   geom_smooth(method='lm', aes(x=Geo, y=value, colour=variable), size=1, alpha=0)+ #, linetype=site
   facet_wrap(~group, ncol=2)+
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Kona", "Stainback")) +
@@ -93,6 +93,7 @@ b <- ggplot(data=acari_beta) +
   scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +
+  scale_y_continuous(limits=c(0.2, 0.8))  +
   theme(strip.text=element_text(size=45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -102,7 +103,8 @@ b <- ggplot(data=acari_beta) +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
+       axis.title.x=element_text(size=45, margin=margin(-15,0,0,0)), 
+       axis.title.y=element_text(size=45, margin=margin(0,-15,0,0)), 
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
@@ -123,8 +125,8 @@ dist_beta_0 <- dist_beta_0[with(dist_beta_0, order(Site, beta)),]
 acari_beta$threeotu <- dist_beta_0$beta                    
                      
 a <- ggplot(data=acari_beta) + 
-  geom_smooth(method='lm', aes(x=Geo, y=threeotu, colour=variable, fill=variable, linetype=variable), size=1, alpha=0)+
-  geom_point(aes(x=Geo, y=threeotu, colour=variable), alpha=0.70, size=8, shape=19) + 
+  geom_smooth(method='lm', aes(x=Geo, y=threeotu, colour=variable, fill=variable), size=1, alpha=0)+
+  geom_point(aes(x=Geo, y=threeotu, colour=variable), alpha=0.70, size=8, shape=15) + 
   facet_wrap(~group, ncol=2)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
@@ -134,6 +136,7 @@ a <- ggplot(data=acari_beta) +
   scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +
+  scale_y_continuous(limits=c(0.2, 0.8))  +
   theme(strip.text=element_text(size=45),
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -143,7 +146,8 @@ a <- ggplot(data=acari_beta) +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
+       axis.title.x=element_text(size=45, margin=margin(-15,0,0,0)), 
+       axis.title.y=element_text(size=45, margin=margin(0,-15,0,0)), 
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
@@ -153,6 +157,6 @@ a <- ggplot(data=acari_beta) +
                      
 #################################################################################                         
 jpeg("Figures/Fig_4.jpg", width=2000, height=2000)   
-plot_grid(a, b, nrow = 2, rel_heights = c(1, 1.3))                         
+plot_grid(a, b, nrow = 2, rel_heights = c(1, 1))                         
 dev.off()
                      
