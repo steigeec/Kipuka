@@ -125,7 +125,7 @@ order_all<-rbind(Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, P
 
 jpeg("Figures/Order_beta_diversity.jpg", width=1500, height=2000)
 ggplot(data=order_all) + 
-  geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
+  geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20, shape=15)+
   geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual("Site type", values=SiteColors) +
@@ -147,7 +147,8 @@ ggplot(data=order_all) +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
+       axis.title.x=element_text(size=45, margin=margin(-15,0,0,0)), 
+       axis.title.y=element_text(size=45, margin=margin(0,-15,0,0)), 
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
@@ -156,10 +157,10 @@ ggplot(data=order_all) +
 dev.off()
 
 #Save another version of this jpeg, now only highlighting edge and center turnover
-jpeg("Figures/Order_beta_diversity_kipukas_1.jpg", width=1500, height=2000)
+jpeg("Figures/Order_beta_diversity_kipukas_zOTU.jpg", width=1500, height=2000)
 ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) + 
   geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=0, stroke=3.5) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
   labs(title="", x="Distance (km)", y="zOTU beta diversity") +
@@ -179,7 +180,8 @@ ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
+       axis.title.x=element_text(size=45, margin=margin(-15,0,0,0)), 
+       axis.title.y=element_text(size=45, margin=margin(0,-15,0,0)), 
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
@@ -190,10 +192,10 @@ dev.off()
 to_rem <- c("1K01C", "1K01E", "1K06C", "1K06E", "1K07C", "1K07E", "1K12C", "1K12E", "1K13C", "1K13E")
 sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem),]                     
 
-jpeg("Figures/Order_beta_diversity_kipukas_sub.jpg", width=1500, height=2000)
+jpeg("Figures/Order_beta_diversity_kipukas_sub_zOTU.jpg", width=1500, height=2000)
 ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),]) + 
   geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=0, stroke=2) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
   labs(title="", x="Distance (km)", y="zOTU beta diversity") +
@@ -291,15 +293,17 @@ ggplot(data=order_all) +
        legend.position = "top")
 dev.off()
 
-
+to_rem <- c("1K01C", "1K01E", "1K06C", "1K06E", "1K07C", "1K07E", "1K12C", "1K12E", "1K13C", "1K13E")
+sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem),] 
+                     
 #Save an alternate version of this jpeg, highlighting only kipuka data
-jpeg("Figures/Order_beta_diversity_JACCARD_kipukas.jpg", width=1500, height=2000)
-ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) + 
+jpeg("Figures/Order_beta_diversity_JACCARD_kipukas_zOTU.jpg", width=1500, height=2000)
+ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),]) + 
   geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
+  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, stroke=3.5, shape=0) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
-  labs(title="", x="Distance (km)", y="OTU beta diversity") +
+  labs(title="", x="Distance (km)", y="zOTU beta diversity") +
   facet_wrap(~order, ncol=2, nrow=4)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.6, 1))+
@@ -316,7 +320,8 @@ ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=45), 
+       axis.title.x=element_text(size=45, margin=margin(-15,0,0,0)), 
+       axis.title.y=element_text(size=45, margin=margin(0,-15,0,0)), 
         axis.text = element_text(size=40), 
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
