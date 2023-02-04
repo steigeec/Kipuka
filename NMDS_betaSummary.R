@@ -316,7 +316,7 @@ jpeg("Figures/turnover-edge-center.jpg", width=1000, height=1000)
 ggplot(data=CE[CE$metric=="3% OTU",]) + 
   geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
   geom_point(aes(x=Area, y=dist), colour="#6699CC", fill="#332288", alpha=0.70, size=8, shape=21, stroke=7) + 
-  labs(x="Log kipuka area ("~m^2~")", y="3% OTU beta diversity") +
+  labs(x="Kipuka area ("~m^2~")", y="3% OTU beta diversity") +
   KipukaTheme +
   #coord_cartesian(ylim=c(0.4, 1))+
   guides(colour="none")+
