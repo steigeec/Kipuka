@@ -95,7 +95,7 @@ b<-ggplot() +
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +                 
   facet_wrap(~Site)+                 
-  labs(title="B.", x="Log kipuka area ("~m^2~")", y="OTU richness") +
+  labs(title="B.", x="Kipuka area ("~m^2~")", y="OTU richness") +
   KipukaTheme +
   guides(color="none", fill="none", linetype="none") + 
   theme(strip.text = element_text(size = 45), 
