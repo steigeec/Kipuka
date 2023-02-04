@@ -21,21 +21,21 @@ richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
 #Establish some themes up top to apply to all
-KipukaTheme <- theme(axis.title=element_text(size=30), 
-        axis.text = element_text(size=25, angle=45), 
-        plot.margin = unit(c(0, 0, 0, 0), "cm"), 
-        plot.title=element_text(size=30), 
-        legend.text=element_text(size=25), 
-        legend.spacing.x = unit(1.0, 'cm'),
+KipukaTheme <- theme(axis.title=element_text(size=50), 
+        axis.text = element_text(size=25, angle=50), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=40), 
         legend.key.height = unit(1, "cm"), 
+        legend.key.width = unit(1.5,"cm"), 
         panel.background = element_blank(), 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), 
         plot.background = element_blank(), 
         legend.background = element_blank(),
-        legend.title = element_text(size=25), 
-        text = element_text(face="plain", family="Calibri"),
-        legend.box.background = element_rect(fill = "white", color = "black")) 
+        legend.title = element_text(size=40), 
+        text = element_text(family = "serif"), 
+        legend.box.background = element_rect(fill = "white", color = "black"), 
+        legend.spacing.y = unit(0.1,"cm")) 
                    
 #################################################################################
 #Kipuka size versus SR/SROTU
@@ -63,7 +63,8 @@ a <- ggplot() +
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
-        size=1),   
+        size=1), 
+      plot.margin = unit(c(0, 0, 0, 0), "cm"), 
       panel.grid.minor = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -72,9 +73,8 @@ a <- ggplot() +
         plot.title=element_text(size=50), 
         legend.text=element_text(size=45, hjust=0.4), 
         legend.title = element_blank(),
-        legend.key.width = unit(4,"cm"), 
-       legend.position = "top", 
-        plot.margin = margin(0.1,-1.5,2.5,2, "cm"))+ guides(shape = guide_legend(override.aes = list(size = 4)))
+        legend.key.width = unit(3,"cm"), 
+       legend.position = "top")
 
 CenterzOTU <- lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"])
 Center3otu<-lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"])
@@ -95,7 +95,7 @@ b<-ggplot() +
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +                 
   facet_wrap(~Site)+                 
-  labs(title="B.", x="Kipuka area ("~m^2~")", y="OTU richness") +
+  labs(title="B.", x="Log kipuka area ("~m^2~")", y="OTU richness") +
   KipukaTheme +
   guides(color="none", fill="none", linetype="none") + 
   theme(strip.text = element_text(size = 45), 
@@ -103,6 +103,7 @@ b<-ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size=1),   
+        plot.margin = unit(c(0, 0, 0, 0), "cm"), 
       panel.grid.minor = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -112,11 +113,10 @@ b<-ggplot() +
         axis.text.y = element_text(size=45), 
         axis.text.x = element_text(size=45, vjust=1), 
         plot.title=element_text(size=50), 
-        legend.key.width = unit(7,"cm"), 
+        #legend.key.width = unit(7,"cm"), 
         legend.text=element_text(size=45, hjust=0.5), 
         legend.title = element_blank(),
-       legend.position = "top", 
-        plot.margin = margin(0.1,2.5,2.5,3, "cm"))+ guides(shape = guide_legend(override.aes = list(size = 4)))
+       legend.position = "top")
 
 jpeg("Figures/Figure3.jpg", width=2000, height=1000)
 plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
