@@ -13,7 +13,6 @@ library(cowplot)
 library(tidyverse)
 library(vegan)
 library(scales)
-font_import()
 
 richness <- read.csv("merged_by_site_2.csv")
 dist_beta <- read.csv("Distance_v_beta.csv")
@@ -163,7 +162,7 @@ ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) +
   geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=0, stroke=3.5) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
-  labs(title="", x="Distance (km)", y="zOTU beta diversity") +
+  labs(title="", x="Log distance (km)", y="zOTU beta diversity") +
   facet_wrap(~order, ncol=2, nrow=3)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.4, 1))+
@@ -198,7 +197,7 @@ ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),]) +
   geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=0, stroke=2) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
-  labs(title="", x="Distance (km)", y="zOTU beta diversity") +
+  labs(title="", x="Log distance (km)", y="zOTU beta diversity") +
   facet_wrap(~order, ncol=2, nrow=3)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.4, 1))+
@@ -268,7 +267,7 @@ ggplot(data=order_all) +
   geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual("Site type", values=SiteColors) +
-  labs(title="", x="Distance (km)", y="OTU beta diversity") +
+  labs(title="", x="Log distance (km)", y="OTU beta diversity") +
   facet_wrap(~order, ncol=2, nrow=4)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.6, 1))+
@@ -303,7 +302,7 @@ ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),]) +
   geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, stroke=2.5, shape=0) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
-  labs(title="", x="Distance (km)", y="zOTU beta diversity") +
+  labs(title="", x="Log distance (km)", y="zOTU beta diversity") +
   facet_wrap(~order, ncol=2, nrow=4)+
   KipukaTheme +
   coord_cartesian(ylim=c(0.6, 1))+
