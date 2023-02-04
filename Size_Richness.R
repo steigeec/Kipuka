@@ -26,7 +26,7 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         plot.title=element_text(size=50), 
         legend.text=element_text(size=40), 
         legend.key.height = unit(1, "cm"), 
-        legend.key.width = unit(1.5,"cm"), 
+        #legend.key.width = unit(1.5,"cm"), 
         panel.background = element_blank(), 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), 
@@ -73,7 +73,7 @@ a <- ggplot() +
         plot.title=element_text(size=50), 
         legend.text=element_text(size=45, hjust=0.4), 
         legend.title = element_blank(),
-        legend.key.width = unit(3,"cm"), 
+        legend.key.width = unit(0.6,"cm"), 
        legend.position = "top")
 
 CenterzOTU <- lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"])
