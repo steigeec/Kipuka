@@ -11,7 +11,6 @@ library(extrafont)
 library(reshape2)
 library(cowplot)
 library(tidyverse)
-font_import()
 library(data.table)
 library(scales)
 library(extrafont)
@@ -198,7 +197,7 @@ B1<-ggplot() +
   geom_smooth(method='lm', data=subsetB, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
   scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +
   scale_y_continuous(name="Proportion of invasive OTUs")+              
-  labs(title="C.", x="Kipuka area ("~m^2~")") +
+  labs(title="C.", x="Log kipuka area ("~m^2~")") +
   guides(colour="none", fill="none")+
   KipukaTheme +              
 scale_x_continuous(trans='log10',
