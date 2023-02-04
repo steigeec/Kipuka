@@ -62,7 +62,7 @@ ggplot() +
   scale_colour_manual(values=SiteColors) +
   facet_wrap(~variable, nrow=2, scales="free") +
   guides(fill=guide_legend(nrow=1), colour="none") +
-  labs(title="", x="Log kipuka area ("~m^2~")", y="zOTU richness") +
+  labs(title="", x="Kipuka area ("~m^2~")", y="zOTU richness") +
   scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  + 
