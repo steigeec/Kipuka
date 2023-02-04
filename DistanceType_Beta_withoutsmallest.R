@@ -13,7 +13,6 @@ library(cowplot)
 library(tidyverse)
 library(vegan)
 library(scales)
-font_import()
 
 
 
@@ -87,7 +86,7 @@ b <- ggplot(data=acari_beta) +
   geom_smooth(method='lm', aes(x=Geo, y=value, colour=variable), size=1, alpha=0)+ #, linetype=site
   facet_wrap(~group, ncol=2)+
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Kona", "Stainback")) +
-  labs(title="B.", x="Log distance (km)", y="zOTU beta diversity") +
+  labs(title="B.", x="Distance (km)", y="zOTU beta diversity") +
   KipukaTheme +
   guides(color = guide_legend(title = "Sites", nrow=1)) +
   scale_x_continuous(trans='log10',
@@ -130,7 +129,7 @@ a <- ggplot(data=acari_beta) +
   facet_wrap(~group, ncol=2)+
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors) +
-  labs(title="A.", x="Log distance (km)", y="3% OTU beta diversity") +
+  labs(title="A.", x="Distance (km)", y="3% OTU beta diversity") +
   KipukaTheme +
   guides(color="none", shape="none", fill ="none", linetype="none") +
   scale_x_continuous(trans='log10',
