@@ -210,18 +210,24 @@ beta$Site.x<-gsub("Stainbeck","Stainback",as.character(beta$Site.x))
 beta$Site.x<-as.factor(beta$Site.x)
 beta$Site.x <- factor(beta$Site.x, levels=c("Lava", "Edge", "Center", "Stainback", "Kona"))  
 
-#What is the average zOTU for each site type?
+#What is the average zOTU for each site type? 3%OTU?
 for (LEVEL in 1:length(levels(beta$Site.x))){
         type<-levels(beta$Site.x)[LEVEL]
-        average<-mean(beta$beta[beta$Site.x==type])
-        print(paste0("The zOTU beta of ",type," is ",average))
+        average_zotu<-mean(beta$beta[beta$Site.x==type & beta$metric=="zOTU"])
+        average_3otu<-mean(beta$beta[beta$Site.x==type & beta$metric=="3% OTU"])
+        print(paste0("The zOTU beta of ",type," is ",average_zotu))
+        print(paste0("The 3% OTU beta of ",type," is ",average_3otu))
         }
 #"The zOTU beta of Lava is 0.757467924416667"
 #"The zOTU beta of Edge is 0.685924466871795"
 #"The zOTU beta of Center is 0.780764493905983"
 #"The zOTU beta of Stainback is 0.574695785040404"
 #"The zOTU beta of Kona is 0.600306610385185"                         
-                         
+# "The 3% OTU beta of Lava is 0.72089505"
+# "The 3% OTU beta of Edge is 0.644717492307692"
+# "The 3% OTU beta of Center is 0.755628114102564"
+# "The 3% OTU beta of Stainback is 0.54633928030303"
+# "The 3% OTU beta of Kona is 0.577042708888889"                         
                          
                          
 b<- ggplot() + 
