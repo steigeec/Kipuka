@@ -595,6 +595,26 @@ beta <- beta[beta$Site.x != "C-F" & beta$Site.x != "C-E",]
 
 beta$Site.x<-as.factor(beta$Site.x)
 beta$Site.x <- factor(beta$Site.x, levels=c("Lava", "Edge", "Center", "Stainbeck", "Kona"))                         
+
+#What is the average zOTU for each site type? 3%OTU?
+for (LEVEL in 1:length(levels(beta$Site.x))){
+        type<-levels(beta$Site.x)[LEVEL]
+        average_zotu<-mean(beta$dist[beta$Site.x==type & beta$metric=="zOTU"])
+        average_3otu<-mean(beta$dist[beta$Site.x==type & beta$metric=="3% OTU"])
+        print(paste0("The zOTU beta of ",type," is ",average_zotu))
+        print(paste0("The 3% OTU beta of ",type," is ",average_3otu))
+        }                         
+        
+# "The zOTU beta of Lava is 0.794040798833333"
+# "The 3% OTU beta of Lava is 0.72089505"
+# "The zOTU beta of Edge is 0.706527954153846"
+# "The 3% OTU beta of Edge is 0.660035220454545"
+# "The zOTU beta of Center is 0.793332683807692"
+# "The 3% OTU beta of Center is 0.750484379545455"
+# "The zOTU beta of Stainbeck is 0.588874037409091"
+# "The 3% OTU beta of Stainbeck is 0.54633928030303"
+# "The zOTU beta of Kona is 0.611938561133333"
+# "The 3% OTU beta of Kona is 0.577042708888889"                         
                          
 b<- ggplot() + 
   geom_boxplot(data=beta[beta$metric=="3% OTU",],aes(x=Site.x, y=dist, fill=Site.x), color="black", size=1)+
