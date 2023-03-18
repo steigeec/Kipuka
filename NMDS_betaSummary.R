@@ -209,6 +209,19 @@ beta$Site.x<-gsub("Stainbeck","Stainback",as.character(beta$Site.x))
                          
 beta$Site.x<-as.factor(beta$Site.x)
 beta$Site.x <- factor(beta$Site.x, levels=c("Lava", "Edge", "Center", "Stainback", "Kona"))  
+
+#What is the average zOTU for each site type?
+for (LEVEL in 1:length(levels(beta$Site.x))){
+        type<-levels(beta$Site.x)[LEVEL]
+        average<-mean(beta$beta[beta$Site.x==type])
+        print(paste0("The zOTU beta of ",type," is ",average))
+        }
+#"The zOTU beta of Lava is 0.757467924416667"
+#"The zOTU beta of Edge is 0.685924466871795"
+#"The zOTU beta of Center is 0.780764493905983"
+#"The zOTU beta of Stainback is 0.574695785040404"
+#"The zOTU beta of Kona is 0.600306610385185"                         
+                         
                          
                          
 b<- ggplot() + 
