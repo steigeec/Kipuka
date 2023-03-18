@@ -28,8 +28,29 @@ for (ROW in 1:nrow(BC)){
   }
 }
 
-#
+#center versus all other types? (*1K*C)
+co<-as.numeric(c())
+cc<-as.numeric(c())
+#edge versus all other types? (*1K*E)
+eo<-as.numeric(c())
+ee<-as.numeric(c())
+#Stainbeck versus all other types? (HEH*K1)
+so<-as.numeric(c())
+ss<-as.numeric(c())
+#Lava versus all other types? (*5KL*)
+lo<-as.numeric(c())
+ll<-as.numeric(c())
+#Kona versus all other types? (*HEK*K1)
+ko<-as.numeric(c())
+kk<-as.numeric(c())
 
+for (ROW in 1:nrow(zbeta)){
+  site1<-zbeta$site1[ROW]
+  site2<-zbeta$site2[ROW]
+  if (grepl("*1K*C",site1)==TRUE){
+    print("yes")
+    }
+  }
 
 
 
