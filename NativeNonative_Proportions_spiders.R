@@ -93,7 +93,7 @@ plotA$Site <- factor(plotA$Site, levels = rev(c("Kona","Stainback",  "Center", "
 bp <- ggplot() + 
   geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=Site, y=value, fill=Site), color="black", size=1)+
   scale_fill_manual(values=SiteColors) +
-  labs(title="A. ", x="", y="Proportion of invasive species") +
+  labs(title="A. ", x="", y="Proportion of non-native species") +
   KipukaTheme +
   theme(strip.text = element_text(size = 40), 
         axis.text = element_text(angle=45, size=40), 
@@ -195,8 +195,8 @@ B1<-ggplot() +
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge")) +
   geom_smooth(method='lm', data=subsetB, aes(x=Area, y=value, colour=Site, fill=Site), size=1, alpha=0.20)+
   scale_fill_manual(values=SiteColors, limits=c("Center", "Edge")) +
-  scale_y_continuous(name="Proportion of invasive OTUs")+              
-  labs(title="C.", x="Kipuka area ("~m^2~")") +
+  scale_y_continuous(name="Proportion of non-native OTUs")+              
+  labs(title="B.", x="Kipuka area ("~m^2~")") +
   guides(colour="none", fill="none")+
   KipukaTheme +              
 scale_x_continuous(trans='log10',
@@ -217,7 +217,7 @@ scale_x_continuous(trans='log10',
         plot.title=element_text(size=50),  
         plot.margin = margin(0.2,1,0,1.35, "cm"))
                      
-jpeg("Figures/NatNonNat_AraneaeScatter.jpg", width=2000, height=1000)
+jpeg("Figures/NatNonNat_AraneaeScatter_V2.jpg", width=2000, height=1000)
 plot_grid(bp, B1, ncol=2, rel_widths=c(1.15, 1))
 dev.off()   
            
