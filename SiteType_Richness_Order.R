@@ -5,7 +5,7 @@
 ####################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka")
+setwd("G:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -13,7 +13,6 @@ library(cowplot)
 library(tidyverse)
 library(vegan)
 font_import()
-
 
 richness <- read.csv("merged_by_site_2.csv")
 dist_beta <- read.csv("Distance_v_beta.csv")
@@ -42,7 +41,6 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm"))                                          
 
-#################################################################################
 #Let's just try all the orders! 
 richness_mod_0 <- melt(richness, idvars = c("SiteID", "Arealog"), measure = c("Araneae", "Pscoptera", "Hemiptera", "Hymenoptera", "Lepidoptera", "Acari", "Coleoptera", "Diptera"))
 richness_mod_0$Arealog <- round(richness_mod_0$Arealog, 0)
@@ -58,6 +56,38 @@ richness_mod_0<-richness_mod_0[richness_mod_0$variable %in% my_orders,]
 richness_mod_0$Site<-gsub("Stainbeck","Stainback",as.character(richness_mod_0$Site))
 
 richness_mod_0$Site <- factor(richness_mod_0$Site, levels=c("Lava", "Edge", "Center", "Stainback", "Kona"))
+
+#################################################################################
+# TEST:  ANOVA to check, for each taxon, whether zOTU richness is different for each "area type" ( lava, edge, center, Stainback, Kona)
+
+for (i in 1:length(unique(richness_mod_0$variable))){  
+        taxon<-unique(richness_mod_0$variable)[i]
+        print(taxon)
+        test<-richness_mod_0[richness_mod_0$variable==taxon,]
+        # First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
+        # Check normality of residuals
+        residuals <- lm(value ~ Site, data = test)$residuals
+        qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
+        # Check homogeneity of variances
+        p1<-leveneTest(value ~ Site, data = test)[1,3]
+        print(paste0("p-value for Levene's is ",p1))
+        # Shapiro-Wilk test for normality (optional)
+        p2<-shapiro.test(residuals)$p.value
+        print(paste0("p-value for Shapiro-Wilk's is ",p2))
+        if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
+              kruskal_result <- kruskal.test(value ~ Site, data = test)
+              cat("Kruskal-Wallis test results for", taxon, "\n")
+              print(kruskal_result)
+        }
+        else { # Conduct the ANOVA                   
+                anova_result <- aov(value ~ Site, data = test)
+                print(paste0("ANOVA test results for ", taxon))
+                print(summary(anova_result))                  
+        }
+}
+
+###################################################################################
+# Now plot
 
 jpeg("Figures/Order_Richness_1.jpg", width=3000, height=2000)
 ggplot() + 
