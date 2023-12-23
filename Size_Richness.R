@@ -13,6 +13,7 @@ library(cowplot)
 library(tidyverse)
 library(scales)
 library(car)
+library(lmtest)
 
 richness <- read.csv("merged_by_site_2.csv")
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
@@ -76,6 +77,57 @@ for (i in 1:length(unique(richness_mod_2$variable))){
         }
 }
 
+###############################################################################################
+# Linear regression for size vs. richness
+
+for (j in 1:length(unique(richness_mod_2$variable))) {
+        level<-unique(richness_mod_2$variable)[j]
+        print(level)        
+        for (i in 1:length(c("Center", "Edge"))){  
+                type<-c("Center", "Edge")[i]
+                print(type)
+                test<-richness_mod_2[richness_mod_2$Site==type & richness_mod_2$variable==level,]
+                # First, test assumptions:  
+                # Fit linear regression model
+                lm_model <- lm(value ~ log(Area), data = test)
+                # 1. Linearity Check (Use Residuals vs. Fitted plot)
+                plot(lm_model, which = 1)
+                # 2. Independence Check (Use Durbin-Watson Test)
+                DW<-durbinWatsonTest(lm_model)$p
+                print(paste0("p-value for Durbin Watson's is ",DW))
+                # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
+                plot(lm_model, which = 3)
+                # 4. Normality of Residuals Check (Use Normal Q-Q plot and Shapiro-Wilk Test)
+                qqPlot(lm_model$residuals)
+                ST<-shapiro.test(lm_model$residuals)$p.value
+                print(paste0("p-value for Shapiro-Wilk's is ",ST))           
+                p2<-shapiro.test(residuals)$p.value
+    #            if (DW < 0.05 || ST < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
+     #                 kruskal_result <- kruskal.test(value ~ Site, data = test)
+      #                cat("Kruskal-Wallis test results for", level, type, "\n")
+       #               print(kruskal_result)
+        #        }
+         #       else { # Conduct the ANOVA                   
+                        print(paste0("linear regression for ", level, type))
+                        print(summary(lm_model))                  
+             #   }
+        }
+}
+
+
+
+# Print the summary of the linear regression model
+summary(lm_model)
+
+
+CenterzOTU <- lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"])
+Center3otu<-lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"])
+EdgezOTU<-lm(richness_mod_2$value[richness_mod_2$variable=="SR" & richness_mod_2$Site=="Edge"]~richness_mod_2$value[richness_mod_2$variable=="SR" & richness_mod_2$Site=="Edge"])
+Edge3otu<-lm(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Edge"]~richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Edge"])
+
+m <- lm(y ~ x)
+r2 = format(summary(m)$r.squared, digits = 3)))       
+
 ################################################################################################
 # Plot it 
 
@@ -104,15 +156,7 @@ a <- ggplot() +
         legend.text=element_text(size=45, hjust=0.4), 
         legend.title = element_blank(),
         legend.key.width = unit(0.6,"cm"), 
-       legend.position = "top")
-
-CenterzOTU <- lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"])
-Center3otu<-lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"])
-EdgezOTU<-lm(richness_mod_2$value[richness_mod_2$variable=="SR" & richness_mod_2$Site=="Edge"]~richness_mod_2$value[richness_mod_2$variable=="SR" & richness_mod_2$Site=="Edge"])
-Edge3otu<-lm(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Edge"]~richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Edge"])
-
-m <- lm(y ~ x)
-r2 = format(summary(m)$r.squared, digits = 3)))                     
+       legend.position = "top")              
                   
 
 b<-ggplot() + 
