@@ -5,14 +5,14 @@
 #################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka")
+setwd("G:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
 library(cowplot)
 library(tidyverse)
 library(scales)
-
+library(car)
 
 richness <- read.csv("merged_by_site_2.csv")
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
@@ -37,8 +37,6 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
                    
-#################################################################################
-#Kipuka size versus SR/SROTU
 richness_mod_2 <- melt(richness, idvars = c("SiteID", "Site"), measure = c("SR", "SROTU"))
 richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
 
@@ -48,7 +46,39 @@ names(supp.labs) <- c("SR", "SROTU")
 
 #Reorder facets
 richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("SR", "SROTU")))                     
-                               
+
+#################################################################################
+# TEST:  ANOVA to check whether 3%OTU and the zOTU is different for each "area type" ( lava, edge, center, Stainback, Kona)
+
+for (i in 1:length(unique(richness_mod_2$variable))){  
+        level<-unique(richness_mod_2$variable)[i]
+        print(level)
+        test<-richness_mod_2[richness_mod_2$variable==level,]
+        # First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
+        # Check normality of residuals
+        residuals <- lm(value ~ Site, data = test)$residuals
+        qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
+        # Check homogeneity of variances
+        p1<-leveneTest(value ~ Site, data = test)[1,3]
+        print(paste0("p-value for Levene's is ",p1))
+        # Shapiro-Wilk test for normality (optional)
+        p2<-shapiro.test(residuals)$p.value
+        print(paste0("p-value for Shapiro-Wilk's is ",p2))
+        if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
+              kruskal_result <- kruskal.test(value ~ Site, data = test)
+              cat("Kruskal-Wallis test results for", level, "\n")
+              print(kruskal_result)
+        }
+        else { # Conduct the ANOVA                   
+                anova_result <- aov(value ~ Site, data = test)
+                print(paste0("ANOVA test results for ", level))
+                print(summary(anova_result))                  
+        }
+}
+
+################################################################################################
+# Plot it 
+
 a <- ggplot() + 
   geom_boxplot(data=richness_mod_2,aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
   facet_wrap(~variable, scales="free", 
