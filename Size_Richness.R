@@ -89,19 +89,26 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 test<-richness_mod_2[richness_mod_2$Site==type & richness_mod_2$variable==level,]
                 # First, test assumptions:  
                 # Fit linear regression model
-                lm_model <- lm(value ~ log(Area), data = test)
+                glm_model <- glm(value ~ log(Area), data = test, family = poisson)
                 # 1. Linearity Check (Use Residuals vs. Fitted plot)
-                plot(lm_model, which = 1)
-                # 2. Independence Check (Use Durbin-Watson Test)
-                DW<-durbinWatsonTest(lm_model)$p
-                print(paste0("p-value for Durbin Watson's is ",DW))
+                par(mar = c(1, 1, 1, 1))
+                plot(glm_model, which = 1)                
                 # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
-                plot(lm_model, which = 3)
-                # 4. Normality of Residuals Check (Use Normal Q-Q plot and Shapiro-Wilk Test)
-                qqPlot(lm_model$residuals)
-                ST<-shapiro.test(lm_model$residuals)$p.value
-                print(paste0("p-value for Shapiro-Wilk's is ",ST))           
-                p2<-shapiro.test(residuals)$p.value
+                plot(glm_model, which = 3)
+                # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
+                qqnorm(resid(glm_model))
+                qqline(resid(glm_model))
+                # 4. Overdispersion -- if the ratio is much larger than 1, there might be overdispersion
+                df_resid <- df.residual(glm_model)
+                dev_over_df <- deviance(glm_model) / df_resid
+                print(paste0("overdispersion ratio is ",dev_over_df))
+                # 5. Influence and outliers -- cook's distance
+                infl <- influence.measures(glm_model)
+                plot(infl, which = "cook")
+                # 6. goodness-of-fit tests, such as the Pearson or deviance goodness-of-fit tests. A high p-value suggests good fit.
+                p<-pchisq(deviance(glm_model), df = df_resid, lower.tail = FALSE)
+                print(paste0("goodness of fit p-val is ",p))
+
     #            if (DW < 0.05 || ST < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
      #                 kruskal_result <- kruskal.test(value ~ Site, data = test)
       #                cat("Kruskal-Wallis test results for", level, type, "\n")
@@ -109,7 +116,7 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
         #        }
          #       else { # Conduct the ANOVA                   
                         print(paste0("linear regression for ", level, type))
-                        print(summary(lm_model))                  
+                        print(summary(glm_model))                  
              #   }
         }
 }
