@@ -5,7 +5,7 @@
 ####################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka")
+setwd("G:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -43,13 +43,57 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
 
-
-#################################################################################
-#Let's just try all the orders! 
-
 richness_mod_0 <- richness[richness$Site=="Center" | richness$Site=="Edge",]
 richness_mod_0 <- melt(richness, idvars = c("SiteID", "Area"), measure = c("Araneae", "Pscoptera", "Hemiptera", "Lepidoptera", "Coleoptera", "Diptera"))
 richness_mod_0$Area <- round(richness_mod_0$Area, 10)
+
+#################################################################################
+
+for (j in 1:length(unique(richness_mod_0$variable))) {
+        level<-unique(richness_mod_0$variable)[j]
+        print(level)        
+        for (i in 1:length(c("Center", "Edge"))){  
+                type<-c("Center", "Edge")[i]
+                print(type)
+                test<-richness_mod_0[richness_mod_0$Site==type & richness_mod_0$variable==level,]
+                # First, test assumptions:  
+                # Fit linear regression model
+                glm_model <- glm(value ~ log10(Area), data = test, family = poisson)
+                # pseudo R2
+                null_model <- glm(value ~ 1, data = test, family = poisson)
+                McFadden_R2 <- 1 - (glm_model$deviance / glm(null_model)$deviance)
+                print(paste0("McFadden r2 is ",McFadden_R2))                
+                # 1. Linearity Check (Use Residuals vs. Fitted plot)
+                par(mar = c(1, 1, 1, 1))
+                plot(glm_model, which = 1)                
+                # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
+                plot(glm_model, which = 3)
+                # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
+                qqnorm(resid(glm_model))
+                qqline(resid(glm_model))
+                # 4. Overdispersion -- if the ratio is much larger than 1, there might be overdispersion
+                df_resid <- df.residual(glm_model)
+                dev_over_df <- deviance(glm_model) / df_resid
+                print(paste0("overdispersion ratio is ",dev_over_df))
+                # 5. Influence and outliers -- cook's distance                
+                #infl <- influence.measures(glm_model)
+                #plot(infl, which = "cook")
+                # 6. goodness-of-fit tests, such as the Pearson or deviance goodness-of-fit tests. A high p-value suggests good fit.
+                p<-pchisq(deviance(glm_model), df = df_resid, lower.tail = FALSE)
+                print(paste0("goodness of fit p-val is ",p))
+
+    #            if (DW < 0.05 || ST < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
+     #                 kruskal_result <- kruskal.test(value ~ Site, data = test)
+      #                cat("Kruskal-Wallis test results for", level, type, "\n")
+       #               print(kruskal_result)
+        #        }
+         #       else { # Conduct the ANOVA                   
+                        print(paste0("linear regression for ", level, type))
+                        print(summary(glm_model))                  
+             #   }
+        }
+}
+#############################################################################################################
 
 #Put in correct order
 #richness_mod_0$Area <- factor(richness_mod_0$Area, levels=c("Lava", "3", "4", "5", "Stainbeck", "Kona"))
