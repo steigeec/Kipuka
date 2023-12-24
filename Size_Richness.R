@@ -90,6 +90,10 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 # First, test assumptions:  
                 # Fit linear regression model
                 glm_model <- glm(value ~ log10(Area), data = test, family = poisson)
+                # pseudo R2
+                null_model <- glm(value ~ 1, data = test, family = poisson)
+                McFadden_R2 <- 1 - (glm_model$deviance / glm(null_model)$deviance)
+                print(paste0("McFadden r2 is ",McFadden_R2))                
                 # 1. Linearity Check (Use Residuals vs. Fitted plot)
                 par(mar = c(1, 1, 1, 1))
                 plot(glm_model, which = 1)                
