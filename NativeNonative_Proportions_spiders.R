@@ -5,7 +5,7 @@
 #######################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka")
+setwd("G:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -88,32 +88,32 @@ OTU$Area<-round(OTU$Area,10)
 plotA<-OTU                
 plotA$Site<-gsub("Stainbeck","Stainback",as.character(plotA$Site)) 
 plotA$Site <- factor(plotA$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava")))
-               
-                
-bp <- ggplot() + 
-  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=Site, y=value, fill=Site), color="black", size=1)+
-  scale_fill_manual(values=SiteColors) +
-  labs(title="A. ", x="", y="Proportion of non-native species") +
-  KipukaTheme +
-  theme(strip.text = element_text(size = 40), 
-        axis.text = element_text(angle=45, size=40), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=40), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=40), 
-        legend.title = element_blank(),
-       legend.position = "left", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"),
-       legend.key.height = unit(3, 'cm'), 
-        legend.key.width = unit(1, 'cm'))
-                                        
+
+###########################################################################################################
+# TEST:  ANOVA to check whether proportion of non-native 3% OTUs ~ area type  ( lava, edge, center, Stainback, Kona)
+
+# First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
+# Check normality of residuals
+test<-plotA[plotA$variable=="p_non",]                
+residuals <- lm(value ~ Site, data = test)$residuals
+par(mar = c(1, 1, 1, 1))                
+qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
+# Check homogeneity of variances
+p1<-leveneTest(value ~ Site, data = test)[1,3]
+print(paste0("p-value for Levene's is ",p1))
+# Shapiro-Wilk test for normality (optional)
+p2<-shapiro.test(residuals)$p.value
+print(paste0("p-value for Shapiro-Wilk's is ",p2))
+if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
+        kruskal_result <- kruskal.test(value ~ Site, data = test)
+        cat("Kruskal-Wallis test results", "\n")
+        print(kruskal_result)
+}  else { # Conduct the ANOVA                   
+        anova_result <- aov(value ~ Site, data = test)
+        print(paste0("ANOVA test results"))
+        print(summary(anova_result))                  
+}
+                                           
 ####################################################################################################
 #Also do in terms of species richness of nat/non-nat
 
@@ -189,7 +189,35 @@ rownames(plotB) <- seq(1,nrow(plotB),1)
 
 subsetB<-plotB[plotB$variable=="p_non",]
 subsetB<-subsetB[subsetB$Site=="Center" | subsetB$Site== "Edge",] 
-subsetB$Site<-gsub("Stainbeck","Stainback",as.character(subsetB$Site))                
+subsetB$Site<-gsub("Stainbeck","Stainback",as.character(subsetB$Site))               
+                
+###########################################################################################################
+# Now plot this
+                
+bp <- ggplot() + 
+  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=Site, y=value, fill=Site), color="black", size=1)+
+  scale_fill_manual(values=SiteColors) +
+  labs(title="A. ", x="", y="Proportion of non-native species") +
+  KipukaTheme +
+  theme(strip.text = element_text(size = 40), 
+        axis.text = element_text(angle=45, size=40), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=40), 
+        plot.title=element_text(size=50), 
+        legend.text=element_text(size=40), 
+        legend.title = element_blank(),
+       legend.position = "left", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"),
+       legend.key.height = unit(3, 'cm'), 
+        legend.key.width = unit(1, 'cm'))
+                
 B1<-ggplot() + 
   geom_point(data=subsetB,aes(x=as.numeric(Area), y=value, colour=Site), size=6, shape=15)+
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge")) +
