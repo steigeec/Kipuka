@@ -89,7 +89,7 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 test<-richness_mod_2[richness_mod_2$Site==type & richness_mod_2$variable==level,]
                 # First, test assumptions:  
                 # Fit linear regression model
-                glm_model <- glm(value ~ log(Area), data = test, family = poisson)
+                glm_model <- glm(value ~ log10(Area), data = test, family = poisson)
                 # 1. Linearity Check (Use Residuals vs. Fitted plot)
                 par(mar = c(1, 1, 1, 1))
                 plot(glm_model, which = 1)                
@@ -102,9 +102,9 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 df_resid <- df.residual(glm_model)
                 dev_over_df <- deviance(glm_model) / df_resid
                 print(paste0("overdispersion ratio is ",dev_over_df))
-                # 5. Influence and outliers -- cook's distance
-                infl <- influence.measures(glm_model)
-                plot(infl, which = "cook")
+                # 5. Influence and outliers -- cook's distance                
+                #infl <- influence.measures(glm_model)
+                #plot(infl, which = "cook")
                 # 6. goodness-of-fit tests, such as the Pearson or deviance goodness-of-fit tests. A high p-value suggests good fit.
                 p<-pchisq(deviance(glm_model), df = df_resid, lower.tail = FALSE)
                 print(paste0("goodness of fit p-val is ",p))
