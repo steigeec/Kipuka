@@ -5,7 +5,7 @@
 #################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka")
+setwd("G:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -63,26 +63,6 @@ nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
 nmds$pointsize[nmds$Site=="Stainback" & is.na(nmds$pointsize)] <- 2
 
 nmds <- nmds[nmds$Site != "1K08E" & nmds$Site != "1K08C",] 
-
-a <- ggplot() + 
-  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
-  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="A.", x="NMDS1", y="NMDS2") +
-  #coord_equal() +
-  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(colour = guide_legend(override.aes = list(size=4))) + 
-  KipukaTheme +
-  theme(panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5),
-        plot.title=element_text(size=50))
 
 ######################################################33
 #Beta diversity summary plot (B)
@@ -190,7 +170,6 @@ Lava <- Lava[ , colSums(is.na(Lava)) < nrow(Lava)]
 dist_beta <- rbind(Center, Stainbeck, Kona, Edge, Lava)
 dist_beta <- rename(dist_beta, c("dist"="ï..dist"))                         
 
-
 #Now summarize beta diversity between site types
 acari_beta<-acari_beta[,c(4, 5, 7)]
 acari_beta$metric <- "3% OTU"
@@ -228,7 +207,59 @@ for (LEVEL in 1:length(levels(beta$Site.x))){
 # "The 3% OTU beta of Center is 0.755628114102564"
 # "The 3% OTU beta of Stainback is 0.54633928030303"
 # "The 3% OTU beta of Kona is 0.577042708888889"                         
+
+#######################################################
+# Test difference between area types in zOTU and 3% radius OTU turnover
+
+for (i in 1:length(unique(beta$metric))){  
+        level<-unique(beta$metric)[i]
+        print(level)
+        test<-beta[beta$metric==level,]
+        # First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
+        # Check normality of residuals
+        residuals <- lm(beta ~ Site.x, data = test)$residuals
+        par(mar = c(1, 1, 1, 1))
+        qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
+        # Check homogeneity of variances
+        p1<-leveneTest(beta ~ Site.x, data = test)[1,3]
+        print(paste0("p-value for Levene's is ",p1))
+        # Shapiro-Wilk test for normality (optional)
+        p2<-shapiro.test(residuals)$p.value
+        print(paste0("p-value for Shapiro-Wilk's is ",p2))
+        if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
+              kruskal_result <- kruskal.test(beta ~ Site.x, data = test)
+              cat("Kruskal-Wallis test results for", level, "\n")
+              print(kruskal_result)
+        }
+        else { # Conduct the ANOVA                   
+                anova_result <- aov(beta ~ Site.x, data = test)
+                print(paste0("ANOVA test results for ", level))
+                print(summary(anova_result))                  
+        }
+}                         
                          
+#######################################################
+# Plot these
+                         
+a <- ggplot() + 
+  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
+  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
+  labs(title="A.", x="NMDS1", y="NMDS2") +
+  #coord_equal() +
+  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
+  guides(colour = guide_legend(override.aes = list(size=4))) + 
+  KipukaTheme +
+  theme(panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5),
+        plot.title=element_text(size=50))
                          
 b<- ggplot() + 
   geom_boxplot(data=beta[beta$metric=="3% OTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=beta, fill=Site.x), color="black", size=1)+
@@ -255,11 +286,7 @@ b<- ggplot() +
         legend.title = element_blank(),
        legend.position = "top", 
         plot.margin = margin(0.2,1,0,1.35, "cm"))   
-
-                    
-#################################################################################
-#NMDS plot for zOTU
-
+                         
 c <- ggplot() + 
   geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1zOTU,y=MDS2zOTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
@@ -304,9 +331,7 @@ d<- ggplot() +
         legend.text=element_text(size=40), 
         legend.title = element_blank(),
        legend.position = "top", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"))                     
-
-#######################################################
+        plot.margin = margin(0.2,1,0,1.35, "cm"))  
                          
 jpeg("Figures/NMDS-turnover.jpg", width=2000, height=2000) 
 plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1.3, .9), rel_heights=c(1,1))                         
