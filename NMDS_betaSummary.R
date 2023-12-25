@@ -208,6 +208,13 @@ for (LEVEL in 1:length(levels(beta$Site.x))){
 # "The 3% OTU beta of Stainback is 0.54633928030303"
 # "The 3% OTU beta of Kona is 0.577042708888889"                         
 
+
+#Bray curtis center-edge pairs only
+CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
+
+#Fix spelling error on sheet before proceeding
+CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))  
+                         
 #######################################################
 # Test difference between area types in zOTU and 3% radius OTU turnover
 
@@ -237,6 +244,29 @@ for (i in 1:length(unique(beta$metric))){
                 print(summary(anova_result))                  
         }
 }                         
+   
+#######################################################
+# Test difference between area types in zOTU and 3% radius OTU turnover
+
+# First, test assumptions:  
+# Fit linear regression model
+linear_model <- lm(dist ~ log10(Area), data = CE[CE$metric=="3% OTU",])
+# Check assumptions
+# 1. Residuals vs Fitted Values Plot
+par(mar = c(1, 1, 1, 1))                         
+plot(residuals(linear_model) ~ fitted(linear_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+# 2. Normal Q-Q Plot
+qqnorm(residuals(linear_model))
+qqline(residuals(linear_model), col = "red")
+# 3. Scale-Location (Spread-Location) Plot
+plot(sqrt(abs(residuals(linear_model))) ~ fitted(linear_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+abline(h = 0, col = "red", lty = 2)
+# 4. Residuals vs Leverage Plot (Cook's distance)
+plot(hatvalues(linear_model), cooks.distance(linear_model), main = "Residuals vs Leverage", xlab = "Leverage", ylab = "Cook's distance")
+abline(h = 4/length(CE[CE$metric=="3% OTU",]$value), col = "red", lty = 2)
+# Print summary of the linear model
+print(summary(linear_model))             
                          
 #######################################################
 # Plot these
@@ -335,26 +365,9 @@ d<- ggplot() +
                          
 jpeg("Figures/NMDS-turnover.jpg", width=2000, height=2000) 
 plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1.3, .9), rel_heights=c(1,1))                         
-dev.off()                         
- 
-                         
-                         
-                         
-                         
-                         
-                         
-                         
-                         
-                         
-                         
+dev.off()                                       
                          
 ######################################################                         
-                         
-#Bray curtis center-edge pairs only
-CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
-
-#Fix spelling error on sheet before proceeding
-CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))                              
 
 jpeg("Figures/turnover-edge-center.jpg", width=1000, height=1000)                       
 ggplot(data=CE[CE$metric=="3% OTU",]) + 
