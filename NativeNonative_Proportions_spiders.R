@@ -88,31 +88,6 @@ OTU$Area<-round(OTU$Area,10)
 plotA<-OTU                
 plotA$Site<-gsub("Stainbeck","Stainback",as.character(plotA$Site)) 
 plotA$Site <- factor(plotA$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava")))
-
-###########################################################################################################
-# TEST:  ANOVA to check whether proportion of non-native 3% OTUs ~ area type  ( lava, edge, center, Stainback, Kona)
-
-# First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
-# Check normality of residuals
-test<-plotA[plotA$variable=="p_non",]                
-residuals <- lm(value ~ Site, data = test)$residuals
-par(mar = c(1, 1, 1, 1))                
-qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
-# Check homogeneity of variances
-p1<-leveneTest(value ~ Site, data = test)[1,3]
-print(paste0("p-value for Levene's is ",p1))
-# Shapiro-Wilk test for normality (optional)
-p2<-shapiro.test(residuals)$p.value
-print(paste0("p-value for Shapiro-Wilk's is ",p2))
-if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
-        kruskal_result <- kruskal.test(value ~ Site, data = test)
-        cat("Kruskal-Wallis test results", "\n")
-        print(kruskal_result)
-}  else { # Conduct the ANOVA                   
-        anova_result <- aov(value ~ Site, data = test)
-        print(paste0("ANOVA test results"))
-        print(summary(anova_result))                  
-}
                                            
 ####################################################################################################
 #Also do in terms of species richness of nat/non-nat
@@ -190,6 +165,60 @@ rownames(plotB) <- seq(1,nrow(plotB),1)
 subsetB<-plotB[plotB$variable=="p_non",]
 subsetB<-subsetB[subsetB$Site=="Center" | subsetB$Site== "Edge",] 
 subsetB$Site<-gsub("Stainbeck","Stainback",as.character(subsetB$Site))               
+
+###########################################################################################################
+# TEST:  ANOVA to check whether proportion of non-native 3% OTUs ~ area type  ( lava, edge, center, Stainback, Kona)
+
+# First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
+# Check normality of residuals
+test<-plotA[plotA$variable=="p_non",]                
+residuals <- lm(value ~ Site, data = test)$residuals
+par(mar = c(1, 1, 1, 1))                
+qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
+# Check homogeneity of variances
+p1<-leveneTest(value ~ Site, data = test)[1,3]
+print(paste0("p-value for Levene's is ",p1))
+# Shapiro-Wilk test for normality (optional)
+p2<-shapiro.test(residuals)$p.value
+print(paste0("p-value for Shapiro-Wilk's is ",p2))
+if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
+        kruskal_result <- kruskal.test(value ~ Site, data = test)
+        cat("Kruskal-Wallis test results", "\n")
+        print(kruskal_result)
+}  else { # Conduct the ANOVA                   
+        anova_result <- aov(value ~ Site, data = test)
+        print(paste0("ANOVA test results"))
+        print(summary(anova_result))                  
+}
+                
+###########################################################################################################
+# TEST:  Linear regression for size vs. richness
+      
+for (i in 1:length(c("Center", "Edge"))){  
+        type<-c("Center", "Edge")[i]
+        print(type)
+        test<-subsetB[subsetB$variable=="p_non" & subsetB$Site==type,]
+        # First, test assumptions:  
+        # Fit linear regression model
+        linear_model <- lm(value ~ log10(Area), data = test)
+        # Check assumptions
+        # 1. Residuals vs Fitted Values Plot
+        plot(residuals(linear_model) ~ fitted(linear_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+        abline(h = 0, col = "red", lty = 2)
+        # 2. Normal Q-Q Plot
+        qqnorm(residuals(linear_model))
+        qqline(residuals(linear_model), col = "red")
+        # 3. Scale-Location (Spread-Location) Plot
+        plot(sqrt(abs(residuals(linear_model))) ~ fitted(linear_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+        abline(h = 0, col = "red", lty = 2)
+        # 4. Residuals vs Leverage Plot (Cook's distance)
+        plot(hatvalues(linear_model), cooks.distance(linear_model), main = "Residuals vs Leverage", xlab = "Leverage", ylab = "Cook's distance")
+        abline(h = 4/length(test$value), col = "red", lty = 2)
+        # Print summary of the linear model
+        print(paste0("linear regression for ", type))
+        print(summary(linear_model))             
+}
+            
                 
 ###########################################################################################################
 # Now plot this
