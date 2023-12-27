@@ -363,12 +363,44 @@ d<- ggplot() +
        legend.position = "top", 
         plot.margin = margin(0.2,1,0,1.35, "cm"))  
                          
-jpeg("Figures/NMDS-turnover.jpg", width=2000, height=2000) 
+jpeg("../Figures/NMDS-turnover.jpg", width=2000, height=2000) 
 plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1.3, .9), rel_heights=c(1,1))                         
 dev.off()                                       
                          
 ######################################################                         
+# Shown as a log10 function
+jpeg("../Figures/turnover-edge-center_v3.jpg", width = 1000, height = 1000)  # Increase the width                       
+ggplot(data = CE[CE$metric == "3% OTU", ], aes(x = Area, y = dist)) + 
+  geom_smooth(method = "lm", formula = y ~ poly(log10(x), 2), se = FALSE, size=1, alpha=0.20, col="black") +
+  geom_point(colour = "#6699CC", fill = "#332288", alpha = 0.70, size = 8, shape = 21, stroke = 7) + 
+  labs(x = "Kipuka area (" ~ m^2 ~ ")", y = "3% OTU beta diversity") +
+  KipukaTheme +
+  # coord_cartesian(ylim = c(0.4, 1)) +
+  guides(colour = "none") +
+  scale_x_continuous(trans = 'identity', expand = c(0.05, 0.02))  +  # Adjust the expand parameter
+  scale_y_continuous(expand = c(0.005, 0.05))  +  # Adjust the expand parameter
+  theme(strip.text = element_text(size = 45), 
+        panel.grid.major = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 1),   
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 0.5), 
+        axis.title.y = element_text(size = 45), 
+        axis.title.x = element_text(size = 45, margin = margin(-25, 0, 0, 0)), 
+        axis.text = element_text(size = 40), 
+        plot.title = element_text(size = 45), 
+        legend.text = element_text(size = 40), 
+        legend.title = element_text(size = 40),
+        legend.position = "top",
+        plot.margin = margin(1, 15, 1, 1))  
+dev.off()
 
+                        
+                         
+# Shown as a straight line
 jpeg("Figures/turnover-edge-center.jpg", width=1000, height=1000)                       
 ggplot(data=CE[CE$metric=="3% OTU",]) + 
   geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
