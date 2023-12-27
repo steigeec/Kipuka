@@ -12,6 +12,7 @@ library(reshape2)
 library(cowplot)
 library(tidyverse)
 library(scales)
+library(mgcv)
 
 
 #Establish some color schemes up top to apply to all
@@ -250,7 +251,7 @@ for (i in 1:length(unique(beta$metric))){
 
 # First, test assumptions:  
 # Fit linear regression model
-linear_model <- lm(dist ~ log10(Area), data = CE[CE$metric=="3% OTU",])
+gam_model <- gam(dist ~ s(log10(Area)), data = CE[CE$metric == "3% OTU", ])
 # Check assumptions
 # 1. Residuals vs Fitted Values Plot
 par(mar = c(1, 1, 1, 1))                         
@@ -266,7 +267,7 @@ abline(h = 0, col = "red", lty = 2)
 plot(hatvalues(linear_model), cooks.distance(linear_model), main = "Residuals vs Leverage", xlab = "Leverage", ylab = "Cook's distance")
 abline(h = 4/length(CE[CE$metric=="3% OTU",]$value), col = "red", lty = 2)
 # Print summary of the linear model
-print(summary(linear_model))             
+summary(gam_model)             
                          
 #######################################################
 # Plot these
