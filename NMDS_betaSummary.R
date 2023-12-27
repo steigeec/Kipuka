@@ -255,16 +255,16 @@ gam_model <- gam(dist ~ s(log10(Area)), data = CE[CE$metric == "3% OTU", ])
 # Check assumptions
 # 1. Residuals vs Fitted Values Plot
 par(mar = c(1, 1, 1, 1))                         
-plot(residuals(linear_model) ~ fitted(linear_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
 abline(h = 0, col = "red", lty = 2)
 # 2. Normal Q-Q Plot
-qqnorm(residuals(linear_model))
-qqline(residuals(linear_model), col = "red")
+qqnorm(residuals(gam_model))
+qqline(residuals(gam_model), col = "red")
 # 3. Scale-Location (Spread-Location) Plot
-plot(sqrt(abs(residuals(linear_model))) ~ fitted(linear_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
 abline(h = 0, col = "red", lty = 2)
 # 4. Residuals vs Leverage Plot (Cook's distance)
-plot(hatvalues(linear_model), cooks.distance(linear_model), main = "Residuals vs Leverage", xlab = "Leverage", ylab = "Cook's distance")
+plot(hatvalues(gam_model), cooks.distance(gam_model), main = "Residuals vs Leverage", xlab = "Leverage", ylab = "Cook's distance")
 abline(h = 4/length(CE[CE$metric=="3% OTU",]$value), col = "red", lty = 2)
 # Print summary of the linear model
 summary(gam_model)             
