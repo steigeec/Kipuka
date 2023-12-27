@@ -5,7 +5,7 @@
 ######################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka")
+setwd("G:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -121,6 +121,9 @@ for (ORDER in 1:length(orders)){
 #Paste all these various dataframes together
 order_all<-rbind(Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta, Coleoptera_beta) 
 
+#########################################################################################
+# PLOT BETA DIVERSITY BY DISTANCE FOR EACH ORDER
+# THESE PLOTS ARE NOT IN THE PAPER
 
 jpeg("Figures/Order_beta_diversity.jpg", width=1500, height=2000)
 ggplot(data=order_all) + 
@@ -187,24 +190,27 @@ ggplot(data=order_all[order_all$Site.x==c("Center", "Edge"),]) +
         legend.title = element_text(size=40),
        legend.position = "top")
 dev.off()
+
+#######################################################################################
+# NOW, PLOT AGAIN-- THIS TIME REMOVING THE 5 SMALLEST KIPUKA THAT BEHAVE JUST LIKE EDGE
                      
 to_rem <- c("1K01C", "1K01E", "1K06C", "1K06E", "1K07C", "1K07E", "1K12C", "1K12E", "1K13C", "1K13E")
 sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem),]                     
 
-jpeg("Figures/Order_beta_diversity_kipukas_sub_zOTU.jpg", width=1500, height=2000)
-ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),]) + 
-  geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=0, stroke=2) + 
+jpeg("../Figures/Order_beta_diversity_kipukas_sub_zOTU.jpg", width=1500, height=2000)
+ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),], aes(x=geo_dist, y=dist, colour=Site.x)) + 
+  geom_smooth(method = "lm", formula = y ~ log10(x), se = F, size=1, alpha=0.20, aes(fill=Site.x)) +                   
+  geom_point(alpha=0.70, size=4, shape=0, stroke=2) + 
   scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
   scale_fill_manual("Position in kipuka", values=SiteColors, limits = c("Center", "Edge")) +
-  labs(title="", x="Log distance (km)", y="zOTU beta diversity") +
+  labs(title="", x="Distance (km)", y="zOTU beta diversity") +
   facet_wrap(~order, ncol=2, nrow=3)+
   KipukaTheme +
-  coord_cartesian(ylim=c(0.4, 1))+
+  #coord_cartesian(ylim=c(0.4, 1))+
   guides(colour="none")+
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +
+  #scale_x_continuous(trans='log10',
+  #                   breaks=trans_breaks('log10', function(x) 10^x),
+  #                   labels=trans_format('log10', math_format(10^.x)))  +
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -219,7 +225,8 @@ ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),]) +
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
-       legend.position = "top")
+       legend.position = "top",
+       plot.margin = margin(1, 35, 1, 1))  
 dev.off()                     
                      
 #################################################################################
@@ -255,26 +262,25 @@ for (ORDER in 1:length(orders)){
         assign(paste0(O, "_beta"), acari_beta)  
 }
 
-
-
 #Paste all these various dataframes together
 order_all<-rbind(Araneae_beta, Coleoptera_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta, Coleoptera_beta) 
+to_rem <- c("1K01C", "1K01E", "1K06C", "1K06E", "1K07C", "1K07E", "1K12C", "1K12E", "1K13C", "1K13E")
+sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem),]                     
 
-
-jpeg("Figures/Order_beta_diversity_JACCARD.jpg", width=1500, height=2000)
-ggplot(data=order_all) + 
-  geom_smooth(method='lm', aes(x=geo_dist, y=dist, colour=Site.x, fill=Site.x), size=1, alpha=0.20)+
-  geom_point(aes(x=geo_dist, y=dist, colour=Site.x), alpha=0.70, size=4, shape=18) + 
-  scale_colour_manual(values=SiteColors) +
-  scale_fill_manual("Site type", values=SiteColors) +
-  labs(title="", x="Log distance (km)", y="OTU beta diversity") +
+jpeg("../Figures/Order_beta_diversity_JACCARD.jpg", width=1500, height=2000)
+ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),], aes(x=geo_dist, y=dist, colour=Site.x)) + 
+  geom_smooth(method = "lm", formula = y ~ log10(x), se = F, size=1, alpha=0.20, aes(fill=Site.x)) +                   
+  geom_point(alpha=0.70, size=4, shape=0, stroke=2) + 
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge")) +
+  scale_fill_manual("Site type", values=SiteColors, limits = c("Center", "Edge")) +
+  labs(title="", x="Distance (km)", y="3 % radius OTU beta diversity") +
   facet_wrap(~order, ncol=2, nrow=4)+
   KipukaTheme +
-  coord_cartesian(ylim=c(0.6, 1))+
+  #coord_cartesian(ylim=c(0.6, 1))+
   guides(colour="none")+
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +
+  #scale_x_continuous(trans='log10',
+  #                   breaks=trans_breaks('log10', function(x) 10^x),
+  #                   labels=trans_format('log10', math_format(10^.x)))  +
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -289,8 +295,18 @@ ggplot(data=order_all) +
         plot.title=element_text(size=45), 
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
-       legend.position = "top")
+       legend.position = "top", 
+        plot.margin = margin(1, 35, 1, 1))  
 dev.off()
+
+
+
+
+
+
+
+
+                     
 
 to_rem <- c("1K01C", "1K01E", "1K06C", "1K06E", "1K07C", "1K07E", "1K12C", "1K12E", "1K13C", "1K13E")
 sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem),] 
