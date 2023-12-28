@@ -5,7 +5,7 @@
 #################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka")
+setwd("G:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -13,8 +13,6 @@ library(cowplot)
 library(tidyverse)
 library(vegan)
 library(scales)
-
-
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
