@@ -197,6 +197,28 @@ dev.off()
 to_rem <- c("1K01C", "1K01E", "1K06C", "1K06E", "1K07C", "1K07E", "1K12C", "1K12E", "1K13C", "1K13E")
 sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem),]                     
 
+for (i in 1:length(unique(sub_all$order))){  
+    for (j in 1:length(c("Edge", "Center"))){
+        taxon<-unique(sub_all$order)[i]
+        area<-c("Edge", "Center")[j]
+        print(paste0("Results for ",taxon," and ",area))                   
+        gam_model <- gam(dist ~ s(log10(geo_dist)), data = sub_all[sub_all$order==taxon,])
+        # Check assumptions
+        # 1. Residuals vs Fitted Values Plot
+        par(mar = c(1, 1, 1, 1))                         
+        plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+        abline(h = 0, col = "red", lty = 2)
+        # 2. Normal Q-Q Plot
+        qqnorm(residuals(gam_model))
+        qqline(residuals(gam_model), col = "red")
+        # 3. Scale-Location (Spread-Location) Plot
+        plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+        abline(h = 0, col = "red", lty = 2)
+        # Print summary of the linear model
+        print(summary(gam_model))    
+}
+}
+                     
 jpeg("../Figures/Order_beta_diversity_kipukas_sub_zOTU.jpg", width=1500, height=2000)
 ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),], aes(x=geo_dist, y=dist, colour=Site.x)) + 
   geom_smooth(method = "lm", formula = y ~ log10(x), se = F, size=1, alpha=0.20, aes(fill=Site.x)) +                   
@@ -267,6 +289,31 @@ order_all<-rbind(Araneae_beta, Coleoptera_beta, Diptera_beta, Hemiptera_beta, Le
 to_rem <- c("1K01C", "1K01E", "1K06C", "1K06E", "1K07C", "1K07E", "1K12C", "1K12E", "1K13C", "1K13E")
 sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem),]                     
 
+##############
+# First, let's get the stats for these relationships:
+# First, test assumptions:  
+for (i in 1:length(unique(sub_all$order))){  
+    for (j in 1:length(c("Edge", "Center"))){
+        taxon<-unique(sub_all$order)[i]
+        area<-c("Edge", "Center")[j]
+        print(paste0("Results for ",taxon," and ",area))                   
+        gam_model <- gam(dist ~ s(log10(geo_dist)), data = sub_all[sub_all$order==taxon,])
+        # Check assumptions
+        # 1. Residuals vs Fitted Values Plot
+        par(mar = c(1, 1, 1, 1))                         
+        plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+        abline(h = 0, col = "red", lty = 2)
+        # 2. Normal Q-Q Plot
+        qqnorm(residuals(gam_model))
+        qqline(residuals(gam_model), col = "red")
+        # 3. Scale-Location (Spread-Location) Plot
+        plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+        abline(h = 0, col = "red", lty = 2)
+        # Print summary of the linear model
+        print(summary(gam_model))    
+}
+}
+        
 jpeg("../Figures/Order_beta_diversity_JACCARD.jpg", width=1500, height=2000)
 ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),], aes(x=geo_dist, y=dist, colour=Site.x)) + 
   geom_smooth(method = "lm", formula = y ~ log10(x), se = F, size=1, alpha=0.20, aes(fill=Site.x)) +                   
