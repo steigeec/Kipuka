@@ -189,36 +189,36 @@ dist_beta[ , i] <- apply(dist_beta[ , i], 2,            # Specify own function w
 #So it's dist_beta column two in these following items that are the problem...                          
 Center <- dist_beta[!is.na(dist_beta$Center),]
 Center$site <- "Center"
-Center <- rename(Center, c("beta"="Center"))
+names(Center)[names(Center) == "Center"] <- "beta"
 Center <- Center[ , colSums(is.na(Center)) < nrow(Center)]                    
                          
 Stainbeck <- dist_beta[!is.na(dist_beta$Stainbeck),]
 Stainbeck$site <- "Stainbeck"  
-Stainbeck <- rename(Stainbeck, c("beta"="Stainbeck"))
+names(Stainbeck)[names(Stainbeck) == "Stainbeck"] <- "beta"
 Stainbeck <- Stainbeck[ , colSums(is.na(Stainbeck)) < nrow(Stainbeck)]   
                          
 Kona <- dist_beta[!is.na(dist_beta$Kona),]
 Kona$site <- "Kona"
-Kona <- rename(Kona, c("beta"="Kona"))
+names(Kona)[names(Kona) == "Kona"] <- "beta"
 Kona <- Kona[ , colSums(is.na(Kona)) < nrow(Kona)]   
                          
 Edge <- dist_beta[!is.na(dist_beta$Edge),]
 Edge$site <- "Edge"
-Edge <- rename(Edge, c("beta"="Edge"))
+names(Edge)[names(Edge) == "Edge"] <- "beta"
 Edge <- Edge[ , colSums(is.na(Edge)) < nrow(Edge)] 
                          
 Lava <- dist_beta[!is.na(dist_beta$Lava),]
 Lava$site <- "Lava"
-Lava <- rename(Lava, c("beta"="Lava"))
+names(Lava)[names(Lava) == "Lava"] <- "beta"
 Lava <- Lava[ , colSums(is.na(Lava)) < nrow(Lava)]                          
                          
 dist_beta <- rbind(Center, Stainbeck, Kona, Edge, Lava)
-dist_beta <- rename(dist_beta, c("dist"="ï..dist"))                         
+names(dist_beta)[names(dist_beta) == "ï..dist"] <- "dist"                       
 
 #Now summarize beta diversity between site types
-acari_beta<-acari_beta[,c(4, 5, 7)]
+acari_beta<-acari_beta[,c(7, 4, 5)]     # logdist, beta, Site.x
 acari_beta$metric <- "3% OTU"
-dist_beta<-dist_beta[,c(2, 3, 4)]
+dist_beta<-dist_beta[,c(2, 3, 4)]       # logdist, beta, site
 dist_beta$metric <- "zOTU"
 names(dist_beta)<-c("log_dist", "beta", "Site.x", "metric")
 
@@ -282,11 +282,18 @@ for (i in 1:length(unique(beta$metric))){
               kruskal_result <- kruskal.test(beta ~ Site.x, data = test)
               cat("Kruskal-Wallis test results for", level, "\n")
               print(kruskal_result)
+              pairwise_result <- pairwise.wilcox.test(test$beta, test$Site.x, p.adj = "bonferroni")
+              cat("Pairwise Wilcoxon test results for", level, "\n")
+              print(pairwise_result)
         }
         else { # Conduct the ANOVA                   
                 anova_result <- aov(beta ~ Site.x, data = test)
                 print(paste0("ANOVA test results for ", level))
-                print(summary(anova_result))                  
+                print(summary(anova_result)) 
+              # Post hoc Tukey's HSD test
+              tukey_result <- TukeyHSD(anova_result)
+              cat("Tukey's HSD test results for", level, "\n")
+              print(tukey_result)
         }
 }                         
    
