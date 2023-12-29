@@ -161,14 +161,23 @@ size$group[size$Area.x < 5000 & size$Area.y < 5000]<-"small"
 # Conduct a formal test.   Do "large-large" have greater beta than "small-small" ?
 # Step 1: Test for Assumptions
 # Shapiro-Wilk test for normality
-shapiro.test(size$beta[size$group == "large"])   # p-value = 0.06403
-shapiro.test(size$beta[size$group == "small"])   # p-value = 0.9879
+shapiro.test(size$beta[size$group == "large" & size$Site.x=="Center"])   # p-value = 0.3497
+shapiro.test(size$beta[size$group == "small" & size$Site.x=="Center"])   # p-value = 0.3401
 # Levene's test for homogeneity of variances   
-leveneTest(size$beta[size$group %in% c("large", "small")] ~ size$group[size$group %in% c("large", "small")])     # 0.3272
+leveneTest(size$beta[size$group %in% c("large", "small")& size$Site.x=="Center"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Center"])     # 0.7383
 # Step 2: Conduct the Parametric Test (t-test)
 # Assuming assumptions are met
 # Perform independent t-test
-t.test(size$beta[size$group %in% c("large", "small")] ~ size$group[size$group %in% c("large", "small")])
+t.test(size$beta[size$group %in% c("large", "small")& size$Site.x=="Center"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Center"])
+
+shapiro.test(size$beta[size$group == "large" & size$Site.x=="Edge"])   # p-value = 0.3663
+shapiro.test(size$beta[size$group == "small" & size$Site.x=="Edge"])   # p-value = 0.6378
+# Levene's test for homogeneity of variances   
+leveneTest(size$beta[size$group %in% c("large", "small")& size$Site.x=="Edge"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Edge"])     # 0.1295
+# Step 2: Conduct the Parametric Test (t-test)
+# Assuming assumptions are met
+# Perform independent t-test
+t.test(size$beta[size$group %in% c("large", "small")& size$Site.x=="Edge"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Edge"])
 
 ##########################
 #Join together tables of each part...?
