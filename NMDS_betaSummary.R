@@ -113,6 +113,9 @@ geo_dist$index<-paste(geo_dist$col, geo_dist$row, sep="_")
 geo_dist$log_dist<-log(geo_dist$dist+0.00001)
 geo_dist<-geo_dist[,c(4, 5)]
 
+#######################
+# Produce a table of within-area-type dissimilarity measures:
+
 #Grab 3% OTU beta diversity metrics
 acari_beta<-as.matrix(otu)
 #Remove all the XXXX from colnames
@@ -126,7 +129,6 @@ acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
 acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
 #If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
 acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
-
 #Now add the distances between these sites
 acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
 acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
@@ -136,7 +138,40 @@ acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]
 acari_beta <- acari_beta%>% distinct(beta, .keep_all= TRUE)
 acari_beta$beta<-as.numeric(acari_beta$beta)
 
-#Maybe join together tables of each part...?
+##########################
+# With the table of within-area-type dissimilarity measures,  compare the dissimilarity within small edges to that within big edges,
+# and the dissimilarity of small cores to that within big cores...
+
+# Join the size data onto acari_beta
+size<-merge(acari_beta, richness[c(1,10)], by.x="row", by.y="ï..ID")
+size<-merge(size, richness[c(1,10)], by.x="col", by.y="ï..ID")
+
+# Remove anything that has something other than Center or Edge in Site.x or Site.y
+size <- size[size$Site.x %in% c("Center", "Edge") & size$Site.y %in% c("Center", "Edge"), ]
+size$Area.x<-as.numeric(size$Area.x)
+size$Area.y<-as.numeric(size$Area.y)
+
+length(unique(size$Area.x[size$Area.x > 5000]))   # 8 large
+length(unique(size$Area.x[size$Area.x < 5000]))   # 4 small
+
+# subset 8 largest and the 4 smallest kipuka
+size$group[size$Area.x > 5000 & size$Area.y > 5000]<-"large"
+size$group[size$Area.x < 5000 & size$Area.y < 5000]<-"small"
+
+# Conduct a formal test.   Do "large-large" have greater beta than "small-small" ?
+# Step 1: Test for Assumptions
+# Shapiro-Wilk test for normality
+shapiro.test(size$beta[size$group == "large"])   # p-value = 0.06403
+shapiro.test(size$beta[size$group == "small"])   # p-value = 0.9879
+# Levene's test for homogeneity of variances   
+leveneTest(size$beta[size$group %in% c("large", "small")] ~ size$group[size$group %in% c("large", "small")])     # 0.3272
+# Step 2: Conduct the Parametric Test (t-test)
+# Assuming assumptions are met
+# Perform independent t-test
+t.test(size$beta[size$group %in% c("large", "small")] ~ size$group[size$group %in% c("large", "small")])
+
+##########################
+#Join together tables of each part...?
 dist_beta <- dist_beta_0[,1:7]
 i<-c(3, 4, 5, 6, 7)
 dist_beta[ , i] <- apply(dist_beta[ , i], 2,            # Specify own function within apply
