@@ -295,10 +295,11 @@ for (i in 1:length(unique(beta$metric))){
               cat("Tukey's HSD test results for", level, "\n")
               print(tukey_result)
         }
-}                         
-   
+}                                                
+
+                         
 #######################################################
-# Test difference between area types in zOTU and 3% radius OTU turnover
+# Test difference between area size and zOTU and 3% radius OTU turnover
 
 # First, test assumptions:  
 # Fit linear regression model
