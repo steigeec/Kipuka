@@ -58,6 +58,7 @@ for (i in 1:length(unique(richness_mod_2$variable))){
         # First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
         # Check normality of residuals
         residuals <- lm(value ~ Site, data = test)$residuals
+        par(mar = c(1, 1, 1, 1))  
         qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
         # Check homogeneity of variances
         p1<-leveneTest(value ~ Site, data = test)[1,3]
@@ -69,11 +70,18 @@ for (i in 1:length(unique(richness_mod_2$variable))){
               kruskal_result <- kruskal.test(value ~ Site, data = test)
               cat("Kruskal-Wallis test results for", level, "\n")
               print(kruskal_result)
+              pairwise_result <- pairwise.wilcox.test(test$value, test$Site, p.adj = "bonferroni")
+              cat("Pairwise Wilcoxon test results for", level, "\n")
+              print(pairwise_result)
         }
         else { # Conduct the ANOVA                   
                 anova_result <- aov(value ~ Site, data = test)
                 print(paste0("ANOVA test results for ", level))
-                print(summary(anova_result))                  
+                print(summary(anova_result))     
+              # Post hoc Tukey's HSD test
+              tukey_result <- TukeyHSD(anova_result)
+              cat("Tukey's HSD test results for", level, "\n")
+              print(tukey_result)
         }
 }
 
@@ -96,6 +104,7 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 print(paste0("McFadden r2 is ",McFadden_R2))                
                 # 1. Linearity Check (Use Residuals vs. Fitted plot)
                 par(mar = c(1, 1, 1, 1))
+                par(mar = c(1, 1, 1, 1))  
                 plot(glm_model, which = 1)                
                 # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
                 plot(glm_model, which = 3)
