@@ -35,14 +35,13 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm"))        
 
-#0% beta diversity
+#0% beta diversity -- note that the small kipuka have already been removed
 dist_beta_0 <- read.csv("Distance_v_beta_1.csv")
-#zOTU beta diversity
+#zOTU beta diversity -- note that the small kipuka have already been removed
 otu <- read.csv("Distances_Without_Kona8andsmall_kipuka.csv")
 geo_dist<-read.csv("geo_dist.csv")
 richness <- read.csv("merged_by_site_2.csv")
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
-
 
 #################################################################################
 #Beta diversity vesus distance
@@ -78,36 +77,7 @@ acari_beta$group[acari_beta$variable=="Center" | acari_beta$variable=="Edge"] <-
 acari_beta$group[acari_beta$variable=="Kona" | acari_beta$variable=="Stainback"] <- "Continuous forest"
 acari_beta<-acari_beta[complete.cases(acari_beta),]
 acari_beta<-acari_beta[!duplicated(acari_beta),]
-
-b <- ggplot(data=acari_beta) + 
-  geom_point(aes(x=Geo, y=value, colour=variable), alpha=0.70, size=8, shape=0, stroke=2) + 
-  geom_smooth(method='lm', aes(x=Geo, y=value, colour=variable), size=1, alpha=0)+ #, linetype=site
-  facet_wrap(~group, ncol=2)+
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Kona", "Stainback")) +
-  labs(title="B.", x="Distance (km)", y="zOTU beta diversity") +
-  KipukaTheme +
-  guides(color = guide_legend(title = "Sites", nrow=1)) +
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +
-  scale_y_continuous(limits=c(0.2, 0.8))  +
-  theme(strip.text=element_text(size=45), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title.x=element_text(size=45, margin=margin(-15,0,0,0)), 
-       axis.title.y=element_text(size=45, margin=margin(0,-15,0,0)), 
-        axis.text = element_text(size=40), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
-       legend.position = "bottom")
-                           
+              
 #################################################################################
 #now 3%OTU
                      
@@ -120,40 +90,116 @@ dist_beta_0 <- dist_beta_0[with(dist_beta_0, order(Site, beta)),]
 
 #join the two... 
 acari_beta$threeotu <- dist_beta_0$beta                    
+
+#############################################################################
+# Now GAM 
+
+# for zOTU
+for (i in 1:length(unique(acari_beta$variable))){  
+        area<-unique(acari_beta$variable)[i]
+        print(paste0("Results for zoTU and ",area))                   
+        gam_model <- gam(value ~ s(log10(Geo)), data = acari_beta)
+        # Check assumptions
+        # 1. Residuals vs Fitted Values Plot
+        par(mar = c(1, 1, 1, 1))                         
+        plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+        abline(h = 0, col = "red", lty = 2)
+        # 2. Normal Q-Q Plot
+        qqnorm(residuals(gam_model))
+        qqline(residuals(gam_model), col = "red")
+        # 3. Scale-Location (Spread-Location) Plot
+        plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+        abline(h = 0, col = "red", lty = 2)
+        # Print summary of the linear model
+        print(summary(gam_model))    
+}
                      
-a <- ggplot(data=acari_beta) + 
-  geom_smooth(method='lm', aes(x=Geo, y=threeotu, colour=variable, fill=variable), size=1, alpha=0)+
-  geom_point(aes(x=Geo, y=threeotu, colour=variable), alpha=0.70, size=8, shape=15) + 
-  facet_wrap(~group, ncol=2)+
-  scale_colour_manual(values=SiteColors) +
-  scale_fill_manual(values=SiteColors) +
-  labs(title="A.", x="Distance (km)", y="3% OTU beta diversity") +
+for (i in 1:length(unique(acari_beta$variable))){  
+        area<-unique(acari_beta$variable)[i]
+        print(paste0("Results for 3% radius OTU and ",area))                   
+        gam_model <- gam(threeotu ~ s(log10(Geo)), data = acari_beta)
+        # Check assumptions
+        # 1. Residuals vs Fitted Values Plot
+        par(mar = c(1, 1, 1, 1))                         
+        plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+        abline(h = 0, col = "red", lty = 2)
+        # 2. Normal Q-Q Plot
+        qqnorm(residuals(gam_model))
+        qqline(residuals(gam_model), col = "red")
+        # 3. Scale-Location (Spread-Location) Plot
+        plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+        abline(h = 0, col = "red", lty = 2)
+        # Print summary of the linear model
+        print(summary(gam_model))    
+}
+ 
+#################################################################################    
+# Now plot it
+
+library(ggplot2)
+library(cowplot)
+
+# Assuming acari_beta is your data frame
+
+a <- ggplot(data = acari_beta, aes(x = Geo, y = threeotu, colour = variable)) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1, alpha = 0.2) +
+  geom_point(alpha = 0.70, size = 8, shape = 15) +
+  facet_grid(~ group, scales = 'free_x') +
+  scale_colour_manual(values = SiteColors) +
+  scale_fill_manual(values = SiteColors) +
+  labs(title = "A.", x = "Distance (km)", y = "3% OTU beta diversity") +
   KipukaTheme +
-  guides(color="none", shape="none", fill ="none", linetype="none") +
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +
-  scale_y_continuous(limits=c(0.2, 0.8))  +
-  theme(strip.text=element_text(size=45),
+  guides(color = "none", shape = "none", fill = "none", linetype = "none") +
+  scale_y_continuous(limits = c(0.2, 0.8)) +
+  scale_x_continuous(expand = c(0.1, 0.1)) +
+  theme(strip.text = element_text(size = 45),
         panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title.x=element_text(size=45, margin=margin(-15,0,0,0)), 
-       axis.title.y=element_text(size=45, margin=margin(0,-15,0,0)), 
-        axis.text = element_text(size=40), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
-       legend.position = "bottom")
-                                
-                     
-#################################################################################                         
-jpeg("Figures/Fig_4.jpg", width=2000, height=2000)   
-plot_grid(a, b, nrow = 2, rel_heights = c(1, 1))                         
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 1),
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 0.5),
+        axis.title.x = element_text(size = 45, margin = margin(-15, 0, 0, 0)),
+        axis.title.y = element_text(size = 45, margin = margin(0, -15, 0, 0)),
+        axis.text = element_text(size = 40),
+        plot.title = element_text(size = 45),
+        legend.text = element_text(size = 40),
+        legend.title = element_text(size = 40),
+        legend.position = "bottom",
+        plot.margin = margin(1, 35, 1, 1))
+
+b <- ggplot(data = acari_beta, aes(x = Geo, y = value, colour = variable)) +
+  geom_point(, alpha = 0.70, size = 8, shape = 0, stroke = 2) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1, alpha = 0.2) +
+  facet_grid(~ group, scales = 'free_x') +
+  scale_colour_manual(values = SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
+  labs(title = "B.", x = "Distance (km)", y = "zOTU beta diversity") +
+  KipukaTheme +
+  guides(color = guide_legend(title = "Sites", nrow = 1)) +
+  scale_y_continuous(limits = c(0.2, 0.8)) +
+  scale_x_continuous(expand = c(0.1, 0.1)) +
+  theme(strip.text = element_text(size = 45),
+        panel.grid.major = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 1),
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 0.5),
+        axis.title.x = element_text(size = 45, margin = margin(-15, 0, 0, 0)),
+        axis.title.y = element_text(size = 45, margin = margin(0, -15, 0, 0)),
+        axis.text = element_text(size = 40),
+        plot.title = element_text(size = 45),
+        legend.text = element_text(size = 40),
+        legend.title = element_text(size = 40),
+        legend.position = "bottom",
+        plot.margin = margin(1, 35, 1, 1))
+
+# Save the plot
+jpeg("../Figures/Fig_4.jpg", width = 2000, height = 2000)
+plot_grid(a, b, nrow = 2, rel_heights = c(1, 1))
 dev.off()
-                     
+        
