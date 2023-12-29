@@ -185,10 +185,17 @@ if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Krusk
         kruskal_result <- kruskal.test(value ~ Site, data = test)
         cat("Kruskal-Wallis test results", "\n")
         print(kruskal_result)
+              pairwise_result <- pairwise.wilcox.test(test$value, test$Site, p.adj = "bonferroni")
+              cat("Pairwise Wilcoxon test results")
+              print(pairwise_result)
 }  else { # Conduct the ANOVA                   
         anova_result <- aov(value ~ Site, data = test)
         print(paste0("ANOVA test results"))
-        print(summary(anova_result))                  
+        print(summary(anova_result))  
+              # Post hoc Tukey's HSD test
+              tukey_result <- TukeyHSD(anova_result)
+              cat("Tukey's HSD test results")
+              print(tukey_result)
 }
                 
 ###########################################################################################################
