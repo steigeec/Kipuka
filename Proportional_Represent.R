@@ -12,6 +12,7 @@ library(reshape2)
 library(cowplot)
 library(tidyverse)
 font_import()
+library(vegan)
 if (!requireNamespace("car", quietly = TRUE)) { install.packages("car")}
 library(car)
 
@@ -37,6 +38,15 @@ rep <- rename(rep, id = ï..ID)
 rep$Arealog<-round(as.numeric(rep$Arealog),1)
 rep<-rep %>% dplyr::mutate(Arealog = tidyr::replace_na(Arealog, ""))                   
 
+#################################################################################
+# First, do a PERMANOVA to look for overall community comp differences between sites
+
+permanova_result <- adonis(rep$prop ~ rep$variable + rep$Site, data = rep, permutations = 999)
+
+# Print PERMANOVA results
+cat("PERMANOVA results:\n")
+print(permanova_result)                   
+                   
 #################################################################################
 # TEST:  ANOVA to check, for each taxon, whether prop is different for each "area type" ( lava, edge, center, Stainback, Kona)
 
