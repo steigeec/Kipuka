@@ -13,7 +13,13 @@ library(cowplot)
 library(tidyverse)
 library(scales)
 library(mgcv)
-
+#install.packages("remotes")
+#remotes::install_github("Jtrachsel/funfuns")
+library(funfuns)
+library(BiocManager)
+library(vegan)
+#BiocManager::install("phyloseq")
+library(phyloseq)
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -81,9 +87,7 @@ for (ROW in 1:nrow(BC)){
                 df[out_row,2]<-BC[ROW,COL] 
                 df[out_row,4]<-"zOTU"
                 df[out_row,3]<-"C-F"
-                out_row<-out_row+1
-        }        
-}
+                out_row<-out_row+1}}
 
 #Now for 3%OTU
 colnames(BC3)<- gsub('[X]', '', colnames(BC3))
@@ -97,9 +101,7 @@ for (ROW in 1:nrow(BC3)){
                 df3[out_row,2]<-BC3[ROW,COL] 
                 df3[out_row,4]<-"3% OTU"
                 df3[out_row,3]<-"C-F"
-                out_row<-out_row+1
-        }        
-}
+                out_row<-out_row+1} }
 
 #Wrange geo distances
 rownames(geo_dist) <- geo_dist[,1]
@@ -259,7 +261,87 @@ CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
 
 #Fix spelling error on sheet before proceeding
 CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))  
+
+#################################################################################
+# First, do a PERMANOVA to look for overall community comp differences between sites
+
+# FIRST, 3% RADIUS OTU... ############################################                   
+# curate the distance matrix                         
+rownames(otu) <- gsub("X", "", rownames(otu))# Remove the character "X" from column and row names
+colnames(otu) <- gsub("X", "", colnames(otu))
+otu <- otu[complete.cases(otu), , drop = FALSE] # remove the part of otu below the distance matrix
+rownames(otu) <- otu[[1]] # now make the first colum the row names. 
+otu <- otu[, -1]                                                  
+# Order the richness$Site data in the order of the names(otu),
+# dropping out those smallest kipuka that have been removed from this analysis
+Site <- richness[richness$ï..ID %in% names(otu), , drop = FALSE]
+Site <- as.factor(Site$Site[order(match(Site$ï..ID, names(otu)))])                         
+adonis2(otu ~ Site, permutations = 999)
+#          Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#Site       4    6.2037 1.55093  7.1653 0.37881  0.001 ***
+#Residuals 47   10.1731 0.21645         0.62119           
+#Total     51   16.3769                 1.00000           
+#---
+#Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
                          
+# Now, the pairwise test:
+# First, I need a 3% radius OTU "OTU table"
+vegan_otu <- function(otu_tab) {
+  OTU <- otu_table(otu_tab, taxa_are_rows=F)
+  if (taxa_are_rows(OTU)) {
+    OTU <- t(OTU)}
+  return(as(OTU, "matrix"))}
+nmds<-read.csv("nmds3otu.csv")                    
+my_otu_tab<-nmds[order(match(nmds$ID, names(otu))),]    
+my_otu_tab<-as.data.frame(my_otu_tab[24:ncol(my_otu_tab)])                      
+pairwise.adonis(vegan_otu(my_otu_tab), Site)
+                         
+#                 pairs   F.Model         R2 p.value p.adjusted
+#1       Center vs Edge  3.121081 0.11507952   0.003      0.003
+#2       Center vs Kona  8.143416 0.27942559   0.001      0.001
+#3       Center vs Lava  2.602249 0.14783616   0.003      0.003
+#4  Center vs Stainbeck  7.740426 0.25179957   0.001      0.001
+#5         Edge vs Kona 11.868482 0.36109006   0.001      0.001
+#6         Edge vs Lava  1.485110 0.09008796   0.096      0.096
+#7    Edge vs Stainbeck 12.179458 0.34620936   0.001      0.001
+#8         Kona vs Lava  7.404671 0.38159220   0.003      0.003
+#9    Kona vs Stainbeck 10.658267 0.34764742   0.001      0.001
+#10   Lava vs Stainbeck  8.318863 0.37272790   0.001      0.001
+                         
+# NEXT, ZOTU TESTS... #############################################
+zOTU<-read.csv("zotu.csv")
+zOTU <- zOTU[complete.cases(zOTU), , drop = FALSE] # remove the part of otu below the distance matrix
+rownames(zOTU) <- gsub("X", "", rownames(zOTU))# Remove the character "X" from column and row names
+colnames(zOTU) <- gsub("X", "", colnames(zOTU))
+rownames(zOTU) <- zOTU[[1]] # now make the first colum the row names. 
+zOTU <- zOTU[, -1]                                                 
+# Order the richness$Site data in the order of the names(otu),
+# dropping out those smallest kipuka that have been removed from this analysis
+Site <- richness[richness$ï..ID %in% names(zOTU), ]
+Site <- Site$Site[order(match(Site$ï..ID, names(zOTU)))]                        
+adonis2(zOTU ~ Site, permutations = 999)  
+#         Df SumOfSqs      R2      F Pr(>F)    
+#Site      4 0.151725 0.62116 19.266  0.001 ***
+#Residual 47 0.092535 0.37884                  
+#Total    51 0.244260 1.00000                  
+#---
+#Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+                         
+# Now the pairwise test   
+my_otu_tab<-richness[order(match(richness$ï..ID, names(zOTU))),]    
+my_otu_tab<-my_otu_tab[31:ncol(my_otu_tab)]                      
+pairwise.adonis(vegan_otu(my_otu_tab), Site)
+#                 pairs   F.Model         R2 p.value p.adjusted
+#1       Center vs Edge  2.595869 0.09760421   0.003      0.003
+#2       Center vs Kona  7.958023 0.27481238   0.001      0.001
+#3       Center vs Lava  2.092921 0.12244374   0.009      0.009
+#4  Center vs Stainbeck  7.005632 0.23347725   0.001      0.001
+#5         Edge vs Kona 10.248746 0.32797303   0.001      0.001
+#6         Edge vs Lava  1.300785 0.07979893   0.150      0.150
+#7    Edge vs Stainbeck  9.635653 0.29524927   0.001      0.001
+#8         Kona vs Lava  6.146156 0.33870293   0.001      0.001
+#9    Kona vs Stainbeck 11.073056 0.35635555   0.001      0.001
+#10   Lava vs Stainbeck  6.478343 0.31635093   0.002      0.002                         
 #######################################################
 # Test difference between area types in zOTU and 3% radius OTU turnover
 
