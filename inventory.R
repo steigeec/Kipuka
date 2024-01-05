@@ -2,19 +2,61 @@
 # Author: Emma Steigerwald                                                    #
 ###############################################################################
 
-inv<-read.csv("inventory.csv")
-inv<-t(inv)
-rownames(inv)<-inv[[1]]
-inv<-inv[-1]
+setwd("G:/My Drive/Kipuka/Data")
+library(stringr)
+library(dplyr)
 
-# Create a blank dataframe for summary info
-bio <- data.frame(
-  Class1 = factor(rep(NA, length(unique_species))),
-  Class2 = factor(rep(NA, length(unique_species))),
-  Order = factor(rep(NA, length(unique_species))),
-  Family = factor(rep(NA, length(unique_species))),
-  Genus = factor(rep(NA, length(unique_species))),
-  Species = factor(unique(inv$species)),
-  zOTUcounts = factor(rep(NA, length(unique_species))),
-  threeCounts = factor(rep(NA, length(unique_species))))
+inv<-read.csv("inventory.csv", header=F)
+inv<-t(inv)
+colnames(inv) <- as.character(inv[1, ])  # Extract the values from the first row
+inv <- inv[-1, , drop = FALSE]
+inv<-as.data.frame(inv)
+names(inv)[1:2]<-c("Class1", "Class2")
+inv <- inv[!is.na(inv[, 1]), , drop = FALSE]
+names(inv)[8]<-"threeOTU"
+inv$fullName<-as.character(paste0(inv$Class1, "_", inv$Class2, "_", inv$Order, "_", inv$Family, "_", inv$Genus, "_", inv$Species))
+inv_split <- data.frame(do.call(rbind, str_split(unique(inv$fullName), "_"))) # Split the fullName column into separate columns using the character '_'
+# Combine the original data frame and the new columns
+unique <- cbind(unique(inv$fullName), inv_split)
+colnames(unique) <- c("fullName", "Class1", "Class2", "Order", "Family", "Genus", "Species") # Rename the new columns
+
+unique <- unique %>%
+  mutate(zOTUcounts = NA, threeCounts = NA)
+
+for (i in 1:nrow(unique)) { # Iterate over each row in unique
+  OR <- unique$Order[i]
+  # Sum how many unique values of inv$ID occur for the specific fullName
+  total_ID <- length(unique(inv[inv$fullName == OR, "ID"]))
+  # Sum how many unique values of inv$threeOTU occur for the specific fullName
+  total_threeOTU <- length(unique(inv[inv$fullName == OR, "threeOTU"]))
+  # Assign the calculated values to the corresponding rows in unique
+  unique[i, "zOTUcounts"] <- total_ID
+  unique[i, "threeCounts"] <- total_threeOTU
+}
+
+# Print the modified 'unique' dataframe
+print(unique)
+
+
+
+
+
+
+
+
+
+# Group and summarize inv dataframe
+inv$fullName<-as.factor(inv$fullName)
+summarized_inv <- inv %>%
+  group_by(fullName) %>%
+  summarise(
+    zOTUcounts = sum(ID, na.rm = TRUE),
+    threeCounts = sum(threeOTU, na.rm = TRUE)
+  )
+
+# Merge the summarized_inv with unique based on the fullName column
+merged_data <- merge(unique, summarized_inv, by = "fullName", all.x = TRUE)
+
+# Print the result
+print(merged_data)
 
