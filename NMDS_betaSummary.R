@@ -294,7 +294,7 @@ vegan_otu <- function(otu_tab) {
 nmds<-read.csv("nmds3otu.csv")                    
 my_otu_tab<-nmds[order(match(nmds$ID, names(otu))),]    
 my_otu_tab<-as.data.frame(my_otu_tab[24:ncol(my_otu_tab)])                      
-pairwise.adonis(vegan_otu(my_otu_tab), Site)
+pairwise.adonis(vegan_otu(my_otu_tab), Site, p.adjust.m="fdr")
                          
 #                 pairs   F.Model         R2 p.value p.adjusted
 #1       Center vs Edge  3.121081 0.11507952   0.003      0.003
@@ -330,7 +330,7 @@ adonis2(zOTU ~ Site, permutations = 999)
 # Now the pairwise test   
 my_otu_tab<-richness[order(match(richness$ï..ID, names(zOTU))),]    
 my_otu_tab<-my_otu_tab[31:ncol(my_otu_tab)]                      
-pairwise.adonis(vegan_otu(my_otu_tab), Site)
+pairwise.adonis(vegan_otu(my_otu_tab), Site, p.adjust.m="bonferroni")
 #                 pairs   F.Model         R2 p.value p.adjusted
 #1       Center vs Edge  2.595869 0.09760421   0.003      0.003
 #2       Center vs Kona  7.958023 0.27481238   0.001      0.001
