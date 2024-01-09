@@ -26,37 +26,15 @@ unique <- unique %>%
 for (i in 1:nrow(unique)) { # Iterate over each row in unique
   OR <- unique$Order[i]
   # Sum how many unique values of inv$ID occur for the specific fullName
-  total_ID <- length(unique(inv[inv$fullName == OR, "ID"]))
+  total_ID <- length(unique(inv[inv$Order == OR, "ID"]))
   # Sum how many unique values of inv$threeOTU occur for the specific fullName
-  total_threeOTU <- length(unique(inv[inv$fullName == OR, "threeOTU"]))
+  total_threeOTU <- length(unique(inv[inv$Order == OR, "threeOTU"]))
   # Assign the calculated values to the corresponding rows in unique
   unique[i, "zOTUcounts"] <- total_ID
   unique[i, "threeCounts"] <- total_threeOTU
 }
 
-# Print the modified 'unique' dataframe
-print(unique)
+# Check that nuber of zOTUs is always greater than or equal to number 3% radius OTUs
+all(unique$zOTUcounts >= unique$threeCounts)
 
-
-
-
-
-
-
-
-
-# Group and summarize inv dataframe
-inv$fullName<-as.factor(inv$fullName)
-summarized_inv <- inv %>%
-  group_by(fullName) %>%
-  summarise(
-    zOTUcounts = sum(ID, na.rm = TRUE),
-    threeCounts = sum(threeOTU, na.rm = TRUE)
-  )
-
-# Merge the summarized_inv with unique based on the fullName column
-merged_data <- merge(unique, summarized_inv, by = "fullName", all.x = TRUE)
-
-# Print the result
-print(merged_data)
-
+write.csv(unique, "inventory_produced.csv", quote=F)
