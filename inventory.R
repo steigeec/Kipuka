@@ -37,4 +37,13 @@ for (i in 1:nrow(unique)) { # Iterate over each row in unique
 # Check that nuber of zOTUs is always greater than or equal to number 3% radius OTUs
 all(unique$zOTUcounts >= unique$threeCounts)
 
-write.csv(unique, "inventory_produced.csv", quote=F)
+unique$binomial<-paste0(unique$Genus, " ", unique$Species)
+# Now, for a given order, sumarize. Keep a list of species. 
+summary <- unique %>%
+  group_by(Order) %>%
+  summarise(
+    zOTUcounts = sum(zOTUcounts, na.rm = TRUE),
+    threeCounts = sum(threeCounts, na.rm = TRUE),
+    binomial = paste(unique(binomial), collapse = ";")
+  )
+write.csv(summary, "inventory_produced.csv", quote=F, row.names=F)
