@@ -42,8 +42,8 @@ unique$binomial<-paste0(unique$Genus, " ", unique$Species)
 summary <- unique %>%
   group_by(Order) %>%
   summarise(
-    zOTUcounts = sum(zOTUcounts, na.rm = TRUE),
-    threeCounts = sum(threeCounts, na.rm = TRUE),
+    zOTUcounts = mean(zOTUcounts),
+    threeCounts = mean(threeCounts),
     binomial = paste(unique(binomial), collapse = ";")
   )
 write.csv(summary, "inventory_produced.csv", quote=F, row.names=F)
