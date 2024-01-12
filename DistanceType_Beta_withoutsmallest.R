@@ -13,6 +13,9 @@ library(cowplot)
 library(tidyverse)
 library(vegan)
 library(scales)
+library(car)
+library(lmtest)
+library(mgcv)
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -98,7 +101,7 @@ acari_beta$threeotu <- dist_beta_0$beta
 for (i in 1:length(unique(acari_beta$variable))){  
         area<-unique(acari_beta$variable)[i]
         print(paste0("Results for zoTU and ",area))                   
-        gam_model <- gam(value ~ s(log10(Geo)), data = acari_beta)
+        gam_model <- gam(value ~ s(log10(Geo)), data = acari_beta[acari_beta$variable==area,])
         # Check assumptions
         # 1. Residuals vs Fitted Values Plot
         par(mar = c(1, 1, 1, 1))                         
@@ -117,7 +120,7 @@ for (i in 1:length(unique(acari_beta$variable))){
 for (i in 1:length(unique(acari_beta$variable))){  
         area<-unique(acari_beta$variable)[i]
         print(paste0("Results for 3% radius OTU and ",area))                   
-        gam_model <- gam(threeotu ~ s(log10(Geo)), data = acari_beta)
+        gam_model <- gam(threeotu ~ s(log10(Geo)), data = acari_beta[acari_beta$variable==area,])
         # Check assumptions
         # 1. Residuals vs Fitted Values Plot
         par(mar = c(1, 1, 1, 1))                         
