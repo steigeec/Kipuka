@@ -5,7 +5,7 @@
 ###################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka/Data")
+setwd("G:/My Drive/Kipuka")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
