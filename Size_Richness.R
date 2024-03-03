@@ -20,7 +20,7 @@ richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
-SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
+SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933")
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=50), 
         axis.text = element_text(size=25, angle=50), 
@@ -240,9 +240,9 @@ b <- ggplot() +
   geom_smooth(method='lm', data=richness[richness$Site=="Center" | richness$Site=="Edge",], aes(x=Arealog, y=SR, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
   geom_point(data=richness[richness$Site=="Center" | richness$Site=="Edge",],aes(x=Arealog, y=SR, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
   geom_hline(yintercept=mean(richness$SR[richness$Site=="Kona"]), colour="#117733", lwd=3)+
-  geom_hline(yintercept=mean(richness$SR[richness$Site=="Stainbeck"]), colour="#999933", lwd=3)+
+  geom_hline(yintercept=mean(richness$SR[richness$Site=="Stainback"]), colour="#999933", lwd=3)+
   geom_hline(yintercept=mean(richness$SR[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
-  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainbeck")) +
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
   scale_fill_manual(values=SiteColors)+  
   facet_wrap(~Site)+                              
   #scale_linetype_discrete(values=c(2,5)) +
@@ -273,10 +273,10 @@ c <- ggplot() +
   geom_smooth(method='lm', data=richness[richness$Site=="Center" | richness$Site=="Edge",], aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
   geom_point(data=richness[richness$Site=="Center" | richness$Site=="Edge",],aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
   geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Kona"]), colour="#117733", lwd=3)+
-  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Stainbeck"]), colour="#999933", lwd=3)+
+  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Stainback"]), colour="#999933", lwd=3)+
   geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
   facet_wrap(~Site)+
-  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainbeck")) +
+  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
   scale_fill_manual(values=SiteColors, limits = c("Center", "Edge"))+                 
   labs(title="C.", x="Log area ("~m^2~")", y="Haplotype richness within OTUs") +
   KipukaTheme +
