@@ -18,7 +18,7 @@ richness <- read.csv("merged_by_site_2.csv")
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
-SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
+SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933")
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=30), 
         axis.text = element_text(size=25, angle=45), 
