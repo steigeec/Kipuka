@@ -150,7 +150,7 @@ a <- ggplot(data = acari_beta, aes(x = Geo, y = threeotu, colour = variable)) +
   facet_grid(~ group, scales = 'free_x') +
   scale_colour_manual(values = SiteColors) +
   scale_fill_manual(values = SiteColors) +
-  labs(title = "A.", x = "Distance (km)", y = "3% OTU beta diversity") +
+  labs(title = "A.", x = "Distance (m)", y = "3% OTU beta diversity") +
   KipukaTheme +
   guides(color = "none", shape = "none", fill = "none", linetype = "none") +
   scale_y_continuous(limits = c(0.2, 0.8)) +
@@ -178,7 +178,7 @@ b <- ggplot(data = acari_beta, aes(x = Geo, y = value, colour = variable)) +
   geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1, alpha = 0.2) +
   facet_grid(~ group, scales = 'free_x') +
   scale_colour_manual(values = SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
-  labs(title = "B.", x = "Distance (km)", y = "zOTU beta diversity") +
+  labs(title = "B.", x = "Distance (m)", y = "zOTU beta diversity") +
   KipukaTheme +
   guides(color = guide_legend(title = "Sites", nrow = 1)) +
   scale_y_continuous(limits = c(0.2, 0.8)) +
