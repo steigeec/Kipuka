@@ -52,7 +52,7 @@ names(supp.labs) <- c("SR", "SROTU", "HaplotypeRichnessWithin")
 #Reorder facets
 richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("HaplotypeRichnessWithin", "SR", "SROTU")))                     
                    
-jpeg("Figures/Figure2.jpg", width=1000, height=1000)                   
+jpeg("../Figures/Figure2.jpg", width=1000, height=1000)                   
 ggplot() + 
   geom_boxplot(data=richness_mod_2,aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
   facet_wrap(~variable, scales="free", 
