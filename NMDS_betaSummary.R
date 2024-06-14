@@ -25,11 +25,11 @@ library(phyloseq)
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933", "C-E"="black", "C-F"="white")
 #Establish some themes up top to apply to all
-KipukaTheme <- theme(axis.title=element_text(size=50), 
-        axis.text = element_text(size=25, angle=50), 
+KipukaTheme <- theme(axis.title=element_text(size=70), 
+        axis.text = element_text(size=70, angle=50), 
         plot.margin = unit(c(0, 0, 0, 0), "cm"), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=40), 
+        plot.title=element_text(size=70), 
+        legend.text=element_text(size=70), 
         legend.key.height = unit(1, "cm"), 
         legend.key.width = unit(1.5,"cm"), 
         panel.background = element_blank(), 
@@ -37,7 +37,7 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         panel.grid.minor = element_blank(), 
         plot.background = element_blank(), 
         legend.background = element_blank(),
-        legend.title = element_text(size=40), 
+        legend.title = element_text(size=70), 
         text = element_text(family = "serif"), 
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
@@ -64,7 +64,7 @@ CE<-read.csv("C-E.csv")
 #Create an NMDS plot with columns MDS1 and MDS2
 nmds$Area<-as.numeric(gsub(",","",as.character(nmds$Area)))
 
-nmds$pointsize<-round(sqrt(nmds$Area)/10,0)
+nmds$pointsize<-round(sqrt(as.numeric(nmds$Area))/10,0)
 nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 2
 nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
 nmds$pointsize[nmds$Site=="Stainback" & is.na(nmds$pointsize)] <- 2
@@ -261,6 +261,118 @@ CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
 
 #Fix spelling error on sheet before proceeding
 CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))  
+                         
+#######################################################
+# Plot these
+                         
+a <- ggplot() + 
+  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
+  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
+  labs(title="A.", x="NMDS1", y="NMDS2") +
+  #coord_equal() +
+  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
+  guides(colour = guide_legend(override.aes = list(size=4))) + 
+  KipukaTheme +
+  theme(       legend.position = "none", 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5),
+        plot.title=element_text(size=70))
+                         
+b<- ggplot() + 
+  geom_boxplot(data=beta[beta$metric=="3% OTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=beta, fill=Site.x), color="black", size=1)+
+  #facet_wrap(~metric, scales="free") +
+  scale_fill_manual(values=SiteColors) +
+  labs(title="B.", y="3% OTU beta diversity", x="") +
+  KipukaTheme +
+  guides(fill="none")+                       
+  theme(strip.text = element_text(size = 70), 
+        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1), 
+        axis.text.y = element_text(angle=45, size=70, margin=margin(0,-10,0,0)), 
+        axis.title.y = element_text(size = 70, margin=margin(0,-25,0,0)),
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=70), 
+        plot.title=element_text(size=70), 
+        legend.text=element_text(size=60), 
+        legend.title = element_blank(),
+       legend.position = "none", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))   
+                         
+c <- ggplot() + 
+  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1zOTU,y=MDS2zOTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
+  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
+  labs(title="C.", x="NMDS1", y="NMDS2") +
+  #coord_equal() +
+  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
+  guides(colour = guide_legend(override.aes = list(size=4))) + 
+  KipukaTheme +
+  theme(       legend.position = "none", 
+        legend.title = element_text(size=50),
+        legend.text=element_text(size=45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5),
+        plot.title=element_text(size=70))                     
+                     
+d<- ggplot() + 
+  geom_boxplot(data=beta[beta$metric=="zOTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=beta, fill=Site.x), color="black", size=1)+
+  #facet_wrap(~metric, scales="free") +
+  scale_fill_manual(values=SiteColors) +
+  labs(title="D.", y="zOTU beta diversity", x="") +
+  KipukaTheme +
+  guides(fill="none")+                       
+  theme(strip.text = element_text(size = 70), 
+        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1), 
+        axis.text.y = element_text(angle=45, size=70, margin=margin(0,-10,0,0)), 
+        axis.title.y = element_text(size = 70, margin=margin(0,-25,0,0)),
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=70), 
+        plot.title=element_text(size=70), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "top", 
+        plot.margin = margin(0.2,1,0,1.35, "cm"))  
+                         
+jpeg("../Figures/NMDS-turnovers.jpg", width=2000, height=2000) 
+plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1, 0.8), rel_heights=c(1,1))                         
+dev.off()         
+
+
+
+
+
+
+
+
+                         
 
 #################################################################################
 # First, do a PERMANOVA to look for overall community comp differences between sites
@@ -402,105 +514,11 @@ plot(hatvalues(gam_model), cooks.distance(gam_model), main = "Residuals vs Lever
 abline(h = 4/length(CE[CE$metric=="3% OTU",]$value), col = "red", lty = 2)
 # Print summary of the linear model
 summary(gam_model)             
+
+
+
+
                          
-#######################################################
-# Plot these
-                         
-a <- ggplot() + 
-  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
-  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="A.", x="NMDS1", y="NMDS2") +
-  #coord_equal() +
-  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(colour = guide_legend(override.aes = list(size=4))) + 
-  KipukaTheme +
-  theme(panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5),
-        plot.title=element_text(size=50))
-                         
-b<- ggplot() + 
-  geom_boxplot(data=beta[beta$metric=="3% OTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=beta, fill=Site.x), color="black", size=1)+
-  #facet_wrap(~metric, scales="free") +
-  scale_fill_manual(values=SiteColors) +
-  labs(title="B.", y="3% OTU beta diversity", x="") +
-  KipukaTheme +
-  guides(fill="none")+                       
-  theme(strip.text = element_text(size = 50), 
-        axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
-        axis.text.y = element_text(angle=45, size=50, margin=margin(0,-10,0,0)), 
-        axis.title.y = element_text(size = 50, margin=margin(0,-25,0,0)),
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=50), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=40), 
-        legend.title = element_blank(),
-       legend.position = "top", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"))   
-                         
-c <- ggplot() + 
-  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1zOTU,y=MDS2zOTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
-  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="C.", x="NMDS1", y="NMDS2") +
-  #coord_equal() +
-  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(colour = guide_legend(override.aes = list(size=4))) + 
-  KipukaTheme +
-  theme(panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5),
-        plot.title=element_text(size=50))                     
-                     
-d<- ggplot() + 
-  geom_boxplot(data=beta[beta$metric=="zOTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=beta, fill=Site.x), color="black", size=1)+
-  #facet_wrap(~metric, scales="free") +
-  scale_fill_manual(values=SiteColors) +
-  labs(title="D.", y="zOTU beta diversity", x="") +
-  KipukaTheme +
-  guides(fill="none")+                       
-  theme(strip.text = element_text(size = 50), 
-        axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
-        axis.text.y = element_text(angle=45, size=50, margin=margin(0,-10,0,0)), 
-        axis.title.y = element_text(size = 50, margin=margin(0,-25,0,0)),
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=50), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=40), 
-        legend.title = element_blank(),
-       legend.position = "top", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"))  
-                         
-jpeg("../Figures/NMDS-turnover.jpg", width=2000, height=2000) 
-plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1.3, .9), rel_heights=c(1,1))                         
-dev.off()                                       
                          
 ######################################################                         
 # Shown as a log10 function
