@@ -5,7 +5,7 @@
 #######################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka/Data")
+setwd("H:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -19,11 +19,11 @@ library(extrafont)
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933")
 #Establish some themes up top to apply to all
-KipukaTheme <- theme(axis.title=element_text(size=30), 
-        axis.text = element_text(size=25, angle=45), 
+KipukaTheme <- theme(axis.title=element_text(size=70), 
+        axis.text = element_text(size=70, angle=45), 
         plot.margin = unit(c(0, 0, 0, 0), "cm"), 
-        plot.title=element_text(size=30), 
-        legend.text=element_text(size=25), 
+        plot.title=element_text(size=70), 
+        legend.text=element_text(size=70), 
         legend.key.height = unit(1, "cm"), 
         legend.key.width = unit(1.5,"cm"), 
         panel.background = element_blank(), 
@@ -31,7 +31,7 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         panel.grid.minor = element_blank(), 
         plot.background = element_blank(), 
         legend.background = element_blank(),
-        legend.title = element_text(size=25), 
+        legend.title = element_text(size=70), 
         text = element_text(family = "serif"), 
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
@@ -236,7 +236,7 @@ bp <- ggplot() +
   labs(title="A. ", x="", y="Proportion of non-native species") +
   KipukaTheme +
   theme(strip.text = element_text(size = 40), 
-        axis.text = element_text(angle=45, size=40), 
+        axis.text = element_text(angle=45, size=70, hjust=1, vjust=0), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -245,9 +245,9 @@ bp <- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=40), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=40), 
+       axis.title=element_text(size=70), 
+        plot.title=element_text(size=70), 
+        legend.text=element_text(size=70), 
         legend.title = element_blank(),
        legend.position = "left", 
         plot.margin = margin(0.2,1,0,1.35, "cm"),
@@ -267,8 +267,8 @@ scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +                                    
   theme(strip.text = element_text(size = 40), 
-        axis.text = element_text(angle=45, size=40), 
-        axis.title.y = element_text(size=40), 
+        axis.text = element_text(angle=45, size=70, hjust=1, vjust=0), 
+        axis.title.y = element_text(size=70), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -277,11 +277,11 @@ scale_x_continuous(trans='log10',
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title.x=element_text(size=40, margin=margin(-20,0,0,0)), 
-        plot.title=element_text(size=50),  
+       axis.title.x=element_text(size=70, margin=margin(-20,0,0,0)), 
+        plot.title=element_text(size=70),  
         plot.margin = margin(0.2,1,0,1.35, "cm"))
                      
-jpeg("Figures/NatNonNat_AraneaeScatter_V2.jpg", width=2000, height=1000)
+jpeg("../Figures/NatNonNat_AraneaeScatter_V2.jpg", width=2400, height=1200)
 plot_grid(bp, B1, ncol=2, rel_widths=c(1.15, 1))
 dev.off()   
            
