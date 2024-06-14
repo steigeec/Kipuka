@@ -5,7 +5,7 @@
 #################################
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka/Data")
+setwd("H:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -154,8 +154,8 @@ a <- ggplot(data = acari_beta, aes(x = Geo, y = threeotu, colour = variable)) +
   KipukaTheme +
   guides(color = "none", shape = "none", fill = "none", linetype = "none") +
   scale_y_continuous(limits = c(0.2, 0.8)) +
-  scale_x_continuous(expand = c(0.1, 0.1)) +
-  theme(strip.text = element_text(size = 45),
+  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 70),
         panel.grid.major = element_line(
           rgb(105, 105, 105, maxColorValue = 255),
           linetype = "dotted",
@@ -164,12 +164,12 @@ a <- ggplot(data = acari_beta, aes(x = Geo, y = threeotu, colour = variable)) +
           rgb(105, 105, 105, maxColorValue = 255),
           linetype = "dotted",
           size = 0.5),
-        axis.title.x = element_text(size = 45, margin = margin(-15, 0, 0, 0)),
-        axis.title.y = element_text(size = 45, margin = margin(0, -15, 0, 0)),
-        axis.text = element_text(size = 40),
-        plot.title = element_text(size = 45),
-        legend.text = element_text(size = 40),
-        legend.title = element_text(size = 40),
+        axis.title.x = element_text(size = 70, margin = margin(-15, 0, 0, 0)),
+        axis.title.y = element_text(size = 70, margin = margin(0, -15, 0, 0)),
+        axis.text = element_text(size = 70),
+        plot.title = element_text(size = 70),
+        legend.text = element_text(size = 70),
+        legend.title = element_text(size = 70),
         legend.position = "bottom",
         plot.margin = margin(1, 35, 1, 1))
 
@@ -182,8 +182,8 @@ b <- ggplot(data = acari_beta, aes(x = Geo, y = value, colour = variable)) +
   KipukaTheme +
   guides(color = guide_legend(title = "Sites", nrow = 1)) +
   scale_y_continuous(limits = c(0.2, 0.8)) +
-  scale_x_continuous(expand = c(0.1, 0.1)) +
-  theme(strip.text = element_text(size = 45),
+  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 70),
         panel.grid.major = element_line(
           rgb(105, 105, 105, maxColorValue = 255),
           linetype = "dotted",
@@ -192,12 +192,12 @@ b <- ggplot(data = acari_beta, aes(x = Geo, y = value, colour = variable)) +
           rgb(105, 105, 105, maxColorValue = 255),
           linetype = "dotted",
           size = 0.5),
-        axis.title.x = element_text(size = 45, margin = margin(-15, 0, 0, 0)),
-        axis.title.y = element_text(size = 45, margin = margin(0, -15, 0, 0)),
-        axis.text = element_text(size = 40),
-        plot.title = element_text(size = 45),
-        legend.text = element_text(size = 40),
-        legend.title = element_text(size = 40),
+        axis.title.x = element_text(size = 70, margin = margin(-15, 0, 0, 0)),
+        axis.title.y = element_text(size = 70, margin = margin(0, -15, 0, 0)),
+        axis.text = element_text(size = 70),
+        plot.title = element_text(size = 70),
+        legend.text = element_text(size = 70),
+        legend.title = element_text(size = 70),
         legend.position = "bottom",
         plot.margin = margin(1, 35, 1, 1))
 
