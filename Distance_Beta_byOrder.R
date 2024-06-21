@@ -117,7 +117,6 @@ for (ORDER in 1:length(orders)){
         assign(paste0(O, "_beta"), acari_beta)  
 }
 
-
 #Paste all these various dataframes together
 order_all<-rbind(Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta, Coleoptera_beta) 
 
@@ -345,15 +344,7 @@ ggplot(data=sub_all[sub_all$Site.x==c("Center", "Edge"),], aes(x=geo_dist, y=dis
        legend.position = "top", 
         plot.margin = margin(1, 35, 1, 1))  
 dev.off()
-
-
-
-
-
-
-
-
-                     
+                  
 
 to_rem <- c("1K01C", "1K01E", "1K06C", "1K06E", "1K07C", "1K07E", "1K12C", "1K12E", "1K13C", "1K13E")
 sub_all <- order_all[!(order_all$row %in% to_rem) & !(order_all$col %in% to_rem),] 
@@ -435,7 +426,6 @@ for (ORDER in 1:length(orders)){
         acari_beta$order <- O
         assign(paste0(O, "_beta"), acari_beta)  
 }
-
 
 #Paste all these various dataframes together
 order_all<-rbind(Araneae_beta, Diptera_beta, Hemiptera_beta, Lepidoptera_beta, Psocoptera_beta, Coleoptera_beta) 
