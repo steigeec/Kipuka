@@ -113,12 +113,11 @@ for (i in 1:length(unique(rep$variable))){
                    
 #################################################################################
 #Proportional representation of orders by site                         
-#Stacked bar plot, each site being its own stacked bar, all same height so proportional representation
                    
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
-#Establish some themes up top to apply to all
+
 KipukaTheme <- theme(axis.title=element_text(size=30), 
         axis.text = element_text(size=25, angle=45), 
         plot.margin = unit(c(0, 0, 0, 0), "cm"), 
@@ -174,7 +173,6 @@ b<- ggplot(data=rep, aes(x=reorder(my_site, Area), y=value, width=1, fill=variab
         strip.text.y = element_blank(), 
         strip.text.x = element_text(size=30),
         legend.position = "none"  )
-
                    
 jpeg("Figures/Order_Representation.jpg", width=1500, height=2000)
 plot_grid(a, b, nrow=2, rel_heights=c(1, .95))                   
