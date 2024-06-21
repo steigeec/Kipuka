@@ -1,6 +1,3 @@
-# Summarizing data by counts of zOTUs and OTUs per taxonomic group considered #
-# Author: Emma Steigerwald                                                    #
-###############################################################################
 
 setwd("G:/My Drive/Kipuka/Data")
 library(stringr)
