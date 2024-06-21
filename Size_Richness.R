@@ -21,7 +21,7 @@ richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933")
-#Establish some themes up top to apply to all
+
 KipukaTheme <- theme(axis.title=element_text(size=50), 
         axis.text = element_text(size=25, angle=50), 
         plot.title=element_text(size=50), 
@@ -116,25 +116,15 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 dev_over_df <- deviance(glm_model) / df_resid
                 print(paste0("overdispersion ratio is ",dev_over_df))
                 # 5. Influence and outliers -- cook's distance                
-                #infl <- influence.measures(glm_model)
-                #plot(infl, which = "cook")
+                infl <- influence.measures(glm_model)
+                plot(infl, which = "cook")
                 # 6. goodness-of-fit tests, such as the Pearson or deviance goodness-of-fit tests. A high p-value suggests good fit.
                 p<-pchisq(deviance(glm_model), df = df_resid, lower.tail = FALSE)
-                print(paste0("goodness of fit p-val is ",p))
-
-    #            if (DW < 0.05 || ST < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
-     #                 kruskal_result <- kruskal.test(value ~ Site, data = test)
-      #                cat("Kruskal-Wallis test results for", level, type, "\n")
-       #               print(kruskal_result)
-        #        }
-         #       else { # Conduct the ANOVA                   
-                        print(paste0("linear regression for ", level, type))
-                        print(summary(glm_model))                  
-             #   }
+                print(paste0("goodness of fit p-val is ",p))                  
+                print(paste0("linear regression for ", level, type))
+                print(summary(glm_model))                  
         }
 }
-
-
 
 # Print the summary of the linear regression model
 summary(lm_model)
@@ -176,8 +166,7 @@ a <- ggplot() +
         legend.text=element_text(size=45, hjust=0.4), 
         legend.title = element_blank(),
         legend.key.width = unit(0.6,"cm"), 
-       legend.position = "top")              
-                  
+       legend.position = "top")                           
 
 b<-ggplot() + 
   geom_smooth(method='lm', data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",], aes(x=Area, y=value, colour=Site, fill=Site, linetype=variable), size=1, alpha=0.20)+  
@@ -215,92 +204,3 @@ b<-ggplot() +
 jpeg("Figures/Figure3.jpg", width=2000, height=1000)
 plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
 dev.off()                     
- 
-                     
-
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-##########################################
-#old plot format                     
-b <- ggplot() + 
-  geom_smooth(method='lm', data=richness[richness$Site=="Center" | richness$Site=="Edge",], aes(x=Arealog, y=SR, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
-  geom_point(data=richness[richness$Site=="Center" | richness$Site=="Edge",],aes(x=Arealog, y=SR, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
-  geom_hline(yintercept=mean(richness$SR[richness$Site=="Kona"]), colour="#117733", lwd=3)+
-  geom_hline(yintercept=mean(richness$SR[richness$Site=="Stainback"]), colour="#999933", lwd=3)+
-  geom_hline(yintercept=mean(richness$SR[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
-  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
-  scale_fill_manual(values=SiteColors)+  
-  facet_wrap(~Site)+                              
-  #scale_linetype_discrete(values=c(2,5)) +
-  labs(title="B.", x="Log area ("~m^2~")", y="zOTU richness") +
-  KipukaTheme +
-  guides(color="none", fill="none") +#shape="none", 
-  theme(strip.text = element_text(size = 35), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=50), 
-        axis.text.y = element_text(size=45), 
-        axis.text.x = element_text(size=45, vjust=0.6),  
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=45), 
-        legend.title = element_blank(),
-       legend.position = "top")    
-                   
-################################################################################
-#haplotype richness within OTUs for Kipuka Centers and Kipuka edges
-
-c <- ggplot() + 
-  geom_smooth(method='lm', data=richness[richness$Site=="Center" | richness$Site=="Edge",], aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site, fill=Site), size=1, alpha=0.20)+ #linetype=variable, 
-  geom_point(data=richness[richness$Site=="Center" | richness$Site=="Edge",],aes(x=Arealog, y=HaplotypeRichnessWithin, colour=Site), alpha=0.70, size=6, stroke = 3) + #, shape=variable
-  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Kona"]), colour="#117733", lwd=3)+
-  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Stainback"]), colour="#999933", lwd=3)+
-  geom_hline(yintercept=mean(richness$HaplotypeRichnessWithin[richness$Site=="Lava"]), colour="#888888", lwd=3, alpha=0.6)+
-  facet_wrap(~Site)+
-  scale_colour_manual(values=SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
-  scale_fill_manual(values=SiteColors, limits = c("Center", "Edge"))+                 
-  labs(title="C.", x="Log area ("~m^2~")", y="Haplotype richness within OTUs") +
-  KipukaTheme +
-  guides(color="none", fill="none") +
-  theme(strip.text = element_text(size = 30), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=50), 
-        axis.text = element_text(size=45), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=45), 
-        legend.title = element_blank(),
-       legend.position = "top")
-
-###########################################################
-#Plot these three together
-
-#jpeg("Figures/Figure3.jpg", width=2000, height=1000)
-#plot_grid(a, b, ncol = 2, rel_widths = c(1, 1))
-#dev.off()
-                   
