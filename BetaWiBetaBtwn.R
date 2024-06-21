@@ -1,7 +1,3 @@
-# BetaWiBetaBtwn.R    #
-# Emma Steigerwald    #
-# 17 March 2023       #
-#######################
 
 #Set up my working environment
 setwd("G:/My Drive/Kipuka")
