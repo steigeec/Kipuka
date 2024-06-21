@@ -1,8 +1,3 @@
-#Project: Kipukas                     #
-#Script: NativeNonative_Proportions.R #
-#Author: Emma Steigerwald             #
-#Date:17 Mar 2022                     #
-#######################################
 
 #Set up my working environment
 setwd("H:/My Drive/Kipuka/Data")
