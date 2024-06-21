@@ -13,7 +13,6 @@ library(cowplot)
 library(tidyverse)
 font_import()
 
-
 richness <- read.csv("merged_by_site_2.csv")
 
 #Establish some color schemes up top to apply to all
@@ -36,11 +35,9 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         text = element_text(family = "serif"), 
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
-
                    
 #################################################################################
 #OTu richness, zOTU richness and haplotype diversity in different site types
-#(Figure 2)
                    
 richness_mod_2 <- melt(richness, idvars = c("SiteID", "Site"), measure = c("SR", "SROTU", "HaplotypeRichnessWithin"))
 richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
@@ -82,4 +79,3 @@ ggplot() +
        legend.position = "top", 
         plot.margin = margin(0.2,1,0,1.35, "cm"))
 dev.off()
-                  
