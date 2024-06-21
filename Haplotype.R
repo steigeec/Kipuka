@@ -15,8 +15,6 @@ library(vegan)
 library(scales)
 font_import()
 
-
-
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainbeck"="#999933")
@@ -38,14 +36,12 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm"))        
 
-
 dist_beta_0 <- read.csv("Distance_v_beta.csv")
 otu <- read.csv("Distances_Without_Kona8andsmall_kipuka.csv")
 dist_diff <- read.csv("Distance_v_differentiation.csv")
 geo_dist<-read.csv("geo_dist.csv")
 richness <- read.csv("merged_by_site_2.csv")
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
-
 
 #################################################################################
 #Beta diversity vesus distance
@@ -80,7 +76,6 @@ acari_beta <- melt(acari_beta, id= c("Geo"))
 #Assign to "kipuka" or "forest"
 acari_beta$group[acari_beta$variable=="Center" | acari_beta$variable=="Edge"] <- "Kipuka"
 acari_beta$group[acari_beta$variable=="Kona" | acari_beta$variable=="Stainbeck"] <- "Continuous forest"
-
 
 a <- ggplot(data=acari_beta) + 
   geom_point(aes(x=Geo, y=value, colour=variable), alpha=0.70, size=8, shape=19) + 
@@ -168,17 +163,13 @@ b <- ggplot(data=dist_beta) +
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
        legend.position = "right")
-#################################################################################
-                     
-
+################################################################################                
                          
 jpeg("Figures/Fig_4.jpg", width=2000, height=1000)   
 a
 #plot_grid(a, b, nrow = 2, rel_heights = c(1, 1))                         
 dev.off()
-                     
-                     
-                     
+                                    
 #################################################################################
 #Genetic differentiation wi OTUs vesus distance
 dist_diff <- rename(dist_diff, site = ï..Both) 
@@ -232,7 +223,6 @@ c <- ggplot(data=dist_diff) +
         legend.text=element_text(size=40), 
         legend.title = element_text(size=40),
        legend.position = "right")
-
 
 #Now summarize beta diversity between site types
 acari_beta<-acari_beta[,c(4, 5, 7)]
