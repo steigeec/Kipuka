@@ -30,8 +30,6 @@ KipukaTheme <- theme(axis.title=element_text(size=30),
         legend.title = element_text(size=25), 
         text = element_text(family = "serif")) 
 
-
-
 #First, rainfall 
 rain<-raster("Mapping/HawaiiRFGrids_mm/rf_mm_bi_ann/w001001.adf")
 rain_spdf <- as(rain, "SpatialPixelsDataFrame")
@@ -69,8 +67,3 @@ ggplot() +
   coord_fixed(ratio = 1, xlim = c(-156.1, -154.8), ylim = c(19, 20.4))+
   KipukaTheme
 dev.off()
-
-coords <- read.csv("merged_by_site_2.csv")
-ggplot() + 
-  #geom_polygon(data=rain, aes(long, lat)) + #, group = group, fill = hole 
-  geom_point(data=coords, aes(lon, lat))
