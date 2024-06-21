@@ -1,8 +1,3 @@
-#Project: Kipukas                  #
-#Script: SiteType_Richness_Order.R #
-#Author: Emma Steigerwald          #
-#Date:17 Mar 2022                  #
-####################################
 
 #Set up my working environment
 setwd("G:/My Drive/Kipuka/Data")
