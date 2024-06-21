@@ -243,18 +243,7 @@ for (LEVEL in 1:length(levels(beta$Site.x))){
         average_3otu<-mean(beta$beta[beta$Site.x==type & beta$metric=="3% OTU"])
         print(paste0("The zOTU beta of ",type," is ",average_zotu))
         print(paste0("The 3% OTU beta of ",type," is ",average_3otu))
-        }
-#"The zOTU beta of Lava is 0.757467924416667"
-#"The zOTU beta of Edge is 0.685924466871795"
-#"The zOTU beta of Center is 0.780764493905983"
-#"The zOTU beta of Stainback is 0.574695785040404"
-#"The zOTU beta of Kona is 0.600306610385185"                         
-# "The 3% OTU beta of Lava is 0.72089505"
-# "The 3% OTU beta of Edge is 0.644717492307692"
-# "The 3% OTU beta of Center is 0.755628114102564"
-# "The 3% OTU beta of Stainback is 0.54633928030303"
-# "The 3% OTU beta of Kona is 0.577042708888889"                         
-
+        }              
 
 #Bray curtis center-edge pairs only
 CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
@@ -363,16 +352,7 @@ d<- ggplot() +
                          
 jpeg("../Figures/NMDS-turnovers.jpg", width=2000, height=2000) 
 plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1, 0.8), rel_heights=c(1,1))                         
-dev.off()         
-
-
-
-
-
-
-
-
-                         
+dev.off()                                 
 
 #################################################################################
 # First, do a PERMANOVA to look for overall community comp differences between sites
@@ -389,13 +369,7 @@ otu <- otu[, -1]
 Site <- richness[richness$ï..ID %in% names(otu), , drop = FALSE]
 Site <- as.factor(Site$Site[order(match(Site$ï..ID, names(otu)))])                         
 adonis2(otu ~ Site, permutations = 999)
-#          Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-#Site       4    6.2037 1.55093  7.1653 0.37881  0.001 ***
-#Residuals 47   10.1731 0.21645         0.62119           
-#Total     51   16.3769                 1.00000           
-#---
-#Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-                         
+                       
 # Now, the pairwise test:
 # First, I need a 3% radius OTU "OTU table"
 vegan_otu <- function(otu_tab) {
@@ -407,18 +381,6 @@ nmds<-read.csv("nmds3otu.csv")
 my_otu_tab<-nmds[order(match(nmds$ID, names(otu))),]    
 my_otu_tab<-as.data.frame(my_otu_tab[24:ncol(my_otu_tab)])                      
 pairwise.adonis(vegan_otu(my_otu_tab), Site, p.adjust.m="fdr")
-                         
-#                 pairs   F.Model         R2 p.value p.adjusted
-#1       Center vs Edge  3.121081 0.11507952   0.003      0.003
-#2       Center vs Kona  8.143416 0.27942559   0.001      0.001
-#3       Center vs Lava  2.602249 0.14783616   0.003      0.003
-#4  Center vs Stainbeck  7.740426 0.25179957   0.001      0.001
-#5         Edge vs Kona 11.868482 0.36109006   0.001      0.001
-#6         Edge vs Lava  1.485110 0.09008796   0.096      0.096
-#7    Edge vs Stainbeck 12.179458 0.34620936   0.001      0.001
-#8         Kona vs Lava  7.404671 0.38159220   0.003      0.003
-#9    Kona vs Stainbeck 10.658267 0.34764742   0.001      0.001
-#10   Lava vs Stainbeck  8.318863 0.37272790   0.001      0.001
                          
 # NEXT, ZOTU TESTS... #############################################
 zOTU<-read.csv("zotu.csv")
@@ -432,28 +394,12 @@ zOTU <- zOTU[, -1]
 Site <- richness[richness$ï..ID %in% names(zOTU), ]
 Site <- Site$Site[order(match(Site$ï..ID, names(zOTU)))]                        
 adonis2(zOTU ~ Site, permutations = 999)  
-#         Df SumOfSqs      R2      F Pr(>F)    
-#Site      4 0.151725 0.62116 19.266  0.001 ***
-#Residual 47 0.092535 0.37884                  
-#Total    51 0.244260 1.00000                  
-#---
-#Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
                          
 # Now the pairwise test   
 my_otu_tab<-richness[order(match(richness$ï..ID, names(zOTU))),]    
 my_otu_tab<-my_otu_tab[31:ncol(my_otu_tab)]                      
 pairwise.adonis(vegan_otu(my_otu_tab), Site, p.adjust.m="bonferroni")
-#                 pairs   F.Model         R2 p.value p.adjusted
-#1       Center vs Edge  2.595869 0.09760421   0.003      0.003
-#2       Center vs Kona  7.958023 0.27481238   0.001      0.001
-#3       Center vs Lava  2.092921 0.12244374   0.009      0.009
-#4  Center vs Stainbeck  7.005632 0.23347725   0.001      0.001
-#5         Edge vs Kona 10.248746 0.32797303   0.001      0.001
-#6         Edge vs Lava  1.300785 0.07979893   0.150      0.150
-#7    Edge vs Stainbeck  9.635653 0.29524927   0.001      0.001
-#8         Kona vs Lava  6.146156 0.33870293   0.001      0.001
-#9    Kona vs Stainbeck 11.073056 0.35635555   0.001      0.001
-#10   Lava vs Stainbeck  6.478343 0.31635093   0.002      0.002                         
+        
 #######################################################
 # Test difference between area types in zOTU and 3% radius OTU turnover
 
@@ -490,8 +436,7 @@ for (i in 1:length(unique(beta$metric))){
               print(tukey_result)
         }
 }                                                
-
-                         
+                     
 #######################################################
 # Test difference between area size and zOTU and 3% radius OTU turnover
 
@@ -513,12 +458,7 @@ abline(h = 0, col = "red", lty = 2)
 plot(hatvalues(gam_model), cooks.distance(gam_model), main = "Residuals vs Leverage", xlab = "Leverage", ylab = "Cook's distance")
 abline(h = 4/length(CE[CE$metric=="3% OTU",]$value), col = "red", lty = 2)
 # Print summary of the linear model
-summary(gam_model)             
-
-
-
-
-                         
+summary(gam_model)                                    
                          
 ######################################################                         
 # Shown as a log10 function
@@ -550,404 +490,3 @@ ggplot(data = CE[CE$metric == "3% OTU", ], aes(x = Area, y = dist)) +
         legend.position = "top",
         plot.margin = margin(1, 15, 1, 1))  
 dev.off()
-
-                        
-                         
-# Shown as a straight line
-jpeg("Figures/turnover-edge-center.jpg", width=1000, height=1000)                       
-ggplot(data=CE[CE$metric=="3% OTU",]) + 
-  geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
-  geom_point(aes(x=Area, y=dist), colour="#6699CC", fill="#332288", alpha=0.70, size=8, shape=21, stroke=7) + 
-  labs(x="Kipuka area ("~m^2~")", y="3% OTU beta diversity") +
-  KipukaTheme +
-  #coord_cartesian(ylim=c(0.4, 1))+
-  guides(colour="none")+
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +                   
-  theme(strip.text = element_text(size = 45), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title.y=element_text(size=45), 
-       axis.title.x=element_text(size=45, margin=margin(-25,0,0,0)), 
-        axis.text = element_text(size=40), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
-       legend.position = "top")      
-dev.off()    
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-
-f<-ggplot(data=CE[CE$metric=="3% OTU",]) + 
-  geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
-  geom_point(aes(x=Area, y=dist), colour="#6699CC", fill="#332288", alpha=0.70, size=8, shape=21, stroke=7) + 
-  labs(title="B.", x="Kipuka area ("~m^2~")", y="3% OTU beta diversity") +
-  KipukaTheme +
-  #coord_cartesian(ylim=c(0.4, 1))+
-  guides(colour="none")+
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +                   
-  theme(strip.text = element_text(size = 45), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title.y=element_text(size=45), 
-       axis.title.x=element_text(size=45, margin=margin(-25,0,0,0)), 
-        axis.text = element_text(size=40), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
-       legend.position = "top")                                            
-                     
-                    
-               
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-                     
-#################################################################################
-#Version without the 8 smallest Kipuka
-
-richness <- read.csv("merged_by_site_2.csv")
-richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
-dist_beta_0 <- read.csv("Distance_v_beta.csv")
-otu <- read.csv("3OTU.csv")
-dist_diff <- read.csv("Distance_v_differentiation.csv")
-geo_dist<-read.csv("geo_dist.csv")
-nmds<-read.csv("nmds3otu.csv")
-BC<-read.csv("BC.csv")
-BC3<-read.csv("BC3.csv")
-CE<-read.csv("C-E.csv")
-
-#NMDS plot for 3%OTU
-
-#Create an NMDS plot with columns MDS1 and MDS2
-nmds$Area<-as.numeric(gsub(",","",as.character(nmds$Area)))
-nmds$pointsize<-round(sqrt(nmds$Area)/10,0)
-nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 2
-nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
-nmds$pointsize[nmds$Site=="Stainbeck" & is.na(nmds$pointsize)] <- 2
-
-nmds <- nmds[nmds$ID != "1K08E" & nmds$ID != "1K08C",] 
-nmds <- nmds[nmds$Site=="Lava" | nmds$Site=="Kona" | nmds$Site=="Stainbeck" |  nmds$Area>5000,]                      
-
-a <- ggplot() + 
-  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainbeck")) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
-  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="A.", x="NMDS1", y="NMDS2") +
-  #coord_equal() +
-  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(colour = guide_legend(override.aes = list(size=4))) + 
-  KipukaTheme +
-  theme(panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5),
-        plot.title=element_text(size=50))
-
-######################################################
-#Beta diversity summary plot (B)
-
-#Grab beta diversity between centers and each continuous forest type
-#First, zOTU between them
-colnames(BC)<- gsub('[X]', '', colnames(BC))
-rownames(BC)<-BC[,1]
-BC<-BC[,-1]
-df <- data.frame(matrix(ncol = 4, nrow = 0))
-names(df)<-c("log_dist", "dist", "Site.x", "metric")
-out_row<-1
-for (ROW in 1:nrow(BC)){
-        for (COL in 1:ncol(BC)){             
-                df[out_row,2]<-BC[ROW,COL] 
-                df[out_row,4]<-"zOTU"
-                df[out_row,3]<-"C-F"
-                out_row<-out_row+1
-        }        
-}
-
-#Now for 3%OTU
-colnames(BC3)<- gsub('[X]', '', colnames(BC3))
-rownames(BC3)<-BC3[,1]
-BC3<-BC3[,-1]
-df3 <- data.frame(matrix(ncol = 4, nrow = 0))
-names(df3)<-c("log_dist", "dist", "Site.x", "metric")
-out_row<-1
-for (ROW in 1:nrow(BC3)){
-        for (COL in 1:ncol(BC3)){             
-                df3[out_row,2]<-BC3[ROW,COL] 
-                df3[out_row,4]<-"3% OTU"
-                df3[out_row,3]<-"C-F"
-                out_row<-out_row+1
-        }        
-}
-
-#Wrange geo distances
-rownames(geo_dist) <- geo_dist[,1]
-geo_dist <- geo_dist[,-1]
-#remove x from all the column names
-names(geo_dist)<-sub("X*", "", names(geo_dist))
-geo_dist<-as.matrix(geo_dist)
-geo_dist<-data.frame(col=colnames(geo_dist)[col(geo_dist)], row=rownames(geo_dist)[row(geo_dist)], dist=c(geo_dist))
-#make an index column that reps this particular combination of sites
-geo_dist$index<-paste(geo_dist$col, geo_dist$row, sep="_")
-geo_dist$log_dist<-log(geo_dist$dist+0.00001)
-geo_dist<-geo_dist[,c(4, 5)]
-
-#Grab 3% OTU beta diversity metrics
-acari_beta<-as.matrix(otu)
-#Remove all the XXXX from colnames
-colnames(acari_beta)<- gsub('[X]', '', colnames(acari_beta))
-rownames(acari_beta)<-acari_beta[,1]
-acari_beta<-acari_beta[,-1]
-acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], dist=c(acari_beta))
-#Add attributes of each site
-#First we add whether it's center, edge, etc etc etc
-acari_beta<-merge(acari_beta, richness[,c(1,9,10)], by.x="col", by.y="ï..ID")
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
-#If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
-acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
-
-#Now add the distances between these sites
-acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
-acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
-#remove the same-site pairs
-acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]     
-#Remove flipped pairs
-acari_beta <- acari_beta%>% distinct(dist, .keep_all= TRUE)
-acari_beta$dist<-as.numeric(acari_beta$dist)
-acari_beta<-acari_beta[acari_beta$Site.x=="Lava" | acari_beta$Site.x=="Kona" | acari_beta$Site.x=="Stainbeck" |  acari_beta$Area>5000,]                     
-
-#Maybe join together tables of each part...?
-dist_beta <- dist_beta_0[,1:7]
-i<-c(3, 4, 5, 6, 7)
-dist_beta[ , i] <- apply(dist_beta[ , i], 2,            # Specify own function within apply
-                    function(x) as.numeric(as.character(x)))
-
-Center <- dist_beta[!is.na(dist_beta$Center),]
-Center$site <- "Center"
-Center <- rename(Center, c("beta"="Center"))
-Center <- Center[ , colSums(is.na(Center)) < nrow(Center)]                    
-                         
-Stainbeck <- dist_beta[!is.na(dist_beta$Stainbeck),]
-Stainbeck$site <- "Stainbeck"  
-Stainbeck <- rename(Stainbeck, c("beta"="Stainbeck"))
-Stainbeck <- Stainbeck[ , colSums(is.na(Stainbeck)) < nrow(Stainbeck)]   
-                         
-Kona <- dist_beta[!is.na(dist_beta$Kona),]
-Kona$site <- "Kona"
-Kona <- rename(Kona, c("beta"="Kona"))
-Kona <- Kona[ , colSums(is.na(Kona)) < nrow(Kona)]   
-                         
-Edge <- dist_beta[!is.na(dist_beta$Edge),]
-Edge$site <- "Edge"
-Edge <- rename(Edge, c("beta"="Edge"))
-Edge <- Edge[ , colSums(is.na(Edge)) < nrow(Edge)] 
-                         
-Lava <- dist_beta[!is.na(dist_beta$Lava),]
-Lava$site <- "Lava"
-Lava <- rename(Lava, c("beta"="Lava"))
-Lava <- Lava[ , colSums(is.na(Lava)) < nrow(Lava)]                          
-                         
-dist_beta <- rbind(Center, Stainbeck, Kona, Edge, Lava)
-dist_beta <- rename(dist_beta, c("dist"="ï..dist"))                         
-
-
-#Now summarize beta diversity between site types
-acari_beta<-acari_beta[,c(4, 5, 8)]
-acari_beta$metric <- "3% OTU"
-dist_beta<-dist_beta[,c(2, 3, 4)]
-dist_beta$metric <- "zOTU"
-names(dist_beta)<-c( "log_dist", "dist","Site.x", "metric")
-
-beta <- rbind(dist_beta, acari_beta, CE, df, df3) 
-#Reorder facets
-beta$metric <- factor(beta$metric, levels = rev(c("zOTU", "3% OTU")))   
-beta <- beta[beta$Site != "1K08E" & beta$Site != "1K08C",]
-beta <- beta[beta$Site.x != "C-F" & beta$Site.x != "C-E",]
-
-beta$Site.x<-as.factor(beta$Site.x)
-beta$Site.x <- factor(beta$Site.x, levels=c("Lava", "Edge", "Center", "Stainbeck", "Kona"))                         
-
-#What is the average zOTU for each site type? 3%OTU?
-for (LEVEL in 1:length(levels(beta$Site.x))){
-        type<-levels(beta$Site.x)[LEVEL]
-        average_zotu<-mean(beta$dist[beta$Site.x==type & beta$metric=="zOTU"])
-        average_3otu<-mean(beta$dist[beta$Site.x==type & beta$metric=="3% OTU"])
-        print(paste0("The zOTU beta of ",type," is ",average_zotu))
-        print(paste0("The 3% OTU beta of ",type," is ",average_3otu))
-        }                         
-        
-# "The zOTU beta of Lava is 0.794040798833333"
-# "The 3% OTU beta of Lava is 0.72089505"
-# "The zOTU beta of Edge is 0.706527954153846"
-# "The 3% OTU beta of Edge is 0.660035220454545"
-# "The zOTU beta of Center is 0.793332683807692"
-# "The 3% OTU beta of Center is 0.750484379545455"
-# "The zOTU beta of Stainbeck is 0.588874037409091"
-# "The 3% OTU beta of Stainbeck is 0.54633928030303"
-# "The zOTU beta of Kona is 0.611938561133333"
-# "The 3% OTU beta of Kona is 0.577042708888889"                         
-                         
-b<- ggplot() + 
-  geom_boxplot(data=beta[beta$metric=="3% OTU",],aes(x=Site.x, y=dist, fill=Site.x), color="black", size=1)+
-  #facet_wrap(~metric, scales="free") +
-  scale_fill_manual(values=SiteColors) +
-  labs(title="B.", x="") +
-  KipukaTheme +
-  guides(fill="none")+                       
-  theme(strip.text = element_text(size = 50), 
-        axis.text.x = element_text(angle=45, size=50, hjust=1, vjust=1), 
-        axis.text.y = element_text(angle=45, size=50), 
-        axis.title.y = element_blank(), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=50), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=40), 
-        legend.title = element_blank(),
-       legend.position = "top", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"))
-
-#######################################################
-#Bray curtis center-edge pairs only
-CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
-CE<- CE[CE$Area>5000,]                                              
-                         
-c<-ggplot(data=CE[CE$metric=="3% OTU",]) + 
-  geom_smooth(method='lm', aes(x=Area, y=dist), colour="black", size=1, alpha=0.20)+
-  geom_point(aes(x=Area, y=dist), colour="#6699CC", fill="#332288", alpha=0.70, size=8, shape=21, stroke=5) + 
-  labs(title="C.", x="Kipuka area ("~m^2~")", y="3% OTU beta diversity") +
-  KipukaTheme +
-  #coord_cartesian(ylim=c(0.4, 1))+
-  guides(colour="none")+
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +                   
-  theme(strip.text = element_text(size = 45), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=45), 
-        axis.text = element_text(size=40), 
-        plot.title=element_text(size=45), 
-        legend.text=element_text(size=40), 
-        legend.title = element_text(size=40),
-       legend.position = "top")                         
-
-
-#######################################################
-jpeg("Figures/NMDS-turnover-excludingsmallest8.jpg", width=3000, height=1000) 
-plot_grid(a,b,c, nrow=1, rel_widths=c(1.3, .9, 1), rel_heights=c(1,1,1))                         
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-                     
-                     
-                     
-                     
-                     
-#Create an NMDS plot with columns MDS1 and MDS2
-richness_mod <- richness
-richness_mod$Area<-as.numeric(gsub(",","",as.character(richness_mod$Area)))
-richness_mod$pointsize<-round(sqrt(richness_mod$Area)/10,0)
-richness_mod$pointsize[richness_mod$Site=="Lava" & is.na(richness_mod$pointsize)] <- 2
-richness_mod$pointsize[richness_mod$Site=="Kona" & is.na(richness_mod$pointsize)] <- 2
-richness_mod$pointsize[richness_mod$Site=="Stainbeck" & is.na(richness_mod$pointsize)] <- 2
-richness_mod <- richness_mod[richness_mod$Site != "1K08E" & richness_mod$Site != "1K08C",] 
-
-jpeg("Figures/NMDS_zOTU.jpg", width=1400, height=1100)
-ggplot() + 
-  geom_point(data=richness_mod,aes(x=MDS1,y=MDS2,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  scale_colour_manual(values=SiteColors) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainbeck"=2)) +
-  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="", x="NMDS1", y="NMDS2") +
-  #coord_equal() +
-  scale_y_continuous(limits=c(-1,1.20)) +
-  #guides(colour = "none", size="none", shape="none") + 
-  KipukaTheme +
-  theme(panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5),
-        plot.title=element_text(size=50))
-dev.off()
-
