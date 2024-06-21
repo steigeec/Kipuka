@@ -1,8 +1,3 @@
-#Project: Kipukas               #
-#Script: NMDS.R                 #
-#Author: Emma Steigerwald       #
-#Date:17 Feb 2022               #
-#################################
 
 #Set up my working environment
 setwd("G:/My Drive/Kipuka/Data")
