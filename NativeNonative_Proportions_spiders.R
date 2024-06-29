@@ -226,7 +226,7 @@ for (i in 1:length(c("Center", "Edge"))){
 # Now plot this
                 
 bp <- ggplot() + 
-  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=Site, y=value, fill=Site), color="black", size=1)+
+  geom_boxplot(data=plotA[plotA$variable=="p_non",],aes(x=Site, y=value, fill=Site), color="black", size=2)+
   scale_fill_manual(values=SiteColors) +
   labs(title="A. ", x="", y="Proportion of non-native species") +
   KipukaTheme +
