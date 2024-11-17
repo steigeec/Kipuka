@@ -44,27 +44,19 @@ KipukaTheme <- theme(axis.title=element_text(size=70),
 richness <- read.csv("merged_by_site_2.csv")
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
 dist_beta_0 <- read.csv("Distance_v_beta.csv")
+# beta diversity for 3 % OTU for within-area
 otu <- read.csv("3OTU.csv")
+# beta diversity for zOTU for within-area
 dist_diff <- read.csv("Distance_v_differentiation.csv")
 geo_dist<-read.csv("geo_dist.csv")
 nmds<-read.csv("nmds3otu.csv")
 #Fix spelling error on sheet before proceeding
 nmds$Site<-gsub("Stainbeck","Stainback",as.character(nmds$Site))
 BC<-read.csv("BC.csv")
+# beta diversity for 3 % OTU for between-area
 BC3<-read.csv("BC3.csv")
+# beta diversity for z OTU for between-area
 CE<-read.csv("C-E.csv")
-
-#NMDS plot for 3%OTU
-
-#Create an NMDS plot with columns MDS1 and MDS2
-nmds$Area<-as.numeric(gsub(",","",as.character(nmds$Area)))
-
-nmds$pointsize<-round(sqrt(as.numeric(nmds$Area))/10,0)
-nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 2
-nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
-nmds$pointsize[nmds$Site=="Stainback" & is.na(nmds$pointsize)] <- 2
-
-nmds <- nmds[nmds$Site != "1K08E" & nmds$Site != "1K08C",] 
 
 ######################################################33
 #Beta diversity summary plot (B)
@@ -183,7 +175,6 @@ i<-c(3, 4, 5, 6, 7)
 dist_beta[ , i] <- apply(dist_beta[ , i], 2,            # Specify own function within apply
                     function(x) as.numeric(as.character(x)))
 
-#So it's dist_beta column two in these following items that are the problem...                          
 Center <- dist_beta[!is.na(dist_beta$Center),]
 Center$site <- "Center"
 names(Center)[names(Center) == "Center"] <- "beta"
@@ -248,6 +239,15 @@ CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))
                          
 #######################################################
 # Plot these
+
+#NMDS plot for 3%OTU
+#Create an NMDS plot with columns MDS1 and MDS2
+nmds$Area<-as.numeric(gsub(",","",as.character(nmds$Area)))
+nmds$pointsize<-round(sqrt(as.numeric(nmds$Area))/10,0)
+nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 2
+nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
+nmds$pointsize[nmds$Site=="Stainback" & is.na(nmds$pointsize)] <- 2
+nmds <- nmds[nmds$Site != "1K08E" & nmds$Site != "1K08C",]                          
                          
 a <- ggplot() + 
   geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
