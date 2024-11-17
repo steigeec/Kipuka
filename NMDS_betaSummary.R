@@ -1,6 +1,6 @@
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka/Data")
+setwd("H:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -251,24 +251,28 @@ CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))
                          
 a <- ggplot() + 
   geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  # Confidence ellipses
+  stat_ellipse(
+    data = nmds[nmds$Site != c("C-E", "C-F"), ], aes(x = MDS1OTU, y = MDS2OTU, colour = Site), level = 0.95,  # 95% confidence interval
+    linetype = "dashed", size=1.5) +
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
   scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
   scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
   labs(title="A.", x="NMDS1", y="NMDS2") +
   #coord_equal() +
   scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(colour = guide_legend(override.aes = list(size=4))) + 
-  KipukaTheme +
-  theme(       legend.position = "none", 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
+KipukaTheme +
+  theme(axis.title.x=element_blank(), 
+        axis.text.x=element_blank(), 
+        legend.position = "none", 
+        panel.grid.major = element_line(rgb(105, 105, 105, maxColorValue = 255), linetype = "dotted", size=1),   
       panel.grid.minor = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5),
-        plot.title=element_text(size=70))
+    plot.title = element_text(size = 70, hjust = -0.2), # Offset title to the left
+        plot.margin = margin(0, 0, 1.5, 0, "cm")) # Increased bottom margin
+
                          
 b<- ggplot() + 
   geom_boxplot(data=beta[beta$metric=="3% OTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=beta, fill=Site.x), color="black", size=1)+
@@ -277,8 +281,9 @@ b<- ggplot() +
   labs(title="B.", y="3% OTU beta diversity", x="") +
   KipukaTheme +
   guides(fill="none")+                       
-  theme(strip.text = element_text(size = 70), 
-        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1), 
+  theme(axis.title.x=element_blank(), 
+        strip.text = element_text(size = 70), 
+        axis.text.x = element_blank(), 
         axis.text.y = element_text(angle=45, size=70, margin=margin(0,-10,0,0)), 
         axis.title.y = element_text(size = 70, margin=margin(0,-25,0,0)),
         panel.grid.major = element_line(
@@ -289,23 +294,30 @@ b<- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=70), 
-        plot.title=element_text(size=70), 
+    plot.title = element_text(size = 70, hjust = -0.3), # Offset title to the left
         legend.text=element_text(size=60), 
         legend.title = element_blank(),
        legend.position = "none", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"))   
+    plot.margin = margin(0.2, 1, 1.5, .8, "cm")) # Increased bottom margin
                          
 c <- ggplot() + 
   geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1zOTU,y=MDS2zOTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  # Confidence ellipses
+  stat_ellipse(
+    data = nmds[nmds$Site != c("C-E", "C-F"), ], aes(x = MDS1zOTU, y = MDS2zOTU, colour = Site),
+    level = 0.95,  # 95% confidence interval
+    linetype = "dashed", size=1.5) +
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
   scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
   scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
   labs(title="C.", x="NMDS1", y="NMDS2") +
   #coord_equal() +
   scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(colour = guide_legend(override.aes = list(size=4))) + 
-  KipukaTheme +
+  guides(
+    fill = guide_legend(override.aes = list(shape = c(21, 22, 23, 24, 25), size = 4)),
+    shape = "none"
+  ) + 
+KipukaTheme +
   theme(       legend.position = "none", 
         legend.title = element_text(size=50),
         legend.text=element_text(size=45), 
@@ -317,7 +329,7 @@ c <- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5),
-        plot.title=element_text(size=70))                     
+        plot.title=element_text(size=70, hjust = -0.2))                     
                      
 d<- ggplot() + 
   geom_boxplot(data=beta[beta$metric=="zOTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=beta, fill=Site.x), color="black", size=1)+
@@ -339,14 +351,14 @@ d<- ggplot() +
         linetype = "dotted", 
         size = 0.5), 
        axis.title=element_text(size=70), 
-        plot.title=element_text(size=70), 
+        plot.title=element_text(size=70, hjust = -0.3), 
         legend.text=element_text(size=45), 
         legend.title = element_blank(),
        legend.position = "top", 
-        plot.margin = margin(0.2,1,0,1.35, "cm"))  
+        plot.margin = margin(0.2,1,0,.8, "cm"))  
                          
 jpeg("../Figures/NMDS-turnovers.jpg", width=2000, height=2000) 
-plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1, 0.8), rel_heights=c(1,1))                         
+plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1.5, 1), rel_heights=c(.9,1), align = "v")                         
 dev.off()                                 
 
 #################################################################################
