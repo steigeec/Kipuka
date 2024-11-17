@@ -47,7 +47,8 @@ dist_beta_0 <- read.csv("Distance_v_beta.csv")
 # beta diversity for 3 % OTU for within-area
 otu <- read.csv("3OTU.csv")
 # beta diversity for zOTU for within-area
-dist_diff <- read.csv("Distance_v_differentiation.csv")
+zOTUbeta <- read.csv("zOTU_by_site.csv")
+# geographic distances
 geo_dist<-read.csv("geo_dist.csv")
 nmds<-read.csv("nmds3otu.csv")
 #Fix spelling error on sheet before proceeding
@@ -59,36 +60,6 @@ BC3<-read.csv("BC3.csv")
 CE<-read.csv("C-E.csv")
 
 ######################################################33
-#Beta diversity summary plot (B)
-
-#Grab beta diversity between centers and each continuous forest type
-#First, zOTU between them
-colnames(BC)<- gsub('[X]', '', colnames(BC))
-rownames(BC)<-BC[,1]
-BC<-BC[,-1]
-df <- data.frame(matrix(ncol = 4, nrow = 0))
-names(df)<-c("log_dist", "dist", "Site.x", "metric")
-out_row<-1
-for (ROW in 1:nrow(BC)){
-        for (COL in 1:ncol(BC)){             
-                df[out_row,2]<-BC[ROW,COL] 
-                df[out_row,4]<-"zOTU"
-                df[out_row,3]<-"C-F"
-                out_row<-out_row+1}}
-
-#Now for 3%OTU
-colnames(BC3)<- gsub('[X]', '', colnames(BC3))
-rownames(BC3)<-BC3[,1]
-BC3<-BC3[,-1]
-df3 <- data.frame(matrix(ncol = 4, nrow = 0))
-names(df3)<-c("log_dist", "dist", "Site.x", "metric")
-out_row<-1
-for (ROW in 1:nrow(BC3)){
-        for (COL in 1:ncol(BC3)){             
-                df3[out_row,2]<-BC3[ROW,COL] 
-                df3[out_row,4]<-"3% OTU"
-                df3[out_row,3]<-"C-F"
-                out_row<-out_row+1} }
 
 #Wrange geo distances
 rownames(geo_dist) <- geo_dist[,1]
@@ -96,43 +67,50 @@ geo_dist <- geo_dist[,-1]
 #remove x from all the column names
 names(geo_dist)<-sub("X*", "", names(geo_dist))
 geo_dist<-as.matrix(geo_dist)
+# Turn matrix to long format
 geo_dist<-data.frame(col=colnames(geo_dist)[col(geo_dist)], row=rownames(geo_dist)[row(geo_dist)], dist=c(geo_dist))
 #make an index column that reps this particular combination of sites
 geo_dist$index<-paste(geo_dist$col, geo_dist$row, sep="_")
+#provide a log-transformed geo distance
 geo_dist$log_dist<-log(geo_dist$dist+0.00001)
-geo_dist<-geo_dist[,c(4, 5)]
+# geo_dist<-geo_dist[,c(4, 5)]
 
 #######################
-# Produce a table of within-area-type dissimilarity measures:
-
-#Grab 3% OTU beta diversity metrics
-acari_beta<-as.matrix(otu)
-#Remove all the XXXX from colnames
-colnames(acari_beta)<- gsub('[X]', '', colnames(acari_beta))
-rownames(acari_beta)<-acari_beta[,1]
-acari_beta<-acari_beta[,-1]
-acari_beta<-data.frame(col=colnames(acari_beta)[col(acari_beta)], row=rownames(acari_beta)[row(acari_beta)], beta=c(acari_beta))
+# Produce a table of 3% OTU beta diversity values within and between habitat types
+otu<-otu[complete.cases(otu),]
+OTU3beta<-as.matrix(otu)
+colnames(OTU3beta)<- gsub('[X]', '', colnames(OTU3beta))
+rownames(OTU3beta)<-OTU3beta[,1]
+OTU3beta<-OTU3beta[,-1]
+OTU3beta<-data.frame(col=colnames(OTU3beta)[col(OTU3beta)], row=rownames(OTU3beta)[row(OTU3beta)], beta=c(OTU3beta))
 #Add attributes of each site
 #First we add whether it's center, edge, etc etc etc
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
-acari_beta<-merge(acari_beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
-#If Site.x and Site.y are not the same (e.g. not both Center and Center), then throw out that row
-acari_beta<-acari_beta[acari_beta$Site.x==acari_beta$Site.y,]
+OTU3beta<-merge(OTU3beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
+OTU3beta<-merge(OTU3beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
 #Now add the distances between these sites
-acari_beta$index<-paste(acari_beta$row, acari_beta$col, sep="_")
-acari_beta<-merge(acari_beta, geo_dist, by.x="index", by.y="index")
+OTU3beta$index<-paste(OTU3beta$row, OTU3beta$col, sep="_")
+OTU3beta<-merge(OTU3beta, geo_dist[,3:5], by.x="index", by.y="index")
 #remove the same-site pairs
-acari_beta<-acari_beta[acari_beta$row!=acari_beta$col,]     
+OTU3beta<-OTU3beta[OTU3beta$row!=OTU3beta$col,]     
 #Remove flipped pairs
-acari_beta <- acari_beta%>% distinct(beta, .keep_all= TRUE)
-acari_beta$beta<-as.numeric(acari_beta$beta)
+OTU3beta <- OTU3beta%>% distinct(beta, .keep_all= TRUE)
+OTU3beta$beta<-as.numeric(OTU3beta$beta)
+
+# Create 3% OTU within table
+OTU3beta_within<-OTU3beta[OTU3beta$Site.x==OTU3beta$Site.y,]
+# Create 3% OTU between table
+OTU3beta_between<-OTU3beta[OTU3beta$Site.x!=OTU3beta$Site.y,]
+
+# Now, for zOTU, weight zOTU per 3% OTU... 
+zOTUbeta <- merge(zOTUbeta, OTU3beta[,c(1, 4)], by="index")
+zOTUbeta$weighted <- zOTUbeta$zOTU/zOTUbeta$beta
 
 ##########################
 # With the table of within-area-type dissimilarity measures,  compare the dissimilarity within small edges to that within big edges,
 # and the dissimilarity of small cores to that within big cores...
 
-# Join the size data onto acari_beta
-size<-merge(acari_beta, richness[c(1,10)], by.x="row", by.y="ï..ID")
+# Join the size data onto OTU3beta
+size<-merge(OTU3beta, richness[c(1,10)], by.x="row", by.y="ï..ID")
 size<-merge(size, richness[c(1,10)], by.x="col", by.y="ï..ID")
 
 # Remove anything that has something other than Center or Edge in Site.x or Site.y
@@ -204,13 +182,13 @@ dist_beta <- rbind(Center, Stainbeck, Kona, Edge, Lava)
 names(dist_beta)[names(dist_beta) == "ï..dist"] <- "dist"                       
 
 #Now summarize beta diversity between site types
-acari_beta<-acari_beta[,c(7, 4, 5)]     # logdist, beta, Site.x
-acari_beta$metric <- "3% OTU"
+OTU3beta<-OTU3beta[,c(7, 4, 5)]     # logdist, beta, Site.x
+OTU3beta$metric <- "3% OTU"
 dist_beta<-dist_beta[,c(2, 3, 4)]       # logdist, beta, site
 dist_beta$metric <- "zOTU"
 names(dist_beta)<-c("log_dist", "beta", "Site.x", "metric")
 
-beta <- rbind(dist_beta, acari_beta) 
+beta <- rbind(dist_beta, OTU3beta) 
 #Reorder facets
 beta$metric <- factor(beta$metric, levels = rev(c("zOTU", "3% OTU")))   
 beta <- beta[beta$Site != "1K08E" & beta$Site != "1K08C",]
