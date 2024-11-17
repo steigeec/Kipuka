@@ -19,9 +19,10 @@ library(phyloseq)
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933", "C-E"="black", "C-F"="white")
-ExtendedSiteColors <- c("Center_Edge"="grey24", "Center_Lava"="grey24", "Center_Hilo"="grey24", "Center_Kona"="grey24", "Edge_Center"="grey24", 
-                        "Edge_Lava"="grey24", "Edge_Hilo"="grey24", "Edge_Kona"="grey24", "Center"="#332288", "Edge"="#6699CC", 
-                        "Lava"="#888888", "Lava_Hilo"="grey24", "Lava_Kona"="grey24", "Stainback"="#999933", "Hilo_Kona"="grey24", "Kona"="#117733")
+ExtendedSiteColors <- c("Edge_Center"="grey24", "Lava_Center"="grey24", "Stainback_Center"="grey24", "Kona_Center"="grey24", "Center_Edge"="grey24", 
+                        "Lava_Edge"="grey24", "Stainback_Edge"="grey24", "Kona_Edge"="grey24", "Center"="#332288", "Edge"="#6699CC", 
+                        "Lava"="#888888", "Stainback_Lava"="grey24", "Kona_Lava"="grey24", "Stainback"="#999933", "Kona_Stainback"="grey24", "Kona"="#117733")
+
 
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=70), 
@@ -47,21 +48,21 @@ KipukaTheme <- theme(axis.title=element_text(size=70),
 
 richness <- read.csv("merged_by_site_2.csv")
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
-dist_beta_0 <- read.csv("Distance_v_beta.csv")
+#dist_beta_0 <- read.csv("Distance_v_beta.csv")
 # beta diversity for 3 % OTU for within-area
 otu <- read.csv("3OTU.csv")
 # beta diversity for zOTU for within-area
-zOTUbeta <- read.csv("zOTU_by_site.csv")
+zOTUbeta <- read.csv("zOTU_Bray.csv")
 # geographic distances
 geo_dist<-read.csv("geo_dist.csv")
 nmds<-read.csv("nmds3otu.csv")
 #Fix spelling error on sheet before proceeding
 nmds$Site<-gsub("Stainbeck","Stainback",as.character(nmds$Site))
-BC<-read.csv("BC.csv")
+#BC<-read.csv("BC.csv")
 # beta diversity for 3 % OTU for between-area
-BC3<-read.csv("BC3.csv")
+#BC3<-read.csv("BC3.csv")
 # beta diversity for z OTU for between-area
-CE<-read.csv("C-E.csv")
+#CE<-read.csv("C-E.csv")
 
 ######################################################33
 
@@ -101,8 +102,9 @@ OTU3beta <- OTU3beta%>% distinct(beta, .keep_all= TRUE)
 OTU3beta$beta<-as.numeric(OTU3beta$beta)
 
 # Now, for zOTU, weight zOTU per 3% OTU... 
-zOTUbeta <- merge(zOTUbeta, OTU3beta[,c(1, 4)], by="index")
-zOTUbeta$weighted <- zOTUbeta$zOTU/zOTUbeta$beta
+zOTUbeta$index <- paste(zOTUbeta$col, zOTUbeta$row, sep="_")
+colnames(zOTUbeta)[3] <- "zOTU"
+zOTUbeta <- merge(zOTUbeta[,3:4], OTU3beta, by="index")
 
 # Join on size data, because we will only use kipuka > 5000 m^2
 zOTUbeta <- merge (zOTUbeta, size[,c(3,8,9)], by="index", all.x=T)
@@ -116,11 +118,11 @@ zOTUbeta$Site<-paste(zOTUbeta$Site.x, zOTUbeta$Site.y, sep="_")
 zOTUbeta$Site <- gsub("Center_Center", "Center", zOTUbeta$Site)
 zOTUbeta$Site <- gsub("Edge_Edge", "Edge", zOTUbeta$Site)
 zOTUbeta$Site <- gsub("Lava_Lava", "Lava", zOTUbeta$Site)
-zOTUbeta$Site <- gsub("Hilo_Hilo", "Stainback", zOTUbeta$Site)
+zOTUbeta$Site <- gsub("Stainback_Stainback", "Stainback", zOTUbeta$Site)
 zOTUbeta$Site <- gsub("Kona_Kona", "Kona", zOTUbeta$Site)
 zOTUbeta$Site <- factor(zOTUbeta$Site, levels=c("Lava", "Edge", "Center", "Stainback", "Kona", 
-                                          "Center_Edge", "Center_Lava", "Center_Hilo", "Center_Kona", "Edge_Center", 
-                                          "Edge_Lava", "Edge_Hilo", "Edge_Kona", "Lava_Hilo", "Lava_Kona", "Hilo_Kona"))  
+                                          "Edge_Center", "Lava_Center", "Stainback_Center", "Kona_Center", "Center_Edge", 
+                                          "Lava_Edge", "Stainback_Edge", "Kona_Edge", "Stainback_Lava", "Kona_Lava", "Kona_Stainback"))  
 
 
 #######################################################
