@@ -19,6 +19,10 @@ library(phyloseq)
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933", "C-E"="black", "C-F"="white")
+ExtendedSiteColors <- c("Center_Edge"="grey24", "Center_Lava"="grey24", "Center_Hilo"="grey24", "Center_Kona"="grey24", "Edge_Center"="grey24", 
+                        "Edge_Lava"="grey24", "Edge_Hilo"="grey24", "Edge_Kona"="grey24", "Center"="#332288", "Edge"="#6699CC", 
+                        "Lava"="#888888", "Lava_Hilo"="grey24", "Lava_Kona"="grey24", "Stainback"="#999933", "Hilo_Kona"="grey24", "Kona"="#117733")
+
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=70), 
         axis.text = element_text(size=70, angle=50), 
@@ -96,14 +100,212 @@ OTU3beta<-OTU3beta[OTU3beta$row!=OTU3beta$col,]
 OTU3beta <- OTU3beta%>% distinct(beta, .keep_all= TRUE)
 OTU3beta$beta<-as.numeric(OTU3beta$beta)
 
-# Create 3% OTU within table
-OTU3beta_within<-OTU3beta[OTU3beta$Site.x==OTU3beta$Site.y,]
-# Create 3% OTU between table
-OTU3beta_between<-OTU3beta[OTU3beta$Site.x!=OTU3beta$Site.y,]
-
 # Now, for zOTU, weight zOTU per 3% OTU... 
 zOTUbeta <- merge(zOTUbeta, OTU3beta[,c(1, 4)], by="index")
 zOTUbeta$weighted <- zOTUbeta$zOTU/zOTUbeta$beta
+
+# Join on size data, because we will only use kipuka > 5000 m^2
+zOTUbeta <- merge (zOTUbeta, size[,c(3,8,9)], by="index", all.x=T)
+#zOTUbeta <- zOTUbeta[
+#  (is.na(zOTUbeta$Area.x) & is.na(zOTUbeta$Area.y)) | 
+#  (zOTUbeta$Area.x > 5000 & zOTUbeta$Area.y > 5000), 
+#]
+
+# We need a category for coloring our box and whisker plots... 
+zOTUbeta$Site<-paste(zOTUbeta$Site.x, zOTUbeta$Site.y, sep="_")
+zOTUbeta$Site <- gsub("Center_Center", "Center", zOTUbeta$Site)
+zOTUbeta$Site <- gsub("Edge_Edge", "Edge", zOTUbeta$Site)
+zOTUbeta$Site <- gsub("Lava_Lava", "Lava", zOTUbeta$Site)
+zOTUbeta$Site <- gsub("Hilo_Hilo", "Stainback", zOTUbeta$Site)
+zOTUbeta$Site <- gsub("Kona_Kona", "Kona", zOTUbeta$Site)
+zOTUbeta$Site <- factor(zOTUbeta$Site, levels=c("Lava", "Edge", "Center", "Stainback", "Kona", 
+                                          "Center_Edge", "Center_Lava", "Center_Hilo", "Center_Kona", "Edge_Center", 
+                                          "Edge_Lava", "Edge_Hilo", "Edge_Kona", "Lava_Hilo", "Lava_Kona", "Hilo_Kona"))  
+
+
+#######################################################
+# Plot these
+
+#NMDS plot for 3%OTU
+#Create an NMDS plot with columns MDS1 and MDS2
+nmds$Area<-as.numeric(gsub(",","",as.character(nmds$Area)))
+nmds$pointsize<-round(sqrt(as.numeric(nmds$Area))/10,0)
+nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 4
+nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 4
+nmds$pointsize[nmds$Site=="Stainback" & is.na(nmds$pointsize)] <- 4
+nmds <- nmds[nmds$Site != "1K08E" & nmds$Site != "1K08C",]                          
+                         
+a <- ggplot() + 
+  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  # Confidence ellipses
+  stat_ellipse(
+    data = nmds[nmds$Site != c("C-E", "C-F"), ], aes(x = MDS1OTU, y = MDS2OTU, colour = Site), level = 0.95,  # 95% confidence interval
+    linetype = "dashed", size=1.5) +
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
+  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
+  labs(title="A.", x="NMDS1", y="NMDS2") +
+  #coord_equal() +
+  scale_x_continuous(breaks=seq(-2,1.5,0.5), limits=c(-1.75, 1.3)) +
+  scale_y_continuous(limits=c(-.9, 1)) +
+KipukaTheme +
+  theme(axis.title.x = element_text(size=70), 
+        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1),
+        legend.position = "none", 
+        panel.grid.major = element_line(rgb(105, 105, 105, maxColorValue = 255), linetype = "dotted", size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5),
+    plot.title = element_text(size = 70, hjust=-.1), # Offset title to the left
+        #plot.margin = margin(0, 0, 1.5, 0, "cm")
+       ) # Increased bottom margin
+
+                         
+b<- ggplot() + 
+  geom_boxplot(data=zOTUbeta,aes(x=Site, y=beta, fill=Site), color="black", size=1)+
+  #facet_wrap(~metric, scales="free") +
+  scale_fill_manual(values=ExtendedSiteColors) +
+  labs(title="B.", y="3% OTU beta diversity", x="") +
+  KipukaTheme +
+  guides(fill="none")+                       
+  theme(axis.title.x=element_blank(), 
+        strip.text = element_text(size = 70), 
+        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1),
+        axis.text.y = element_text(angle=45, size=70, margin=margin(0,-10,0,0)), 
+        axis.title.y = element_text(size = 70, margin=margin(0,-25,0,0)),
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+    plot.title = element_text(size = 70, hjust=-.1), # Offset title to the left
+        legend.text=element_text(size=60), 
+        legend.title = element_blank(),
+       legend.position = "none", 
+    #plot.margin = margin(0.2, 1, 1.5, .8, "cm")
+       ) # Increased bottom margin
+                         
+reserved <- ggplot() + 
+  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1zOTU,y=MDS2zOTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
+  # Confidence ellipses
+  stat_ellipse(
+    data = nmds[nmds$Site != c("C-E", "C-F"), ], aes(x = MDS1zOTU, y = MDS2zOTU, colour = Site),
+    level = 0.95,  # 95% confidence interval
+    linetype = "dashed", size=1.5) +
+  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
+  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
+  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
+  labs(title="C.", x="NMDS1", y="NMDS2") +
+  #coord_equal() +
+  scale_x_continuous(breaks=seq(-2,1.5,0.5), limits=c(-1.5, 1.5)) +
+  scale_y_continuous(limits=c(-1, 1)) +
+guides(
+    fill = guide_legend(override.aes = list(shape = c(21, 22, 23, 24, 25), size = 4)),
+    shape = "none"
+  ) + 
+KipukaTheme +
+  theme(       legend.position = "none", 
+        legend.title = element_text(size=50),
+        legend.text=element_text(size=45), 
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5),
+        plot.title=element_text(size=70, hjust=-.1))                     
+                     
+d<- ggplot() + 
+  geom_boxplot(data=zOTUbeta,aes(x=Site, y=zOTU, fill=Site), color="black", size=1)+
+  scale_fill_manual(values=ExtendedSiteColors) +
+  labs(title="C.", y="zOTU beta diversity", x="") +
+  KipukaTheme +
+  guides(fill="none")+                       
+  theme(strip.text = element_text(size = 70), 
+        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1), 
+        axis.text.y = element_text(angle=45, size=70, margin=margin(0,-10,0,0)), 
+        axis.title.y = element_text(size = 70, margin=margin(0,-25,0,0)),
+        panel.grid.major = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size=1),   
+      panel.grid.minor = element_line(
+        rgb(105, 105, 105, maxColorValue = 255),
+        linetype = "dotted", 
+        size = 0.5), 
+       axis.title=element_text(size=70), 
+        plot.title=element_text(size=70, hjust=-.1), 
+        legend.text=element_text(size=45), 
+        legend.title = element_blank(),
+       legend.position = "top", 
+        #plot.margin = margin(0.2,1,0,.8, "cm")
+       )  
+                         
+jpeg("../Figures/NMDS-turnovers.jpg", width=4500, height=1500) 
+plot_grid(a,b,d, nrow=1, ncol=3, rel_widths=c(1.75, 2, 2))                         
+dev.off()                                 
+
+#######################################################
+# Test for differences between
+
+for (i in 1:length(unique(beta$metric))){  
+        level<-unique(beta$metric)[i]
+        print(level)
+        test<-beta[beta$metric==level,]
+        # First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
+        # Check normality of residuals
+        residuals <- lm(beta ~ Site.x, data = test)$residuals
+        par(mar = c(1, 1, 1, 1))
+        qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
+        # Check homogeneity of variances
+        p1<-leveneTest(beta ~ Site.x, data = test)[1,3]
+        print(paste0("p-value for Levene's is ",p1))
+        # Shapiro-Wilk test for normality (optional)
+        p2<-shapiro.test(residuals)$p.value
+        print(paste0("p-value for Shapiro-Wilk's is ",p2))
+        if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
+              kruskal_result <- kruskal.test(beta ~ Site.x, data = test)
+              cat("Kruskal-Wallis test results for", level, "\n")
+              print(kruskal_result)
+              pairwise_result <- pairwise.wilcox.test(test$beta, test$Site.x, p.adj = "bonferroni")
+              cat("Pairwise Wilcoxon test results for", level, "\n")
+              print(pairwise_result)
+        }
+        else { # Conduct the ANOVA                   
+                anova_result <- aov(beta ~ Site.x, data = test)
+                print(paste0("ANOVA test results for ", level))
+                print(summary(anova_result)) 
+              # Post hoc Tukey's HSD test
+              tukey_result <- TukeyHSD(anova_result)
+              cat("Tukey's HSD test results for", level, "\n")
+              print(tukey_result)
+        }
+}  
+
+#################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ##########################
 # With the table of within-area-type dissimilarity measures,  compare the dissimilarity within small edges to that within big edges,
@@ -215,131 +417,7 @@ CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
 #Fix spelling error on sheet before proceeding
 CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))  
                          
-#######################################################
-# Plot these
 
-#NMDS plot for 3%OTU
-#Create an NMDS plot with columns MDS1 and MDS2
-nmds$Area<-as.numeric(gsub(",","",as.character(nmds$Area)))
-nmds$pointsize<-round(sqrt(as.numeric(nmds$Area))/10,0)
-nmds$pointsize[nmds$Site=="Lava" & is.na(nmds$pointsize)] <- 2
-nmds$pointsize[nmds$Site=="Kona" & is.na(nmds$pointsize)] <- 2
-nmds$pointsize[nmds$Site=="Stainback" & is.na(nmds$pointsize)] <- 2
-nmds <- nmds[nmds$Site != "1K08E" & nmds$Site != "1K08C",]                          
-                         
-a <- ggplot() + 
-  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1OTU,y=MDS2OTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  # Confidence ellipses
-  stat_ellipse(
-    data = nmds[nmds$Site != c("C-E", "C-F"), ], aes(x = MDS1OTU, y = MDS2OTU, colour = Site), level = 0.95,  # 95% confidence interval
-    linetype = "dashed", size=1.5) +
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
-  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="A.", x="NMDS1", y="NMDS2") +
-  #coord_equal() +
-  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-KipukaTheme +
-  theme(axis.title.x=element_blank(), 
-        axis.text.x=element_blank(), 
-        legend.position = "none", 
-        panel.grid.major = element_line(rgb(105, 105, 105, maxColorValue = 255), linetype = "dotted", size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5),
-    plot.title = element_text(size = 70, hjust = -0.2), # Offset title to the left
-        plot.margin = margin(0, 0, 1.5, 0, "cm")) # Increased bottom margin
-
-                         
-b<- ggplot() + 
-  geom_boxplot(data=beta[beta$metric=="3% OTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=beta, fill=Site.x), color="black", size=1)+
-  #facet_wrap(~metric, scales="free") +
-  scale_fill_manual(values=SiteColors) +
-  labs(title="B.", y="3% OTU beta diversity", x="") +
-  KipukaTheme +
-  guides(fill="none")+                       
-  theme(axis.title.x=element_blank(), 
-        strip.text = element_text(size = 70), 
-        axis.text.x = element_blank(), 
-        axis.text.y = element_text(angle=45, size=70, margin=margin(0,-10,0,0)), 
-        axis.title.y = element_text(size = 70, margin=margin(0,-25,0,0)),
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-    plot.title = element_text(size = 70, hjust = -0.3), # Offset title to the left
-        legend.text=element_text(size=60), 
-        legend.title = element_blank(),
-       legend.position = "none", 
-    plot.margin = margin(0.2, 1, 1.5, .8, "cm")) # Increased bottom margin
-                         
-c <- ggplot() + 
-  geom_point(data=nmds[nmds$Site!=c("C-E", "C-F"),],aes(x=MDS1zOTU,y=MDS2zOTU,colour=Site, size=pointsize, shape=Site), alpha=0.70, stroke=3) + 
-  # Confidence ellipses
-  stat_ellipse(
-    data = nmds[nmds$Site != c("C-E", "C-F"), ], aes(x = MDS1zOTU, y = MDS2zOTU, colour = Site),
-    level = 0.95,  # 95% confidence interval
-    linetype = "dashed", size=1.5) +
-  scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
-  scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
-  scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="C.", x="NMDS1", y="NMDS2") +
-  #coord_equal() +
-  scale_x_continuous(breaks=seq(-2,1.5,0.5)) +
-  guides(
-    fill = guide_legend(override.aes = list(shape = c(21, 22, 23, 24, 25), size = 4)),
-    shape = "none"
-  ) + 
-KipukaTheme +
-  theme(       legend.position = "none", 
-        legend.title = element_text(size=50),
-        legend.text=element_text(size=45), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5),
-        plot.title=element_text(size=70, hjust = -0.2))                     
-                     
-d<- ggplot() + 
-  geom_boxplot(data=beta[beta$metric=="zOTU" & !is.na(beta$Site.x),],aes(x=Site.x, y=beta, fill=Site.x), color="black", size=1)+
-  #facet_wrap(~metric, scales="free") +
-  scale_fill_manual(values=SiteColors) +
-  labs(title="D.", y="zOTU beta diversity", x="") +
-  KipukaTheme +
-  guides(fill="none")+                       
-  theme(strip.text = element_text(size = 70), 
-        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1), 
-        axis.text.y = element_text(angle=45, size=70, margin=margin(0,-10,0,0)), 
-        axis.title.y = element_text(size = 70, margin=margin(0,-25,0,0)),
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title=element_text(size=70), 
-        plot.title=element_text(size=70, hjust = -0.3), 
-        legend.text=element_text(size=45), 
-        legend.title = element_blank(),
-       legend.position = "top", 
-        plot.margin = margin(0.2,1,0,.8, "cm"))  
-                         
-jpeg("../Figures/NMDS-turnovers.jpg", width=2000, height=2000) 
-plot_grid(a,b,c,d, nrow=2, ncol=2, rel_widths=c(1.5, 1), rel_heights=c(.9,1), align = "v")                         
-dev.off()                                 
-
-#################################################################################
 # First, do a PERMANOVA to look for overall community comp differences between sites
 
 # FIRST, 3% RADIUS OTU... ############################################                   
@@ -385,42 +463,7 @@ my_otu_tab<-richness[order(match(richness$ï..ID, names(zOTU))),]
 my_otu_tab<-my_otu_tab[31:ncol(my_otu_tab)]                      
 pairwise.adonis(vegan_otu(my_otu_tab), Site, p.adjust.m="bonferroni")
         
-#######################################################
-# Test difference between area types in zOTU and 3% radius OTU turnover
-
-for (i in 1:length(unique(beta$metric))){  
-        level<-unique(beta$metric)[i]
-        print(level)
-        test<-beta[beta$metric==level,]
-        # First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
-        # Check normality of residuals
-        residuals <- lm(beta ~ Site.x, data = test)$residuals
-        par(mar = c(1, 1, 1, 1))
-        qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
-        # Check homogeneity of variances
-        p1<-leveneTest(beta ~ Site.x, data = test)[1,3]
-        print(paste0("p-value for Levene's is ",p1))
-        # Shapiro-Wilk test for normality (optional)
-        p2<-shapiro.test(residuals)$p.value
-        print(paste0("p-value for Shapiro-Wilk's is ",p2))
-        if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
-              kruskal_result <- kruskal.test(beta ~ Site.x, data = test)
-              cat("Kruskal-Wallis test results for", level, "\n")
-              print(kruskal_result)
-              pairwise_result <- pairwise.wilcox.test(test$beta, test$Site.x, p.adj = "bonferroni")
-              cat("Pairwise Wilcoxon test results for", level, "\n")
-              print(pairwise_result)
-        }
-        else { # Conduct the ANOVA                   
-                anova_result <- aov(beta ~ Site.x, data = test)
-                print(paste0("ANOVA test results for ", level))
-                print(summary(anova_result)) 
-              # Post hoc Tukey's HSD test
-              tukey_result <- TukeyHSD(anova_result)
-              cat("Tukey's HSD test results for", level, "\n")
-              print(tukey_result)
-        }
-}                                                
+                                              
                      
 #######################################################
 # Test difference between area size and zOTU and 3% radius OTU turnover
