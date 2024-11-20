@@ -1,6 +1,6 @@
 
 #Set up my working environment
-setwd("G:/My Drive/Kipuka/Data")
+setwd("H:/My Drive/Kipuka/Data")
 library(ggplot2)
 library(extrafont)
 library(reshape2)
@@ -32,16 +32,19 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         text = element_text(family = "serif"), 
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
-                   
-richness_mod_2 <- melt(richness, idvars = c("SiteID", "Site"), measure = c("SR", "SROTU"))
+
+#Weight zoTU by OTU richness per site
+richness$zOTU<-richness$SR/richness$SROTU
+
+richness_mod_2 <- melt(richness, idvars = c("SiteID", "Site"), measure = c("zOTU", "SROTU"))
 richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
 
 # New facet label names for supp variable
 supp.labs <- c("zOTU richness", "3% OTU richness")
-names(supp.labs) <- c("SR", "SROTU")                   
+names(supp.labs) <- c("zOTU", "SROTU")                   
 
 #Reorder facets
-richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("SR", "SROTU")))                     
+richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("zOTU", "SROTU")))                     
 
 #################################################################################
 # TEST:  ANOVA to check whether 3%OTU and the zOTU is different for each "area type" ( lava, edge, center, Stainback, Kona)
@@ -98,12 +101,15 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 McFadden_R2 <- 1 - (glm_model$deviance / glm(null_model)$deviance)
                 print(paste0("McFadden r2 is ",McFadden_R2))                
                 # 1. Linearity Check (Use Residuals vs. Fitted plot)
+                # points should be randomly scattered above/below
                 par(mar = c(1, 1, 1, 1))
                 par(mar = c(1, 1, 1, 1))  
                 plot(glm_model, which = 1)                
-                # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
+                # 2. Homoscedasticity Check (Use Residuals vs. Fitted plot)
+                # no funnel or cone shape should be visible here
                 plot(glm_model, which = 3)
                 # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
+                # points should fall along the line
                 qqnorm(resid(glm_model))
                 qqline(resid(glm_model))
                 # 4. Overdispersion -- if the ratio is much larger than 1, there might be overdispersion
@@ -112,7 +118,16 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 print(paste0("overdispersion ratio is ",dev_over_df))
                 # 5. Influence and outliers -- cook's distance                
                 infl <- influence.measures(glm_model)
-                plot(infl, which = "cook")
+                cooks_d <- cooks.distance(glm_model)
+                # Plot Cook's distances
+                plot(cooks_d, type = "h", 
+                     main = "Cook's Distances", 
+                     ylab = "Cook's Distance", 
+                     xlab = "Observation Index",
+                     col = "blue")
+                # Add a reference line for a threshold (commonly 4/n)
+                abline(h = 4 / nrow(glm_model$model), col = "red", lty = 2)                
+                which(cooks_d > (4 / nrow(glm_model$model)))
                 # 6. goodness-of-fit tests, such as the Pearson or deviance goodness-of-fit tests. A high p-value suggests good fit.
                 p<-pchisq(deviance(glm_model), df = df_resid, lower.tail = FALSE)
                 print(paste0("goodness of fit p-val is ",p))                  
@@ -122,12 +137,10 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
 }
 
 # Print the summary of the linear regression model
-summary(lm_model)
 
-
-CenterzOTU <- lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SR"])
+CenterzOTU <- lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="zOTU"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="zOTU"])
 Center3otu<-lm(richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"]~richness_mod_2$value[richness_mod_2$Site=="Center" & richness_mod_2$variable=="SROTU"])
-EdgezOTU<-lm(richness_mod_2$value[richness_mod_2$variable=="SR" & richness_mod_2$Site=="Edge"]~richness_mod_2$value[richness_mod_2$variable=="SR" & richness_mod_2$Site=="Edge"])
+EdgezOTU<-lm(richness_mod_2$value[richness_mod_2$variable=="zOTU" & richness_mod_2$Site=="Edge"]~richness_mod_2$value[richness_mod_2$variable=="zOTU" & richness_mod_2$Site=="Edge"])
 Edge3otu<-lm(richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Edge"]~richness_mod_2$value[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Edge"])
 
 m <- lm(y ~ x)
@@ -164,15 +177,15 @@ a <- ggplot() +
        legend.position = "top")                           
 
 b<-ggplot() + 
-  geom_smooth(method='lm', data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",], aes(x=Area, y=value, colour=Site, fill=Site, linetype=variable), size=1, alpha=0.20)+  
-  geom_point(data=richness_mod_2[richness_mod_2$Site=="Center" | richness_mod_2$Site=="Edge",],aes(x=Area, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
-  scale_shape_manual("Site", values=c("SR" = 0, "SROTU"=15), labels=c("SR"="zOTU","SROTU"="3% OTU")) +
+  geom_smooth(method='lm', data=richness_mod_2[richness_mod_2$Site=="Center",], aes(x=Area, y=value, colour=Site, fill=Site, linetype=variable), size=1, alpha=0.20)+  
+  geom_point(data=richness_mod_2[richness_mod_2$Site=="Center",],aes(x=Area, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
+  scale_shape_manual("Site", values=c("zOTU" = 0, "SROTU"=15), labels=c("zOTU"="zOTU","SROTU"="3% OTU")) +
   scale_colour_manual(values=SiteColors) +
   scale_fill_manual(values=SiteColors)+ 
   scale_x_continuous(trans='log10',
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x)))  +                 
-  facet_wrap(~Site)+                 
+  facet_wrap(~variable, scales="free")+                 
   labs(title="B.", x="Kipuka area ("~m^2~")", y="OTU richness") +
   KipukaTheme +
   guides(color="none", fill="none", linetype="none") + 
@@ -196,6 +209,10 @@ b<-ggplot() +
         legend.title = element_blank(),
        legend.position = "top")
 
-jpeg("Figures/Figure3.jpg", width=2000, height=1000)
+                     
+
+                     
+
+jpeg("../Figures/Figure3.jpg", width=2000, height=1000)
 plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
 dev.off()                     
