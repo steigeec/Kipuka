@@ -33,6 +33,11 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
 
+
+# EMMA: MOVE LEGEND TO THE BOTTOM OF A and B
+# Make the lines IN b THICKER 
+
+
 richness <- read.csv("merged_by_site_2.csv")
 OTUtoKeep<-as.data.frame(t(richness[11:nrow(richness), 33:ncol(richness)]))
 
