@@ -9,9 +9,9 @@ library(tidyverse)
 library(scales)
 library(car)
 library(lmtest)
-
-richness <- read.csv("merged_by_site_2.csv")
-richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
+library(dplyr)
+library(vegan)
+library(lme4)
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -33,10 +33,54 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
 
-#Weight zoTU by OTU richness per site
-richness$zOTU<-richness$SR/richness$SROTU
+richness <- read.csv("merged_by_site_2.csv")
+OTUtoKeep<-as.data.frame(t(richness[11:nrow(richness), 33:ncol(richness)]))
 
-richness_mod_2 <- melt(richness, idvars = c("SiteID", "Site"), measure = c("zOTU", "SROTU"))
+# We only keep species from these groups...
+names(OTUtoKeep)[1:2]<- c("Class", "Order")
+OTUtoKeep$Order <- as.factor(OTUtoKeep$Order)
+OTUtoKeep <- OTUtoKeep[OTUtoKeep$Order %in% c("Hemiptera", "Hymenoptera", "Lepidoptera", "Diptera", "Araneae", "Coleoptera", "Psocoptera") | OTUtoKeep$Class %in% c("Acari"),7:ncol(OTUtoKeep)]
+
+# Exclude blank (NA or empty string) values and create a table for the 17th column
+OTUtoKeep <- OTUtoKeep[grepl("OTU", OTUtoKeep[[1]]), ]
+# Identify the values in column 1 that occur more than once
+values_to_keep <- names(which(table(OTUtoKeep[[1]]) > 1))
+
+# Subset the dataframe to keep only rows where column 1 matches those values
+OTUtoKeep_filtered <- OTUtoKeep[OTUtoKeep[[1]] %in% values_to_keep, ]
+
+OTUtoKeep_filtered <- OTUtoKeep_filtered %>%
+  mutate(across(3:ncol(OTUtoKeep_filtered), as.numeric))
+
+OTUtoKeep_filtered <- OTUtoKeep_filtered %>%
+  # Ensure columns 3:ncol(OTUtoKeep_filtered) are numeric
+  mutate(across(3:ncol(OTUtoKeep_filtered), as.numeric)) %>%
+  # Transform values greater than 0 to 1
+  mutate(across(3:ncol(OTUtoKeep_filtered), ~ ifelse(. > 0, 1, 0)))
+names(summary_data)[1]<- c("OTU")
+
+column_sums <- as.list(summary_data %>%
+  summarise(across(3:ncol(summary_data), sum, na.rm = TRUE)))
+
+result <- as.list(summary_data %>%
+  group_by(OTU) %>%  # Group by the first column
+  summarise(across(2:(ncol(summary_data)-1), ~ max(.x, na.rm = TRUE)), .groups = "drop") %>%  # Take max in each group 
+  summarise(across(2:(ncol(summary_data)-1), sum, na.rm = TRUE)))  # Sum the max values across groups 
+
+richness_mod_2 <- as.data.frame(cbind(richness$X[19:nrow(richness)], richness$X.8[19:nrow(richness)], richness$X.9[19:nrow(richness)], richness$X.15[19:nrow(richness)], result, column_sums))
+names(richness_mod_2) <- c("my_ID", "Site", "Area", "SROTU", "OTU", "unweighted_zOTU")
+richness_mod_2$Area<-as.numeric(gsub(",","",as.character(richness_mod_2$Area)))
+richness_mod_2$Site<-gsub("Stainbeck","Stainback",as.character(richness_mod_2$Site))
+richness_mod_2[, 3:6] <- lapply(richness_mod_2[, 3:6], as.numeric)
+#Weight zoTU by OTU richness per site
+richness_mod_2$zOTU<-richness_mod_2$unweighted_zOTU/richness_mod_2$OTU
+
+# Bray curtis... 
+#summary_data <- as.data.frame(t(as.matrix(summary_data[2:ncol(summary_data),])))
+#summary_data[] <- lapply(summary_data, as.numeric)
+#BC_data <- vegdist(summary_data, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
+
+richness_mod_2 <- melt(richness_mod_2, idvars = c("my_ID", "Site","Area", "OTU", "unweighted_zOTU"), measure = c("zOTU", "SROTU"))
 richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
 
 # New facet label names for supp variable
@@ -44,7 +88,16 @@ supp.labs <- c("zOTU richness", "3% OTU richness")
 names(supp.labs) <- c("zOTU", "SROTU")                   
 
 #Reorder facets
-richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("zOTU", "SROTU")))                     
+richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("zOTU", "SROTU")))   
+richness_mod_2$Site <- factor(richness_mod_2$Site, levels = unique(richness_mod_2$Site))
+richness_mod_2$my_ID <- factor(richness_mod_2$my_ID, levels = unique(richness_mod_2$my_ID))
+richness_mod_2 <- richness_mod_2 %>%
+  mutate(alpha_value = ifelse(Site == "Center" & variable == "SROTU", 0.2, 0))
+richness_mod_2 <- richness_mod_2 %>%
+  mutate(group = case_when(
+    Site %in% c("Kona", "Stainback") ~ "forest",
+    Site %in% c("Center", "Edge") ~ "kipuka",
+    Site %in% c("Lava") ~ "lava"  ))
 
 #################################################################################
 # TEST:  ANOVA to check whether 3%OTU and the zOTU is different for each "area type" ( lava, edge, center, Stainback, Kona)
@@ -82,6 +135,17 @@ for (i in 1:length(unique(richness_mod_2$variable))){
               print(tukey_result)
         }
 }
+
+
+
+
+# Fit a linear mixed model (example)
+model <- lmer(value ~ group + (1 | Site), data = richness_mod_2[richness_mod_2$variable=="SROTU",])
+
+# Check summary
+summary(model)
+
+
 
 ###############################################################################################
 # Linear regression for size vs. richness
@@ -177,41 +241,43 @@ a <- ggplot() +
        legend.position = "top")                           
 
 b<-ggplot() + 
-  geom_smooth(method='lm', data=richness_mod_2[richness_mod_2$Site=="Center",], aes(x=Area, y=value, colour=Site, fill=Site, linetype=variable), size=1, alpha=0.20)+  
-  geom_point(data=richness_mod_2[richness_mod_2$Site=="Center",],aes(x=Area, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
-  scale_shape_manual("Site", values=c("zOTU" = 0, "SROTU"=15), labels=c("zOTU"="zOTU","SROTU"="3% OTU")) +
-  scale_colour_manual(values=SiteColors) +
-  scale_fill_manual(values=SiteColors)+ 
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +                 
-  facet_wrap(~variable, scales="free")+                 
-  labs(title="B.", x="Kipuka area ("~m^2~")", y="OTU richness") +
+  geom_smooth(method='lm', 
+              data = richness_mod_2[richness_mod_2$Site == "Center" | richness_mod_2$Site == "Edge",], 
+              aes(x = Area, y = value, colour = Site, fill = Site, linetype = variable, alpha = alpha_value), 
+              size = 1) +  # Set a default alpha of 0.2 for smoothing line
+  geom_point(data = richness_mod_2[richness_mod_2$Site == "Center" | richness_mod_2$Site == "Edge",], 
+             aes(x = Area, y = value, colour = Site, shape = variable), 
+             size = 6, stroke = 3) +  # Use alpha_value for points only
+  scale_shape_manual("Site", values = c("zOTU" = 0, "SROTU" = 15), labels = c("zOTU" = "zOTU", "SROTU" = "3% OTU")) +
+  scale_colour_manual(values = SiteColors) +
+  scale_fill_manual(values = SiteColors) + 
+  scale_alpha_identity() +  # Use alpha_identity to apply the alpha value directly
+  scale_x_continuous(trans = 'log10',
+                     breaks = trans_breaks('log10', function(x) 10^x),
+                     labels = trans_format('log10', math_format(10^.x)))  +                 
+  facet_wrap(~variable, scales = "free") +                 
+  labs(title = "B.", x = "Kipuka area ("~m^2~")", y = "OTU richness") +
   KipukaTheme +
-  guides(color="none", fill="none", linetype="none") + 
+  guides(color = "none", fill = "none", linetype = "none") + 
   theme(strip.text = element_text(size = 45), 
         panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 1),   
         plot.margin = unit(c(0, 0, 0, 0), "cm"), 
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title.y=element_text(size=50, vjust=-0.5, margin=margin(r=10)), 
-       axis.title.x=element_text(size=50, vjust=2, margin=margin(t=10)), 
-        axis.text.y = element_text(size=45), 
-        axis.text.x = element_text(size=45, vjust=1), 
-        plot.title=element_text(size=50), 
-        #legend.key.width = unit(7,"cm"), 
-        legend.text=element_text(size=45, hjust=0.5), 
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 0.5), 
+        axis.title.y = element_text(size = 50, vjust = -0.5, margin = margin(r = 10)), 
+        axis.title.x = element_text(size = 50, vjust = 2, margin = margin(t = 10)), 
+        axis.text.y = element_text(size = 45), 
+        axis.text.x = element_text(size = 45, vjust = 1), 
+        plot.title = element_text(size = 50), 
+        legend.text = element_text(size = 45, hjust = 0.5), 
         legend.title = element_blank(),
-       legend.position = "top")
-
-                     
-
-                     
+        legend.position = "top")
+                 
 
 jpeg("../Figures/Figure3.jpg", width=2000, height=1000)
 plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
