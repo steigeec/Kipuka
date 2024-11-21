@@ -4,9 +4,6 @@ library(reshape2)
 library(tidyverse)
 library(vegan)
 
-# ONLY USE OTU WTH MULTIPLE ZOTU
-# ALSO EXPORT JACCARD
-# Remove non-target taxa?
 
 otu <- read.csv("OTUs.csv")
                    
