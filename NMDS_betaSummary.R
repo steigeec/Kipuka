@@ -15,15 +15,15 @@ library(BiocManager)
 library(vegan)
 #BiocManager::install("phyloseq")
 library(phyloseq)
+library(tidyr)
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933", "C-E"="black", "C-F"="white")
-ExtendedSiteColors <- c("Edge_Center"="grey24", "Lava_Center"="grey24", "Stainback_Center"="grey24", "Kona_Center"="grey24", "Center_Edge"="grey24", 
-                        "Lava_Edge"="grey24", "Stainback_Edge"="grey24", "Kona_Edge"="grey24", "Center"="#332288", "Edge"="#6699CC", 
-                        "Lava"="#888888", "Stainback_Lava"="grey24", "Kona_Lava"="grey24", "Stainback"="#999933", "Kona_Stainback"="grey24", "Kona"="#117733")
-
-
+ExtendedSiteColors <- c("Edge-Center"="grey24", "Lava-Center"="grey24", "Stainback-Center"="grey24", "Kona-Center"="grey24", "Center-Edge"="grey24", 
+                        "Lava-Edge"="grey24", "Stainback-Edge"="grey24", "Kona-Edge"="grey24", "Center"="#332288", "Edge"="#6699CC", 
+                        "Lava"="#888888", "Stainback-Lava"="grey24", "Kona-Lava"="grey24", "Stainback"="#999933", "Kona-Stainback"="grey24", "Kona"="#117733")
+  
 #Establish some themes up top to apply to all
 KipukaTheme <- theme(axis.title=element_text(size=70), 
         axis.text = element_text(size=70, angle=50), 
@@ -46,29 +46,19 @@ KipukaTheme <- theme(axis.title=element_text(size=70),
 #################################################################################
 #Version with all the data
 
-# Switch out for jaccard... 
-# Do I need to weight zoTU by OTU...?
-
 richness <- read.csv("merged_by_site_2.csv")
 names(richness) <- richness[18,]
 richness <- richness[19:nrow(richness),]
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
 richness$Site<-gsub("Stainbeck","Stainback",as.character(richness$Site))
-#dist_beta_0 <- read.csv("Distance_v_beta.csv")
 # beta diversity for 3 % OTU for within-area
-otu <- read.csv("3OTU.csv")
+otu <- read.csv("OTU3_Bray.csv")
 # beta diversity for zOTU for within-area
-zOTUbeta <- read.csv("zOTU_Bray.csv")
+zOTUbeta <- read.csv("zOTU_jaccard.csv")
 # geographic distances
 geo_dist<-read.csv("geo_dist.csv")
 nmds<-read.csv("nmds3otu.csv")
-#Fix spelling error on sheet before proceeding
 nmds$Site<-gsub("Stainbeck","Stainback",as.character(nmds$Site))
-#BC<-read.csv("BC.csv")
-# beta diversity for 3 % OTU for between-area
-#BC3<-read.csv("BC3.csv")
-# beta diversity for z OTU for between-area
-#CE<-read.csv("C-E.csv")
 
 ######################################################33
 
@@ -87,50 +77,50 @@ geo_dist$log_dist<-log(geo_dist$dist+0.00001)
 # geo_dist<-geo_dist[,c(4, 5)]
 
 #######################
-# Produce a table of 3% OTU beta diversity values within and between habitat types
-otu<-otu[complete.cases(otu),]
-OTU3beta<-as.matrix(otu)
-colnames(OTU3beta)<- gsub('[X]', '', colnames(OTU3beta))
-rownames(OTU3beta)<-OTU3beta[,1]
-OTU3beta<-OTU3beta[,-1]
-OTU3beta<-data.frame(col=colnames(OTU3beta)[col(OTU3beta)], row=rownames(OTU3beta)[row(OTU3beta)], beta=c(OTU3beta))
-#Add attributes of each site
-#First we add whether it's center, edge, etc etc etc
-OTU3beta<-merge(OTU3beta, richness[,c(1,9)], by.x="col", by.y="ID")
-OTU3beta<-merge(OTU3beta, richness[,c(1,9)], by.x="row", by.y="ID")
-#Now add the distances between these sites
-OTU3beta$index<-paste(OTU3beta$row, OTU3beta$col, sep="_")
-OTU3beta<-merge(OTU3beta, geo_dist[,3:5], by.x="index", by.y="index")
-#remove the same-site pairs
-OTU3beta<-OTU3beta[OTU3beta$row!=OTU3beta$col,]     
-#Remove flipped pairs
-OTU3beta <- OTU3beta%>% distinct(beta, .keep_all= TRUE)
-OTU3beta$beta<-as.numeric(OTU3beta$beta)
 
-# Now, for zOTU, weight zOTU per 3% OTU... 
+# merge zOTU and 3OTU data
+otu$index <- paste(otu$Var1, otu$Var2, sep="_")
 zOTUbeta$index <- paste(zOTUbeta$Var1, zOTUbeta$Var2, sep="_")
 colnames(zOTUbeta)[3] <- "zOTU"
-zOTUbeta <- merge(zOTUbeta[,3:4], OTU3beta, by="index")
+colnames(otu)[3] <- "OTU"
+zOTUbeta <- merge(zOTUbeta[,3:4], otu, by="index")
 
 # Join on size data, because we will only use kipuka > 5000 m^2
-zOTUbeta <- merge (zOTUbeta, richness[,c(1,10)], by.x="row", by.y="ID", all.x=T)
-zOTUbeta <- merge (zOTUbeta, richness[,c(1,10)], by.x="col", by.y="ID", all.x=T)
+zOTUbeta <- merge (zOTUbeta, richness[,c(1,9,10)], by.x="Var1", by.y="ID", all.x=T)
+zOTUbeta <- merge (zOTUbeta, richness[,c(1,9,10)], by.x="Var2", by.y="ID", all.x=T)
 zOTUbeta <- zOTUbeta[
   (is.na(zOTUbeta$Area.x) & is.na(zOTUbeta$Area.y)) | 
-  (zOTUbeta$Area.x > 5000 & zOTUbeta$Area.y > 5000), 
+  (zOTUbeta$Area.x > 5000 & zOTUbeta$Area.y > 5000) | 
+    (zOTUbeta$Area.x > 5000 & is.na(zOTUbeta$Area.y)) | 
+    (is.na(zOTUbeta$Area.x) & zOTUbeta$Area.y > 5000), 
 ]
 
 # We need a category for coloring our box and whisker plots... 
-zOTUbeta$Site<-paste(zOTUbeta$Site.x, zOTUbeta$Site.y, sep="_")
-zOTUbeta$Site <- gsub("Center_Center", "Center", zOTUbeta$Site)
-zOTUbeta$Site <- gsub("Edge_Edge", "Edge", zOTUbeta$Site)
-zOTUbeta$Site <- gsub("Lava_Lava", "Lava", zOTUbeta$Site)
-zOTUbeta$Site <- gsub("Stainback_Stainback", "Stainback", zOTUbeta$Site)
-zOTUbeta$Site <- gsub("Kona_Kona", "Kona", zOTUbeta$Site)
+zOTUbeta <- zOTUbeta %>%
+  mutate(Site = case_when(
+    Site.x == "Lava" & Site.y == "Lava" ~ "Lava",
+    Site.x == "Center" & Site.y == "Center" ~ "Center",
+    Site.x == "Edge" & Site.y == "Edge" ~ "Edge",
+    Site.x == "Stainback" & Site.y == "Stainback" ~ "Stainback",
+    Site.x == "Kona" & Site.y == "Kona" ~ "Kona",
+    (Site.x == "Center" & Site.y == "Edge") | (Site.x == "Edge" & Site.y == "Center") ~ "Center-Edge",
+    (Site.x == "Center" & Site.y == "Stainback") | (Site.x == "Stainback" & Site.y == "Center") ~ "Stainback-Center",
+    (Site.x == "Center" & Site.y == "Kona") | (Site.x == "Kona" & Site.y == "Center") ~ "Kona-Center",
+    (Site.x == "Center" & Site.y == "Lava") | (Site.x == "Lava" & Site.y == "Center") ~ "Lava-Center",
+    (Site.x == "Kona" & Site.y == "Edge") | (Site.x == "Edge" & Site.y == "Kona") ~ "Kona-Edge",
+    (Site.x == "Kona" & Site.y == "Stainback") | (Site.x == "Stainback" & Site.y == "Kona") ~ "Kona-Stainback",
+    (Site.x == "Kona" & Site.y == "Lava") | (Site.x == "Lava" & Site.y == "Kona") ~ "Kona-Lava",
+    (Site.x == "Stainback" & Site.y == "Edge") | (Site.x == "Edge" & Site.y == "Stainback") ~ "Stainback-Edge",
+    (Site.x == "Stainback" & Site.y == "Lava") | (Site.x == "Lava" & Site.y == "Stainback") ~ "Stainback-Lava",
+    (Site.x == "Lava" & Site.y == "Edge") | (Site.x == "Edge" & Site.y == "Lava") ~ "Lava-Edge",
+  ))
 zOTUbeta$Site <- factor(zOTUbeta$Site, levels=c("Lava", "Edge", "Center", "Stainback", "Kona", 
-                                          "Edge_Center", "Lava_Center", "Stainback_Center", "Kona_Center", "Center_Edge", 
-                                          "Lava_Edge", "Stainback_Edge", "Kona_Edge", "Stainback_Lava", "Kona_Lava", "Kona_Stainback"))  
+                                          "Edge-Center", "Lava-Center", "Stainback-Center", "Kona-Center", "Center-Edge",        
+                                          "Lava-Edge", "Stainback-Edge", "Kona-Edge", "Stainback-Lava", "Kona-Lava", "Kona-Stainback"))  
+zOTUbeta <- zOTUbeta[!is.na(zOTUbeta$index), ]
 
+zOTUbeta <- zOTUbeta[zOTUbeta$Var1 != zOTUbeta$Var2, ]
+          
 #######################################################
 # Plot these
 
@@ -157,8 +147,8 @@ a <- ggplot() +
   scale_x_continuous(breaks=seq(-2,1.5,0.5), limits=c(-1.75, 1.3)) +
   scale_y_continuous(limits=c(-.9, 1)) +
 KipukaTheme +
-  theme(axis.title.x = element_text(size=70), 
-        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1),
+  theme(axis.title.x = element_text(size=80), 
+        axis.text.x = element_text(angle=45, size=80, hjust=1, vjust=1),
         legend.position = "none", 
         panel.grid.major = element_line(rgb(105, 105, 105, maxColorValue = 255), linetype = "dotted", size=1),   
       panel.grid.minor = element_line(
@@ -171,17 +161,17 @@ KipukaTheme +
 
                          
 b<- ggplot() + 
-  geom_boxplot(data=zOTUbeta,aes(x=Site, y=beta, fill=Site), color="black", size=1)+
+  geom_boxplot(data=zOTUbeta,aes(x=Site, y=OTU, fill=Site), color="black", size=1, outlier.size=2.5)+
   #facet_wrap(~metric, scales="free") +
   scale_fill_manual(values=ExtendedSiteColors) +
   labs(title="B.", y="3% OTU beta diversity", x="") +
   KipukaTheme +
   guides(fill="none")+                       
   theme(axis.title.x=element_blank(), 
-        strip.text = element_text(size = 70), 
-        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1),
-        axis.text.y = element_text(angle=45, size=70, margin=margin(0,-10,0,0)), 
-        axis.title.y = element_text(size = 70, margin=margin(0,-25,0,0)),
+        strip.text = element_text(size = 80), 
+        axis.text.x = element_text(angle=45, size=80, hjust=1, vjust=1),
+        axis.text.y = element_text(angle=45, size=80, margin=margin(0,-10,0,0)), 
+        axis.title.y = element_text(size = 80, margin=margin(0,-25,0,0)),
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -190,7 +180,7 @@ b<- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-    plot.title = element_text(size = 70, hjust=-.1), # Offset title to the left
+    plot.title = element_text(size = 80, hjust=-.1), # Offset title to the left
         legend.text=element_text(size=60), 
         legend.title = element_blank(),
        legend.position = "none", 
@@ -227,18 +217,18 @@ KipukaTheme +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5),
-        plot.title=element_text(size=70, hjust=-.1))                     
+        plot.title=element_text(size=80, hjust=-.1))                     
                      
 d<- ggplot() + 
-  geom_boxplot(data=zOTUbeta,aes(x=Site, y=zOTU, fill=Site), color="black", size=1)+
+  geom_boxplot(data=zOTUbeta,aes(x=Site, y=zOTU, fill=Site), color="black", size=1, outlier.size=2.5)+
   scale_fill_manual(values=ExtendedSiteColors) +
   labs(title="C.", y="zOTU beta diversity", x="") +
   KipukaTheme +
   guides(fill="none")+                       
-  theme(strip.text = element_text(size = 70), 
-        axis.text.x = element_text(angle=45, size=70, hjust=1, vjust=1), 
-        axis.text.y = element_text(angle=45, size=70, margin=margin(0,-10,0,0)), 
-        axis.title.y = element_text(size = 70, margin=margin(0,-25,0,0)),
+  theme(strip.text = element_text(size = 80), 
+        axis.text.x = element_text(angle=45, size=80, hjust=1, vjust=1), 
+        axis.text.y = element_text(angle=45, size=80, margin=margin(0,-10,0,0)), 
+        axis.title.y = element_text(size = 80, margin=margin(0,-25,0,0)),
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
@@ -247,54 +237,68 @@ d<- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=70), 
-        plot.title=element_text(size=70, hjust=-.1), 
+       axis.title=element_text(size=80), 
+        plot.title=element_text(size=80, hjust=-.1), 
         legend.text=element_text(size=45), 
         legend.title = element_blank(),
        legend.position = "top", 
         #plot.margin = margin(0.2,1,0,.8, "cm")
        )  
                          
-jpeg("../Figures/NMDS-turnovers.jpg", width=4500, height=1500) 
+jpeg("../Figures/NMDS-turnovers.jpg", width=5000, height=1500) 
 plot_grid(a,b,d, nrow=1, ncol=3, rel_widths=c(1.75, 2, 2))                         
 dev.off()                                 
 
 #######################################################
 # Test for differences between
+for (i in 1:2) {
+    level <- c("OTU", "zOTU")[i]  # Get the column name as a string
+    print(level)
+    
+    # Dynamically subset the data for the current level
+    zOTUbeta$level_value <- zOTUbeta[[level]]  # Create a temporary column
+    
+    # First, test assumptions
+    residuals <- lm(level_value ~ Site, data = zOTUbeta)$residuals
+    
+    # Plot Normal Q-Q Plot
+    par(mar = c(1, 1, 1, 1))
+    qqPlot(residuals, main = paste("Normal Q-Q Plot of Residuals for", level))
+    
+    # Check homogeneity of variances
+    p1 <- leveneTest(level_value ~ Site, data = zOTUbeta)[1, 3]
+    print(paste0("p-value for Levene's is ", p1))
+    
+    # Shapiro-Wilk test for normality (optional)
+    p2 <- shapiro.test(residuals)$p.value
+    print(paste0("p-value for Shapiro-Wilk's is ", p2))
+    
+    if (p1 < 0.05 || p2 < 0.05) {   
+        # If assumptions are violated, conduct Kruskal-Wallis test
+        kruskal_result <- kruskal.test(level_value ~ Site, data = zOTUbeta)
+        cat("Kruskal-Wallis test results for", level, "\n")
+        print(kruskal_result)
+        
+        # Pairwise Wilcoxon test
+        pairwise_result <- pairwise.wilcox.test(zOTUbeta$level_value, zOTUbeta$Site, p.adj = "bonferroni")
+        cat("Pairwise Wilcoxon test results for", level, "\n")
+        print(pairwise_result)
+    } else {   
+        # Conduct ANOVA
+        anova_result <- aov(level_value ~ Site, data = zOTUbeta)
+        cat("ANOVA test results for", level, "\n")
+        print(summary(anova_result))
+        
+        # Post hoc Tukey's HSD test
+        tukey_result <- TukeyHSD(anova_result)
+        cat("Tukey's HSD test results for", level, "\n")
+        print(tukey_result)
+    }
+}
 
-for (i in 1:length(unique(beta$metric))){  
-        level<-unique(beta$metric)[i]
-        print(level)
-        test<-beta[beta$metric==level,]
-        # First, test assumptions:  Assumes normal distribution of data and equal variances between groups.               
-        # Check normality of residuals
-        residuals <- lm(beta ~ Site.x, data = test)$residuals
-        par(mar = c(1, 1, 1, 1))
-        qqPlot(residuals, main = "Normal Q-Q Plot of Residuals")
-        # Check homogeneity of variances
-        p1<-leveneTest(beta ~ Site.x, data = test)[1,3]
-        print(paste0("p-value for Levene's is ",p1))
-        # Shapiro-Wilk test for normality (optional)
-        p2<-shapiro.test(residuals)$p.value
-        print(paste0("p-value for Shapiro-Wilk's is ",p2))
-        if (p1 < 0.05 || p2 < 0.05){   # if these tests are significant, conduct a Kruskal-wallis test
-              kruskal_result <- kruskal.test(beta ~ Site.x, data = test)
-              cat("Kruskal-Wallis test results for", level, "\n")
-              print(kruskal_result)
-              pairwise_result <- pairwise.wilcox.test(test$beta, test$Site.x, p.adj = "bonferroni")
-              cat("Pairwise Wilcoxon test results for", level, "\n")
-              print(pairwise_result)
-        }
-        else { # Conduct the ANOVA                   
-                anova_result <- aov(beta ~ Site.x, data = test)
-                print(paste0("ANOVA test results for ", level))
-                print(summary(anova_result)) 
-              # Post hoc Tukey's HSD test
-              tukey_result <- TukeyHSD(anova_result)
-              cat("Tukey's HSD test results for", level, "\n")
-              print(tukey_result)
-        }
-}  
+# Clean up the temporary column
+zOTUbeta$level_value <- NULL
+
 
 #################################################################################
 
