@@ -46,8 +46,14 @@ KipukaTheme <- theme(axis.title=element_text(size=70),
 #################################################################################
 #Version with all the data
 
+# Switch out for jaccard... 
+# Do I need to weight zoTU by OTU...?
+
 richness <- read.csv("merged_by_site_2.csv")
+names(richness) <- richness[18,]
+richness <- richness[19:nrow(richness),]
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
+richness$Site<-gsub("Stainbeck","Stainback",as.character(richness$Site))
 #dist_beta_0 <- read.csv("Distance_v_beta.csv")
 # beta diversity for 3 % OTU for within-area
 otu <- read.csv("3OTU.csv")
@@ -90,8 +96,8 @@ OTU3beta<-OTU3beta[,-1]
 OTU3beta<-data.frame(col=colnames(OTU3beta)[col(OTU3beta)], row=rownames(OTU3beta)[row(OTU3beta)], beta=c(OTU3beta))
 #Add attributes of each site
 #First we add whether it's center, edge, etc etc etc
-OTU3beta<-merge(OTU3beta, richness[,c(1,9)], by.x="col", by.y="ï..ID")
-OTU3beta<-merge(OTU3beta, richness[,c(1,9)], by.x="row", by.y="ï..ID")
+OTU3beta<-merge(OTU3beta, richness[,c(1,9)], by.x="col", by.y="ID")
+OTU3beta<-merge(OTU3beta, richness[,c(1,9)], by.x="row", by.y="ID")
 #Now add the distances between these sites
 OTU3beta$index<-paste(OTU3beta$row, OTU3beta$col, sep="_")
 OTU3beta<-merge(OTU3beta, geo_dist[,3:5], by.x="index", by.y="index")
@@ -102,16 +108,17 @@ OTU3beta <- OTU3beta%>% distinct(beta, .keep_all= TRUE)
 OTU3beta$beta<-as.numeric(OTU3beta$beta)
 
 # Now, for zOTU, weight zOTU per 3% OTU... 
-zOTUbeta$index <- paste(zOTUbeta$col, zOTUbeta$row, sep="_")
+zOTUbeta$index <- paste(zOTUbeta$Var1, zOTUbeta$Var2, sep="_")
 colnames(zOTUbeta)[3] <- "zOTU"
 zOTUbeta <- merge(zOTUbeta[,3:4], OTU3beta, by="index")
 
 # Join on size data, because we will only use kipuka > 5000 m^2
-zOTUbeta <- merge (zOTUbeta, size[,c(3,8,9)], by="index", all.x=T)
-#zOTUbeta <- zOTUbeta[
-#  (is.na(zOTUbeta$Area.x) & is.na(zOTUbeta$Area.y)) | 
-#  (zOTUbeta$Area.x > 5000 & zOTUbeta$Area.y > 5000), 
-#]
+zOTUbeta <- merge (zOTUbeta, richness[,c(1,10)], by.x="row", by.y="ID", all.x=T)
+zOTUbeta <- merge (zOTUbeta, richness[,c(1,10)], by.x="col", by.y="ID", all.x=T)
+zOTUbeta <- zOTUbeta[
+  (is.na(zOTUbeta$Area.x) & is.na(zOTUbeta$Area.y)) | 
+  (zOTUbeta$Area.x > 5000 & zOTUbeta$Area.y > 5000), 
+]
 
 # We need a category for coloring our box and whisker plots... 
 zOTUbeta$Site<-paste(zOTUbeta$Site.x, zOTUbeta$Site.y, sep="_")
@@ -123,7 +130,6 @@ zOTUbeta$Site <- gsub("Kona_Kona", "Kona", zOTUbeta$Site)
 zOTUbeta$Site <- factor(zOTUbeta$Site, levels=c("Lava", "Edge", "Center", "Stainback", "Kona", 
                                           "Edge_Center", "Lava_Center", "Stainback_Center", "Kona_Center", "Center_Edge", 
                                           "Lava_Edge", "Stainback_Edge", "Kona_Edge", "Stainback_Lava", "Kona_Lava", "Kona_Stainback"))  
-
 
 #######################################################
 # Plot these
