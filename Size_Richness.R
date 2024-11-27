@@ -93,7 +93,7 @@ richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("zOTU"
 richness_mod_2$Site <- factor(richness_mod_2$Site, levels = unique(richness_mod_2$Site))
 richness_mod_2$my_ID <- factor(richness_mod_2$my_ID, levels = unique(richness_mod_2$my_ID))
 richness_mod_2 <- richness_mod_2 %>%
-  mutate(alpha_value = ifelse(Site == "Center" & variable == "SROTU", 0.2, 0))
+  mutate(alpha_value = ifelse(variable == "SROTU", 0.2, 0))
 richness_mod_2 <- richness_mod_2 %>%
   mutate(group = case_when(
     Site %in% c("Kona", "Stainback") ~ "forest",
@@ -243,10 +243,10 @@ a <- ggplot() +
 
 b<-ggplot() + 
   geom_smooth(method='lm', 
-              data = richness_mod_2[richness_mod_2$Site == "Center",], 
+              data = richness_mod_2[richness_mod_2$Site %in% c("Center", "Edge"),], 
               aes(x = Area, y = value, colour = Site, fill = Site, linetype = variable, alpha = alpha_value), 
-              size = 1) +  # Set a default alpha of 0.2 for smoothing line
-  geom_point(data = richness_mod_2[richness_mod_2$Site == "Center",], 
+              size = 1.5) +  # Set a default alpha of 0.2 for smoothing line
+  geom_point(data = richness_mod_2[richness_mod_2$Site == "Center" %in% c("Center", "Edge"),], 
              aes(x = Area, y = value, colour = Site, shape = variable), 
              size = 6, stroke = 3) +  # Use alpha_value for points only
   scale_shape_manual("Site", values = c("zOTU" = 0, "SROTU" = 15), labels = c("zOTU" = "zOTU", "SROTU" = "3% OTU")) +
