@@ -119,10 +119,50 @@ zOTUbeta$Site <- factor(zOTUbeta$Site, levels=c("Lava", "Edge", "Center", "Stain
                                           "Lava-Edge", "Stainback-Edge", "Kona-Edge", "Stainback-Lava", "Kona-Lava", "Kona-Stainback"))  
 zOTUbeta <- zOTUbeta[!is.na(zOTUbeta$index), ]
 
-zOTUbeta <- zOTUbeta[zOTUbeta$Var1 != zOTUbeta$Var2, ]
-          
+zOTUbeta <- zOTUbeta %>%
+  arrange(Var2, Var1)
+
+#################################################################################
+
+# PERMANOVA 
+# to look for overall community comp differences between sites
+
+IDS <- unique(zOTUbeta$Var1)     
+Site <- as.factor(zOTUbeta$Site.x[zOTUbeta$Var1 %in% IDS & zOTUbeta$Var2=="1K02C"])
+
+# FIRST, 3% RADIUS OTU... ###        
+# Transform zOTUbeta back into distance matrices... 
+distance_matrix_df <- zOTUbeta[c(1,2,5)] %>%
+  pivot_wider(names_from = Var2, values_from = OTU) 
+
+# Set rownames from Var1, and then convert to a matrix
+distance_matrix_df <- distance_matrix_df %>%
+  column_to_rownames(var = "Var1") %>%
+  as.matrix()
+
+adonis2(distance_matrix_df ~ Site, permutations = 999)              
+# Now, the pairwise test:                 
+pairwise.adonis(distance_matrix_df, Site, p.adjust.m="fdr")
+                         
+# NEXT, ZOTU TESTS... #############################################
+# Transform zOTUbeta back into distance matrices... 
+distance_matrix_df <- zOTUbeta[c(1,2,4)] %>%
+  pivot_wider(names_from = Var2, values_from = zOTU) 
+
+# Set rownames from Var1, and then convert to a matrix
+distance_matrix_df <- distance_matrix_df %>%
+  column_to_rownames(var = "Var1") %>%
+  as.matrix()
+
+adonis2(distance_matrix_df ~ Site, permutations = 999)                        
+# Now the pairwise test                       
+pairwise.adonis(distance_matrix_df, Site, p.adjust.m="fdr")
+
+
 #######################################################
 # Plot these
+
+zOTUbeta <- zOTUbeta[zOTUbeta$Var1 != zOTUbeta$Var2, ]
 
 #NMDS plot for 3%OTU
 #Create an NMDS plot with columns MDS1 and MDS2
@@ -300,7 +340,9 @@ for (i in 1:2) {
 zOTUbeta$level_value <- NULL
 
 
-#################################################################################
+
+
+
 
 
 
@@ -427,55 +469,7 @@ for (LEVEL in 1:length(levels(beta$Site.x))){
 CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
 
 #Fix spelling error on sheet before proceeding
-CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))  
-                         
-
-# First, do a PERMANOVA to look for overall community comp differences between sites
-
-# FIRST, 3% RADIUS OTU... ############################################                   
-# curate the distance matrix                         
-rownames(otu) <- gsub("X", "", rownames(otu))# Remove the character "X" from column and row names
-colnames(otu) <- gsub("X", "", colnames(otu))
-otu <- otu[complete.cases(otu), , drop = FALSE] # remove the part of otu below the distance matrix
-rownames(otu) <- otu[[1]] # now make the first colum the row names. 
-otu <- otu[, -1]                                                  
-# Order the richness$Site data in the order of the names(otu),
-# dropping out those smallest kipuka that have been removed from this analysis
-Site <- richness[richness$ï..ID %in% names(otu), , drop = FALSE]
-Site <- as.factor(Site$Site[order(match(Site$ï..ID, names(otu)))])                         
-adonis2(otu ~ Site, permutations = 999)
-                       
-# Now, the pairwise test:
-# First, I need a 3% radius OTU "OTU table"
-vegan_otu <- function(otu_tab) {
-  OTU <- otu_table(otu_tab, taxa_are_rows=F)
-  if (taxa_are_rows(OTU)) {
-    OTU <- t(OTU)}
-  return(as(OTU, "matrix"))}
-nmds<-read.csv("nmds3otu.csv")                    
-my_otu_tab<-nmds[order(match(nmds$ID, names(otu))),]    
-my_otu_tab<-as.data.frame(my_otu_tab[24:ncol(my_otu_tab)])                      
-pairwise.adonis(vegan_otu(my_otu_tab), Site, p.adjust.m="fdr")
-                         
-# NEXT, ZOTU TESTS... #############################################
-zOTU<-read.csv("zotu.csv")
-zOTU <- zOTU[complete.cases(zOTU), , drop = FALSE] # remove the part of otu below the distance matrix
-rownames(zOTU) <- gsub("X", "", rownames(zOTU))# Remove the character "X" from column and row names
-colnames(zOTU) <- gsub("X", "", colnames(zOTU))
-rownames(zOTU) <- zOTU[[1]] # now make the first colum the row names. 
-zOTU <- zOTU[, -1]                                                 
-# Order the richness$Site data in the order of the names(otu),
-# dropping out those smallest kipuka that have been removed from this analysis
-Site <- richness[richness$ï..ID %in% names(zOTU), ]
-Site <- Site$Site[order(match(Site$ï..ID, names(zOTU)))]                        
-adonis2(zOTU ~ Site, permutations = 999)  
-                         
-# Now the pairwise test   
-my_otu_tab<-richness[order(match(richness$ï..ID, names(zOTU))),]    
-my_otu_tab<-my_otu_tab[31:ncol(my_otu_tab)]                      
-pairwise.adonis(vegan_otu(my_otu_tab), Site, p.adjust.m="bonferroni")
-        
-                                              
+CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))                           
                      
 #######################################################
 # Test difference between area size and zOTU and 3% radius OTU turnover
