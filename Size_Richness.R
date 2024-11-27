@@ -34,17 +34,13 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         legend.spacing.y = unit(0.1,"cm")) 
 
 
-# EMMA: MOVE LEGEND TO THE BOTTOM OF A and B
+# REMOVE LEGEND TO THE BOTTOM OF A and B
 # Make the lines IN b THICKER 
 
 
 richness <- read.csv("merged_by_site_2.csv")
-OTUtoKeep<-as.data.frame(t(richness[11:nrow(richness), 33:ncol(richness)]))
-
-# We only keep species from these groups...
-names(OTUtoKeep)[1:2]<- c("Class", "Order")
-OTUtoKeep$Order <- as.factor(OTUtoKeep$Order)
-OTUtoKeep <- OTUtoKeep[OTUtoKeep$Order %in% c("Hemiptera", "Hymenoptera", "Lepidoptera", "Diptera", "Araneae", "Coleoptera", "Psocoptera") | OTUtoKeep$Class %in% c("Acari"),7:ncol(OTUtoKeep)]
+OTUtoKeep<-as.data.frame(t(richness[17:nrow(richness), 33:ncol(richness)]))
+names(OTUtoKeep)[1]<- c("OTU")
 
 # Exclude blank (NA or empty string) values and create a table for the 17th column
 OTUtoKeep <- OTUtoKeep[grepl("OTU", OTUtoKeep[[1]]), ]
@@ -57,33 +53,37 @@ OTUtoKeep_filtered <- OTUtoKeep[OTUtoKeep[[1]] %in% values_to_keep, ]
 OTUtoKeep_filtered <- OTUtoKeep_filtered %>%
   mutate(across(3:ncol(OTUtoKeep_filtered), as.numeric))
 
-OTUtoKeep_filtered <- OTUtoKeep_filtered %>%
+summary_data <- OTUtoKeep_filtered %>%
   # Ensure columns 3:ncol(OTUtoKeep_filtered) are numeric
   mutate(across(3:ncol(OTUtoKeep_filtered), as.numeric)) %>%
   # Transform values greater than 0 to 1
   mutate(across(3:ncol(OTUtoKeep_filtered), ~ ifelse(. > 0, 1, 0)))
 names(summary_data)[1]<- c("OTU")
 
-column_sums <- as.list(summary_data %>%
-  summarise(across(3:ncol(summary_data), sum, na.rm = TRUE)))
-
-result <- as.list(summary_data %>%
+# OTU counts per site...
+siteOTU <- as.list(OTUtoKeep %>%
+  mutate(across(3:ncol(OTUtoKeep), as.numeric)) %>%
+  mutate(across(3:ncol(OTUtoKeep), ~ ifelse(. > 0, 1, 0))) %>%                
   group_by(OTU) %>%  # Group by the first column
   summarise(across(2:(ncol(summary_data)-1), ~ max(.x, na.rm = TRUE)), .groups = "drop") %>%  # Take max in each group 
   summarise(across(2:(ncol(summary_data)-1), sum, na.rm = TRUE)))  # Sum the max values across groups 
 
-richness_mod_2 <- as.data.frame(cbind(richness$X[19:nrow(richness)], richness$X.8[19:nrow(richness)], richness$X.9[19:nrow(richness)], richness$X.15[19:nrow(richness)], result, column_sums))
-names(richness_mod_2) <- c("my_ID", "Site", "Area", "SROTU", "OTU", "unweighted_zOTU")
+# zOTU counts per site... 
+sitezOTU <- as.list(summary_data %>%
+  summarise(across(3:ncol(summary_data), sum, na.rm = TRUE)))
+# OTU counts for zOTU weighting...  
+zOTUotu <- as.list(summary_data %>%
+  group_by(OTU) %>%  # Group by the first column
+  summarise(across(2:(ncol(summary_data)-1), ~ max(.x, na.rm = TRUE)), .groups = "drop") %>%  # Take max in each group 
+  summarise(across(2:(ncol(summary_data)-1), sum, na.rm = TRUE)))  # Sum the max values across groups 
+
+richness_mod_2 <- as.data.frame(cbind(richness$X[19:nrow(richness)], richness$X.8[19:nrow(richness)], richness$X.9[19:nrow(richness)], siteOTU, sitezOTU, zOTUotu))
+names(richness_mod_2) <- c("my_ID", "Site", "Area", "SROTU", "unweighted_zOTU", "OTU")
 richness_mod_2$Area<-as.numeric(gsub(",","",as.character(richness_mod_2$Area)))
 richness_mod_2$Site<-gsub("Stainbeck","Stainback",as.character(richness_mod_2$Site))
 richness_mod_2[, 3:6] <- lapply(richness_mod_2[, 3:6], as.numeric)
 #Weight zoTU by OTU richness per site
 richness_mod_2$zOTU<-richness_mod_2$unweighted_zOTU/richness_mod_2$OTU
-
-# Bray curtis... 
-#summary_data <- as.data.frame(t(as.matrix(summary_data[2:ncol(summary_data),])))
-#summary_data[] <- lapply(summary_data, as.numeric)
-#BC_data <- vegdist(summary_data, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
 
 richness_mod_2 <- melt(richness_mod_2, idvars = c("my_ID", "Site","Area", "OTU", "unweighted_zOTU"), measure = c("zOTU", "SROTU"))
 richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
@@ -243,14 +243,14 @@ a <- ggplot() +
         legend.text=element_text(size=45, hjust=0.4), 
         legend.title = element_blank(),
         legend.key.width = unit(0.6,"cm"), 
-       legend.position = "top")                           
+       legend.position = "none")                           
 
 b<-ggplot() + 
   geom_smooth(method='lm', 
-              data = richness_mod_2[richness_mod_2$Site == "Center" | richness_mod_2$Site == "Edge",], 
+              data = richness_mod_2[richness_mod_2$Site == "Center",], 
               aes(x = Area, y = value, colour = Site, fill = Site, linetype = variable, alpha = alpha_value), 
               size = 1) +  # Set a default alpha of 0.2 for smoothing line
-  geom_point(data = richness_mod_2[richness_mod_2$Site == "Center" | richness_mod_2$Site == "Edge",], 
+  geom_point(data = richness_mod_2[richness_mod_2$Site == "Center",], 
              aes(x = Area, y = value, colour = Site, shape = variable), 
              size = 6, stroke = 3) +  # Use alpha_value for points only
   scale_shape_manual("Site", values = c("zOTU" = 0, "SROTU" = 15), labels = c("zOTU" = "zOTU", "SROTU" = "3% OTU")) +
@@ -281,7 +281,7 @@ b<-ggplot() +
         plot.title = element_text(size = 50), 
         legend.text = element_text(size = 45, hjust = 0.5), 
         legend.title = element_blank(),
-        legend.position = "top")
+        legend.position = "none")
                  
 
 jpeg("../Figures/Figure3.jpg", width=2000, height=1000)
