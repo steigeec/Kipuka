@@ -244,7 +244,7 @@ bp <- ggplot() +
         plot.title=element_text(size=70), 
         legend.text=element_text(size=70), 
         legend.title = element_blank(),
-       legend.position = "left", 
+       legend.position = "none", 
         plot.margin = margin(0.2,1,0,1.35, "cm"),
        legend.key.height = unit(3, 'cm'), 
         legend.key.width = unit(1, 'cm'))
@@ -277,5 +277,5 @@ scale_x_continuous(trans='log10',
         plot.margin = margin(0.2,1,0,1.35, "cm"))
                      
 jpeg("../Figures/NatNonNat_AraneaeScatter_V2.jpg", width=2400, height=1200)
-plot_grid(bp, B1, ncol=2, rel_widths=c(1.15, 1))
+plot_grid(bp, B1, ncol=2, rel_widths=c(.7, 1))
 dev.off()   
