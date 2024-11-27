@@ -34,10 +34,6 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         legend.spacing.y = unit(0.1,"cm")) 
 
 
-# REMOVE LEGEND TO THE BOTTOM OF A and B
-# Make the lines IN b THICKER 
-
-
 richness <- read.csv("merged_by_site_2.csv")
 OTUtoKeep<-as.data.frame(t(richness[17:nrow(richness), 33:ncol(richness)]))
 names(OTUtoKeep)[1]<- c("OTU")
@@ -225,9 +221,9 @@ a <- ggplot() +
   scale_fill_manual(values=SiteColors) +
   labs(title="A.", x="") +
   KipukaTheme +
-  theme(strip.text = element_text(size = 35), 
-        axis.text.y = element_text(angle=45, size=45), 
-        axis.text.x = element_text(angle=45, size=45, vjust=0.6), 
+  theme(strip.text = element_text(size = 53), 
+        axis.text.y = element_text(angle=45, size=55), 
+        axis.text.x = element_text(angle=45, size=55, vjust=0.6), 
         axis.title.y = element_blank(), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -238,9 +234,9 @@ a <- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=50), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=45, hjust=0.4), 
+       axis.title=element_text(size=55), 
+        plot.title=element_text(size=55), 
+        legend.text=element_text(size=55, hjust=0.4), 
         legend.title = element_blank(),
         legend.key.width = unit(0.6,"cm"), 
        legend.position = "none")                           
@@ -265,7 +261,7 @@ b<-ggplot() +
   labs(title = "B.", x = "Kipuka area ("~m^2~")", y = "OTU richness") +
   KipukaTheme +
   guides(color = "none", fill = "none", linetype = "none") + 
-  theme(strip.text = element_text(size = 45), 
+  theme(strip.text = element_text(size = 53), 
         panel.grid.major = element_line(
           rgb(105, 105, 105, maxColorValue = 255),
           linetype = "dotted", 
@@ -275,12 +271,12 @@ b<-ggplot() +
           rgb(105, 105, 105, maxColorValue = 255),
           linetype = "dotted", 
           size = 0.5), 
-        axis.title.y = element_text(size = 50, vjust = -0.5, margin = margin(r = 10)), 
-        axis.title.x = element_text(size = 50, vjust = 2, margin = margin(t = 10)), 
-        axis.text.y = element_text(size = 45), 
-        axis.text.x = element_text(size = 45, vjust = 1), 
-        plot.title = element_text(size = 50), 
-        legend.text = element_text(size = 45, hjust = 0.5), 
+        axis.title.y = element_text(size = 55, vjust = -0.5, margin = margin(r = 10)), 
+        axis.title.x = element_text(size = 55, vjust = 2, margin = margin(t = 10)), 
+        axis.text.y = element_text(size = 55), 
+        axis.text.x = element_text(size = 55, vjust = 1, hjust=1.2), 
+        plot.title = element_text(size = 55), 
+        legend.text = element_text(size = 55, hjust = 0.5), 
         legend.title = element_blank(),
         legend.position = "none")
                  
