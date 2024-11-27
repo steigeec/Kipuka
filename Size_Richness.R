@@ -246,9 +246,9 @@ b<-ggplot() +
               data = richness_mod_2[richness_mod_2$Site %in% c("Center", "Edge"),], 
               aes(x = Area, y = value, colour = Site, fill = Site, linetype = variable, alpha = alpha_value), 
               size = 1.5) +  # Set a default alpha of 0.2 for smoothing line
-  geom_point(data = richness_mod_2[richness_mod_2$Site == "Center" %in% c("Center", "Edge"),], 
+  geom_point(data = richness_mod_2[richness_mod_2$Site %in% c("Center", "Edge"),], 
              aes(x = Area, y = value, colour = Site, shape = variable), 
-             size = 6, stroke = 3) +  # Use alpha_value for points only
+             size = 4.5, stroke = 3) +  # Use alpha_value for points only
   scale_shape_manual("Site", values = c("zOTU" = 0, "SROTU" = 15), labels = c("zOTU" = "zOTU", "SROTU" = "3% OTU")) +
   scale_colour_manual(values = SiteColors) +
   scale_fill_manual(values = SiteColors) + 
