@@ -260,7 +260,8 @@ b<-ggplot() +
   scale_x_continuous(trans = 'log10',
                      breaks = trans_breaks('log10', function(x) 10^x),
                      labels = trans_format('log10', math_format(10^.x)))  +                 
-  facet_wrap(~variable, scales = "free") +                 
+  facet_wrap(~variable, scales = "free", 
+             labeller = labeller(variable = supp.labs)) +                 
   labs(title = "B.", x = "Kipuka area ("~m^2~")", y = "OTU richness") +
   KipukaTheme +
   guides(color = "none", fill = "none", linetype = "none") + 
@@ -285,5 +286,5 @@ b<-ggplot() +
                  
 
 jpeg("../Figures/Figure3.jpg", width=2000, height=1000)
-plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
+plot_grid(a, b, ncol = 2, rel_widths = c(1, 1.1))
 dev.off()                     
