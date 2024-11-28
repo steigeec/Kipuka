@@ -1,4 +1,3 @@
-
 #Set up my working environment
 setwd("H:/My Drive/Kipuka/Data")
 library(ggplot2)
@@ -44,7 +43,7 @@ KipukaTheme <- theme(axis.title=element_text(size=70),
 
                    
 #################################################################################
-#Version with all the data
+# Read in required data... 
 
 richness <- read.csv("merged_by_site_2.csv")
 names(richness) <- richness[18,]
@@ -60,9 +59,9 @@ geo_dist<-read.csv("geo_dist.csv")
 nmds<-read.csv("nmds3otu.csv")
 nmds$Site<-gsub("Stainbeck","Stainback",as.character(nmds$Site))
 
-######################################################33
+#######
 
-#Wrange geo distances
+#Wrangel geographic distances
 rownames(geo_dist) <- geo_dist[,1]
 geo_dist <- geo_dist[,-1]
 #remove x from all the column names
@@ -76,7 +75,7 @@ geo_dist$index<-paste(geo_dist$col, geo_dist$row, sep="_")
 geo_dist$log_dist<-log(geo_dist$dist+0.00001)
 # geo_dist<-geo_dist[,c(4, 5)]
 
-#######################
+###########
 
 # merge zOTU and 3OTU data
 otu$index <- paste(otu$Var1, otu$Var2, sep="_")
@@ -118,8 +117,11 @@ zOTUbeta <- zOTUbeta[zOTUbeta$Var2 != zOTUbeta$Var1,]
 zOTUbeta <- zOTUbeta %>%
   arrange(Var2, Var1)
 
-##########################
-# With the table of within-area-type dissimilarity measures,  compare the dissimilarity within small edges to that within big edges,
+
+
+
+#############################################################################
+# Compare the dissimilarity within small edges to that within big edges,
 # and the dissimilarity of small cores to that within big cores...
 
 # Remove anything that has something other than Center or Edge in Site.x or Site.y
@@ -184,8 +186,11 @@ leveneTest(size$zOTU[size$group %in% c("large", "small")& size$Site.x=="Edge"] ~
 wilcox.test(size$zOTU[size$group %in% c("large", "small") & size$Site.x == "Edge"] ~ 
             size$group[size$group %in% c("large", "small") & size$Site.x == "Edge"])
 
-#######################################################
-# Test difference between area size and zOTU and 3% radius OTU turnover
+
+
+
+#############################################################################
+# Do we see a relationship between kipuka area and the dssimilarity (3% only) between its edge and center 
 
 # from zOTUbeta, keep only the comparisons within a single kipuka...
 size <- zOTUbeta[zOTUbeta$Site.x %in% c("Edge") & zOTUbeta$Site.y %in% c("Center") | zOTUbeta$Site.x %in% c("Center") & zOTUbeta$Site.y %in% c("Edge"), ]
@@ -215,8 +220,7 @@ abline(h = 4/length(CE[CE$metric=="3% OTU",]$value), col = "red", lty = 2)
 # Print summary of the linear model
 summary(gam_model)                                    
                          
-######################################################                         
-# Shown as a log10 function
+# plot it
 jpeg("../Figures/turnover-edge-center_v3.jpg", width = 1000, height = 1000)  # Increase the width                       
 ggplot(data = size, aes(x = Area.x, y = OTU)) + 
   geom_smooth(method = "lm", formula = y ~ poly(log10(x), 2), se = FALSE, size=1, alpha=0.20, col="black") +
@@ -247,8 +251,7 @@ ggplot(data = size, aes(x = Area.x, y = OTU)) +
 dev.off()
 
 
-#################################################################################
-
+#############################################################################
 # PERMANOVA 
 # to look for overall community comp differences between sites
 
@@ -293,8 +296,8 @@ adonis2(distance_matrix_df ~ Site, permutations = 999)
 pairwise.adonis(distance_matrix_df, Site, p.adjust.m="fdr")
 
 
-#######################################################
-# Plot these
+#############################################################################
+# Plot NMDS, within-habitat turnovers, and between-habitat turnovers... 
 
 zOTUbeta <- zOTUbeta[zOTUbeta$Var1 != zOTUbeta$Var2, ]
 
@@ -423,30 +426,24 @@ jpeg("../Figures/NMDS-turnovers.jpg", width=5000, height=1500)
 plot_grid(a,b,d, nrow=1, ncol=3, rel_widths=c(1.75, 2, 2))                         
 dev.off()                                 
 
-#######################################################
-# Test for differences between
+# and formally test these differences...
+
 for (i in 1:2) {
     level <- c("OTU", "zOTU")[i]  # Get the column name as a string
     print(level)
-    
     # Dynamically subset the data for the current level
     zOTUbeta$level_value <- zOTUbeta[[level]]  # Create a temporary column
-    
     # First, test assumptions
     residuals <- lm(level_value ~ Site, data = zOTUbeta)$residuals
-    
     # Plot Normal Q-Q Plot
     par(mar = c(1, 1, 1, 1))
     qqPlot(residuals, main = paste("Normal Q-Q Plot of Residuals for", level))
-    
     # Check homogeneity of variances
     p1 <- leveneTest(level_value ~ Site, data = zOTUbeta)[1, 3]
     print(paste0("p-value for Levene's is ", p1))
-    
     # Shapiro-Wilk test for normality (optional)
     p2 <- shapiro.test(residuals)$p.value
     print(paste0("p-value for Shapiro-Wilk's is ", p2))
-    
     if (p1 < 0.05 || p2 < 0.05) {   
         # If assumptions are violated, conduct Kruskal-Wallis test
         kruskal_result <- kruskal.test(level_value ~ Site, data = zOTUbeta)
@@ -473,6 +470,178 @@ for (i in 1:2) {
 # Clean up the temporary column
 zOTUbeta$level_value <- NULL
 
+#########################################################
+# Now, compare distance decay of dissimilarity between continuous forest and kipuka habitat 
+
+# Subset only within-habitat-type comparisons
+acari_beta <- zOTUbeta[zOTUbeta$Site.x == zOTUbeta$Site.y,]
+# We only wannt continuous forest and kipuka sites for this analysis... 
+acari_beta <- acari_beta[acari_beta$Site.x %in% c("Center", "Edge", "Stainback", "Kona"),]
+acari_beta$group[acari_beta$Site.x=="Center" | acari_beta$Site.x=="Edge"] <- "Kipuka"
+acari_beta$group[acari_beta$Site.x=="Kona" | acari_beta$Site.x=="Stainback"] <- "Continuous forest"
+
+# Join on the distance data
+acari_beta <- merge(acari_beta, geo_dist, by="index")
+
+# for zOTU
+for (i in 1:length(unique(acari_beta$Site.x))){  
+        area<-unique(acari_beta$Site.x)[i]
+        print(paste0("Results for zoTU and ",area))                   
+        gam_model <- gam(zOTU ~ s(log10(dist)), data = acari_beta[acari_beta$Site.x==area,])
+        # Check assumptions
+        # 1. Residuals vs Fitted Values Plot
+        par(mar = c(1, 1, 1, 1))                         
+        plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+        abline(h = 0, col = "red", lty = 2)
+        # 2. Normal Q-Q Plot
+        qqnorm(residuals(gam_model))
+        qqline(residuals(gam_model), col = "red")
+        # 3. Scale-Location (Spread-Location) Plot
+        plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+        abline(h = 0, col = "red", lty = 2)
+        # Print summary of the linear model
+        print(summary(gam_model))    
+}
+
+# for 3% OTU
+for (i in 1:length(unique(acari_beta$Site.x))){  
+        area<-unique(acari_beta$Site.x)[i]
+        print(paste0("Results for 3% OTU and ",area))                   
+        gam_model <- gam(OTU ~ s(log10(dist)), data = acari_beta[acari_beta$Site.x==area,])
+        # Check assumptions
+        # 1. Residuals vs Fitted Values Plot
+        par(mar = c(1, 1, 1, 1))                         
+        plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+        abline(h = 0, col = "red", lty = 2)
+        # 2. Normal Q-Q Plot
+        qqnorm(residuals(gam_model))
+        qqline(residuals(gam_model), col = "red")
+        # 3. Scale-Location (Spread-Location) Plot
+        plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+        abline(h = 0, col = "red", lty = 2)
+        # Print summary of the linear model
+        print(summary(gam_model))    
+}
+ 
+#################################################################################    
+# Now plot it
+
+a <- ggplot(data = acari_beta[acari_beta$group=="Kipuka",], aes(x = dist, y = OTU, colour = Site.x)) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1, alpha = 0.2) +
+  geom_point(alpha = 0.70, size = 8, shape = 15) +
+  scale_colour_manual(values = SiteColors) +
+  scale_fill_manual(values = SiteColors) +
+  labs(title = "A.", y = "3% OTU beta diversity") +
+  KipukaTheme +
+  guides(color = "none", shape = "none", fill = "none", linetype = "none") +
+  scale_y_continuous(limits = c(0.2, 0.9)) +
+  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 70),
+        panel.grid.major = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 1),
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 0.5),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 70, margin = margin(0, -15, 0, 0)),
+        axis.text = element_text(size = 70),
+        plot.title = element_text(size = 70),
+        legend.text = element_text(size = 70),
+        legend.title = element_text(size = 70),
+        legend.position = "none",
+        plot.margin = margin(1, 1, 0, 1))
+
+b <- ggplot(data = acari_beta[acari_beta$group=="Continuous forest",], aes(x = dist, y = OTU, colour = Site.x)) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1, alpha = 0.2) +
+  geom_point(alpha = 0.70, size = 8, shape = 15) +
+  scale_colour_manual(values = SiteColors) +
+  scale_fill_manual(values = SiteColors) +
+  labs(title = "B.") +
+  KipukaTheme +
+  guides(color = "none", shape = "none", fill = "none", linetype = "none") +
+  scale_y_continuous(limits = c(0.2, 0.9)) +
+  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 70),
+        panel.grid.major = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 1),
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 0.5),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 70),
+        plot.title = element_text(size = 70),
+        legend.text = element_text(size = 70),
+        legend.title = element_text(size = 70),
+        legend.position = "none",
+        plot.margin = margin(1, 1, 0, 1))
+
+c <- ggplot(data = acari_beta[acari_beta$group=="Kipuka",], aes(x = dist, y = zOTU, colour = Site.x)) +
+  geom_point(, alpha = 0.70, size = 8, shape = 0, stroke = 2) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1, alpha = 0.2) +
+  scale_colour_manual(values = SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
+  labs(title = "C.", y = "zOTU beta diversity") +
+  KipukaTheme +
+  guides(color = guide_legend(title = "Sites", nrow = 1)) +
+  scale_y_continuous(limits = c(0.2, 0.95)) +
+  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 70),
+        panel.grid.major = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 1),
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 0.5),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 70, margin = margin(0, -15, 0, 0)),
+        axis.text = element_text(size = 70),
+        plot.title = element_text(size = 70),
+        legend.text = element_text(size = 70),
+        legend.title = element_text(size = 70),
+        legend.position = "none",
+        plot.margin = margin(1, 1, 1, 1))
+
+d <- ggplot(data = acari_beta[acari_beta$group=="Continuous forest",], aes(x = dist, y = zOTU, colour = Site.x)) +
+  geom_point(, alpha = 0.70, size = 8, shape = 0, stroke = 2) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1, alpha = 0.2) +
+  scale_colour_manual(values = SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
+  labs(title = "D.") +
+  KipukaTheme +
+  guides(color = guide_legend(title = "Sites", nrow = 1)) +
+  scale_y_continuous(limits = c(0.2, 0.95)) +
+  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 70),
+        panel.grid.major = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 1),
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted",
+          size = 0.5),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 70),
+        plot.title = element_text(size = 70),
+        legend.text = element_text(size = 70),
+        legend.title = element_text(size = 70),
+        legend.position = "none",
+        plot.margin = margin(1, 1, 1, 1))
+
+
+# Save the plot
+jpeg("../Figures/Fig_4.jpg", width = 2000, height = 2000)
+plot_grid(a, b, c, d, nrow = 2, ncol=2, rel_widths = c(0.5, 1)) +  
+draw_label("Distance (m)", x = 0.5, y=0, vjust = -0.5, size = 70, fontfamily = "serif") # Add the x-axis title
+dev.off()
 
 
 
