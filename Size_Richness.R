@@ -296,7 +296,7 @@ dev.off()
 OTU_matrix <- OTUtoKeep %>%
   mutate(across(3:ncol(OTUtoKeep), as.numeric)) %>%
   group_by(OTU) %>%  # Group by the first column
-  summarise(across(2:(ncol(summary_data)-1), sum, na.rm = TRUE))  # Sum counts across OTU
+  summarise(across(2:(ncol(OTUtoKeep)-1), sum, na.rm = TRUE))  # Sum counts across OTU
 OTU_matrix <- t(OTU_matrix[-1])
 # Split data by habitat type
 habitat <- richness[19:nrow(richness), c(1,9)]
@@ -358,5 +358,84 @@ plot_grid(A, B, ncol = 2, rel_widths = c(1, 1))
 dev.off()   
 
 
-
+################################################################
+# To what extent does 3% OTU accumulation relate to species accumulation in spiders?
                      
+richness <- read.csv("merged_by_site_2.csv")
+OTUtoKeep<-as.data.frame(t(richness[c(12, 14:15, 17:nrow(richness)), 33:ncol(richness)]))
+names(OTUtoKeep)[1:5]<- c("Order", "Genus", "Species", "OTU", "zOTU")
+OTUtoKeep <- OTUtoKeep[grepl("OTU", OTUtoKeep$OTU), ]                     
+# Keep only Araneae
+OTUtoKeep <- OTUtoKeep[OTUtoKeep$Order=="Araneae",]      
+OTUtoKeep$Species <- paste0(OTUtoKeep$Genus, "_", OTUtoKeep$Species)                     
+                     
+# 3% OTU
+OTU_matrix <- as.data.frame(OTUtoKeep %>%
+  mutate(across(6:ncol(OTUtoKeep), as.numeric)) %>%
+  group_by(OTU) %>%  # Group by the first column
+  summarise(across(6:(ncol(OTUtoKeep)-1), sum, na.rm = TRUE)))  # Sum counts across OTU
+OTU_matrix <- as.data.frame(t(OTU_matrix[-1]))                    
+OTU_matrix[] <- lapply(OTU_matrix[], as.numeric)                     
+# Compute accumulation curve
+# Compute the species accumulation curve
+spec_accum <- specaccum(OTU_matrix)
+# Extract relevant data from the specaccum object
+accum_data_OTU <- data.frame(
+  Sites = spec_accum$sites,
+  OTU = spec_accum$richness,
+  LowerCI = spec_accum$richness - spec_accum$sd,
+  UpperCI = spec_accum$richness + spec_accum$sd
+)
+# species
+OTU_matrix <- as.data.frame(OTUtoKeep %>%
+  mutate(across(6:ncol(OTUtoKeep), as.numeric)) %>%
+  group_by(Species) %>%  # Group by the first column
+  summarise(across(6:(ncol(OTUtoKeep)-1), sum, na.rm = TRUE)))  # Sum counts across OTU
+OTU_matrix <- as.data.frame(t(OTU_matrix[-1]))                    
+OTU_matrix[] <- lapply(OTU_matrix[], as.numeric)                     
+# Compute accumulation curve
+# Compute the species accumulation curve
+spec_accum <- specaccum(OTU_matrix)
+# Extract relevant data from the specaccum object
+accum_data_species <- data.frame(
+  Sites = spec_accum$sites,
+  species = spec_accum$richness,
+  LowerCI = spec_accum$richness - spec_accum$sd,
+  UpperCI = spec_accum$richness + spec_accum$sd
+)                     
+# zOTU
+OTU_matrix <- as.data.frame(OTUtoKeep %>%
+  mutate(across(6:ncol(OTUtoKeep), as.numeric)) %>%
+  group_by(zOTU) %>%  # Group by the first column
+  summarise(across(6:(ncol(OTUtoKeep)-1), sum, na.rm = TRUE)))  # Sum counts across OTU
+OTU_matrix <- as.data.frame(t(OTU_matrix[-1]))                    
+OTU_matrix[] <- lapply(OTU_matrix[], as.numeric)                     
+# Compute accumulation curve
+# Compute the species accumulation curve
+spec_accum <- specaccum(OTU_matrix)
+# Extract relevant data from the specaccum object
+accum_data_zOTU <- data.frame(
+  Sites = spec_accum$sites,
+  zOTU = spec_accum$richness,
+  LowerCI = spec_accum$richness - spec_accum$sd,
+  UpperCI = spec_accum$richness + spec_accum$sd
+) 
+accum_data <- merge(accum_data_OTU[1:2], accum_data_zOTU[1:2], by="Sites")  
+accum_data <- merge(accum_data, accum_data_species[1:2], by="Sites")                       
+                     
+jpeg("../Figures/Spider_Species-OTU.jpg", width = 1000, height = 1000)
+
+ggplot() +
+    geom_line(data = accum_data, aes(x = Sites, y = zOTU), size = 2, col = "black", linetype = 1) +
+    geom_line(data = accum_data, aes(x = Sites, y = OTU), size = 2, col = "black", linetype = 2) +
+    geom_line(data = accum_data, aes(x = Sites, y = species), size = 2, col = "black", linetype = 3) +
+    labs(
+        x = "Number of Sites",
+        y = "Richness"
+    ) +
+    theme_minimal() +
+    KipukaTheme +
+    theme(legend.position = "none")
+
+dev.off()
+
