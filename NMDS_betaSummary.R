@@ -88,12 +88,6 @@ zOTUbeta <- merge(zOTUbeta[,3:4], otu, by="index")
 # Join on size data, because we will only use kipuka > 5000 m^2
 zOTUbeta <- merge (zOTUbeta, richness[,c(1,9,10)], by.x="Var1", by.y="ID", all.x=T)
 zOTUbeta <- merge (zOTUbeta, richness[,c(1,9,10)], by.x="Var2", by.y="ID", all.x=T)
-zOTUbeta <- zOTUbeta[
-  (is.na(zOTUbeta$Area.x) & is.na(zOTUbeta$Area.y)) | 
-  (zOTUbeta$Area.x > 5000 & zOTUbeta$Area.y > 5000) | 
-    (zOTUbeta$Area.x > 5000 & is.na(zOTUbeta$Area.y)) | 
-    (is.na(zOTUbeta$Area.x) & zOTUbeta$Area.y > 5000), 
-]
 
 # We need a category for coloring our box and whisker plots... 
 zOTUbeta <- zOTUbeta %>%
@@ -119,13 +113,153 @@ zOTUbeta$Site <- factor(zOTUbeta$Site, levels=c("Lava", "Edge", "Center", "Stain
                                           "Lava-Edge", "Stainback-Edge", "Kona-Edge", "Stainback-Lava", "Kona-Lava", "Kona-Stainback"))  
 zOTUbeta <- zOTUbeta[!is.na(zOTUbeta$index), ]
 
+zOTUbeta <- zOTUbeta[zOTUbeta$Var2 != zOTUbeta$Var1,]
+
 zOTUbeta <- zOTUbeta %>%
   arrange(Var2, Var1)
+
+##########################
+# With the table of within-area-type dissimilarity measures,  compare the dissimilarity within small edges to that within big edges,
+# and the dissimilarity of small cores to that within big cores...
+
+# Remove anything that has something other than Center or Edge in Site.x or Site.y
+size <- zOTUbeta[zOTUbeta$Site.x %in% c("Edge") & zOTUbeta$Site.y %in% c("Edge") | zOTUbeta$Site.x %in% c("Center") & zOTUbeta$Site.y %in% c("Center"), ]
+size$Area.x<-as.numeric(size$Area.x)
+size$Area.y<-as.numeric(size$Area.y)
+
+length(unique(size$Area.x[size$Area.x > 5000]))   # 8 large
+length(unique(size$Area.x[size$Area.x < 5000]))   # 5 small
+
+# subset 8 largest and the 4 smallest kipuka
+size$group[size$Area.x > 5000 & size$Area.y > 5000]<-"large"
+size$group[size$Area.x < 5000 & size$Area.y < 5000]<-"small"
+
+# Remove flipped pairs... 
+size <- size %>%
+  distinct(OTU, .keep_all = TRUE)
+
+# Conduct a formal test.   Do "large-large" have greater beta than "small-small" ?
+
+###### 3 % radius OTU
+# Step 1: Test for Assumptions
+# Shapiro-Wilk test for normality
+shapiro.test(size$OTU[size$group == "large" & size$Site.x=="Center"])   # p-value = 0.3497
+shapiro.test(size$OTU[size$group == "small" & size$Site.x=="Center"])   # p-value = 0.3401
+# Levene's test for homogeneity of variances   
+leveneTest(size$OTU[size$group %in% c("large", "small")& size$Site.x=="Center"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Center"])     # 0.7383
+# Step 2: Conduct the Parametric Test (t-test)
+# Assuming assumptions are met
+# Perform independent t-test
+wilcox.test(size$OTU[size$group %in% c("large", "small") & size$Site.x == "Center"] ~ 
+            size$group[size$group %in% c("large", "small") & size$Site.x == "Center"])
+shapiro.test(size$OTU[size$group == "large" & size$Site.x=="Edge"])   # p-value = 0.3663
+shapiro.test(size$OTU[size$group == "small" & size$Site.x=="Edge"])   # p-value = 0.6378
+# Levene's test for homogeneity of variances   
+leveneTest(size$OTU[size$group %in% c("large", "small")& size$Site.x=="Edge"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Edge"])     # 0.1295
+# Step 2: Conduct the Parametric Test (t-test)
+# Assuming assumptions are met
+# Perform independent t-test
+wilcox.test(size$OTU[size$group %in% c("large", "small") & size$Site.x == "Edge"] ~ 
+            size$group[size$group %in% c("large", "small") & size$Site.x == "Edge"])
+
+###### zOTU
+# Step 1: Test for Assumptions
+# Shapiro-Wilk test for normality
+shapiro.test(size$zOTU[size$group == "large" & size$Site.x=="Center"])   # p-value = 0.3497
+shapiro.test(size$zOTU[size$group == "small" & size$Site.x=="Center"])   # p-value = 0.3401
+# Levene's test for homogeneity of variances   
+leveneTest(size$zOTU[size$group %in% c("large", "small")& size$Site.x=="Center"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Center"])     # 0.7383
+# Step 2: Conduct the Parametric Test (t-test)
+# Assuming assumptions are met
+# Perform independent t-test
+wilcox.test(size$zOTU[size$group %in% c("large", "small") & size$Site.x == "Center"] ~ 
+            size$group[size$group %in% c("large", "small") & size$Site.x == "Center"])
+shapiro.test(size$zOTU[size$group == "large" & size$Site.x=="Edge"])   # p-value = 0.3663
+shapiro.test(size$zOTU[size$group == "small" & size$Site.x=="Edge"])   # p-value = 0.6378
+# Levene's test for homogeneity of variances   
+leveneTest(size$zOTU[size$group %in% c("large", "small")& size$Site.x=="Edge"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Edge"])     # 0.1295
+# Step 2: Conduct the Parametric Test (t-test)
+# Assuming assumptions are met
+# Perform independent t-test
+wilcox.test(size$zOTU[size$group %in% c("large", "small") & size$Site.x == "Edge"] ~ 
+            size$group[size$group %in% c("large", "small") & size$Site.x == "Edge"])
+
+#######################################################
+# Test difference between area size and zOTU and 3% radius OTU turnover
+
+# from zOTUbeta, keep only the comparisons within a single kipuka...
+size <- zOTUbeta[zOTUbeta$Site.x %in% c("Edge") & zOTUbeta$Site.y %in% c("Center") | zOTUbeta$Site.x %in% c("Center") & zOTUbeta$Site.y %in% c("Edge"), ]
+size <- size[size$Area.x == size$Area.y,]
+
+# Remove flipped pairs... 
+size <- size %>%
+  distinct(OTU, .keep_all = TRUE)
+
+# First, test assumptions:  
+# Fit linear regression model
+gam_model <- gam(OTU ~ s(log10(Area.x)), data = size)
+# Check assumptions
+# 1. Residuals vs Fitted Values Plot
+par(mar = c(1, 1, 1, 1))                         
+plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+# 2. Normal Q-Q Plot
+qqnorm(residuals(gam_model))
+qqline(residuals(gam_model), col = "red")
+# 3. Scale-Location (Spread-Location) Plot
+plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+abline(h = 0, col = "red", lty = 2)
+# 4. Residuals vs Leverage Plot (Cook's distance)
+plot(hatvalues(gam_model), cooks.distance(gam_model), main = "Residuals vs Leverage", xlab = "Leverage", ylab = "Cook's distance")
+abline(h = 4/length(CE[CE$metric=="3% OTU",]$value), col = "red", lty = 2)
+# Print summary of the linear model
+summary(gam_model)                                    
+                         
+######################################################                         
+# Shown as a log10 function
+jpeg("../Figures/turnover-edge-center_v3.jpg", width = 1000, height = 1000)  # Increase the width                       
+ggplot(data = size, aes(x = Area.x, y = OTU)) + 
+  geom_smooth(method = "lm", formula = y ~ poly(log10(x), 2), se = FALSE, size=1, alpha=0.20, col="black") +
+  geom_point(colour = "#6699CC", fill = "#332288", alpha = 0.70, size = 8, shape = 21, stroke = 7) + 
+  labs(x = "Kipuka area (" ~ m^2 ~ ")", y = "3% OTU beta diversity") +
+  KipukaTheme +
+  # coord_cartesian(ylim = c(0.4, 1)) +
+  guides(colour = "none") +
+  scale_x_continuous(trans = 'identity', expand = c(0.05, 0.02))  +  # Adjust the expand parameter
+  scale_y_continuous(expand = c(0.005, 0.05))  +  # Adjust the expand parameter
+  theme(strip.text = element_text(size = 45), 
+        panel.grid.major = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 1),   
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 0.5), 
+        axis.title.y = element_text(size = 45), 
+        axis.title.x = element_text(size = 45, margin = margin(-25, 0, 0, 0)), 
+        axis.text = element_text(size = 40), 
+        plot.title = element_text(size = 45), 
+        legend.text = element_text(size = 40), 
+        legend.title = element_text(size = 40),
+        legend.position = "top",
+        plot.margin = margin(1, 15, 1, 1))  
+dev.off()
+
 
 #################################################################################
 
 # PERMANOVA 
 # to look for overall community comp differences between sites
+
+# given the differences we have demonstrated for small (<5000m2) and large kipuka, 
+# at this point remove the smallest kipuka
+zOTUbeta <- zOTUbeta[
+  (is.na(zOTUbeta$Area.x) & is.na(zOTUbeta$Area.y)) | 
+  (zOTUbeta$Area.x > 5000 & zOTUbeta$Area.y > 5000) | 
+    (zOTUbeta$Area.x > 5000 & is.na(zOTUbeta$Area.y)) | 
+    (is.na(zOTUbeta$Area.x) & zOTUbeta$Area.y > 5000), 
+]
 
 IDS <- unique(zOTUbeta$Var1)     
 Site <- as.factor(zOTUbeta$Site.x[zOTUbeta$Var1 %in% IDS & zOTUbeta$Var2=="1K02C"])
@@ -357,51 +491,6 @@ zOTUbeta$level_value <- NULL
 
 
 
-
-
-
-
-##########################
-# With the table of within-area-type dissimilarity measures,  compare the dissimilarity within small edges to that within big edges,
-# and the dissimilarity of small cores to that within big cores...
-
-# Join the size data onto OTU3beta
-size<-merge(OTU3beta, richness[c(1,10)], by.x="row", by.y="ï..ID")
-size<-merge(size, richness[c(1,10)], by.x="col", by.y="ï..ID")
-
-# Remove anything that has something other than Center or Edge in Site.x or Site.y
-size <- size[size$Site.x %in% c("Center", "Edge") & size$Site.y %in% c("Center", "Edge"), ]
-size$Area.x<-as.numeric(size$Area.x)
-size$Area.y<-as.numeric(size$Area.y)
-
-length(unique(size$Area.x[size$Area.x > 5000]))   # 8 large
-length(unique(size$Area.x[size$Area.x < 5000]))   # 4 small
-
-# subset 8 largest and the 4 smallest kipuka
-size$group[size$Area.x > 5000 & size$Area.y > 5000]<-"large"
-size$group[size$Area.x < 5000 & size$Area.y < 5000]<-"small"
-
-# Conduct a formal test.   Do "large-large" have greater beta than "small-small" ?
-# Step 1: Test for Assumptions
-# Shapiro-Wilk test for normality
-shapiro.test(size$beta[size$group == "large" & size$Site.x=="Center"])   # p-value = 0.3497
-shapiro.test(size$beta[size$group == "small" & size$Site.x=="Center"])   # p-value = 0.3401
-# Levene's test for homogeneity of variances   
-leveneTest(size$beta[size$group %in% c("large", "small")& size$Site.x=="Center"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Center"])     # 0.7383
-# Step 2: Conduct the Parametric Test (t-test)
-# Assuming assumptions are met
-# Perform independent t-test
-t.test(size$beta[size$group %in% c("large", "small")& size$Site.x=="Center"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Center"])
-
-shapiro.test(size$beta[size$group == "large" & size$Site.x=="Edge"])   # p-value = 0.3663
-shapiro.test(size$beta[size$group == "small" & size$Site.x=="Edge"])   # p-value = 0.6378
-# Levene's test for homogeneity of variances   
-leveneTest(size$beta[size$group %in% c("large", "small")& size$Site.x=="Edge"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Edge"])     # 0.1295
-# Step 2: Conduct the Parametric Test (t-test)
-# Assuming assumptions are met
-# Perform independent t-test
-t.test(size$beta[size$group %in% c("large", "small")& size$Site.x=="Edge"] ~ size$group[size$group %in% c("large", "small")& size$Site.x=="Edge"])
-
 ##########################
 #Join together tables of each part...?
 dist_beta <- dist_beta_0[,1:7]
@@ -471,56 +560,3 @@ CE<-merge(CE, richness, by.x="log_dist", by.y="ï..ID")
 #Fix spelling error on sheet before proceeding
 CE$Site<-gsub("Stainbeck","Stainback",as.character(CE$Site))                           
                      
-#######################################################
-# Test difference between area size and zOTU and 3% radius OTU turnover
-
-# First, test assumptions:  
-# Fit linear regression model
-gam_model <- gam(dist ~ s(log10(Area)), data = CE[CE$metric == "3% OTU", ])
-# Check assumptions
-# 1. Residuals vs Fitted Values Plot
-par(mar = c(1, 1, 1, 1))                         
-plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-# 2. Normal Q-Q Plot
-qqnorm(residuals(gam_model))
-qqline(residuals(gam_model), col = "red")
-# 3. Scale-Location (Spread-Location) Plot
-plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
-abline(h = 0, col = "red", lty = 2)
-# 4. Residuals vs Leverage Plot (Cook's distance)
-plot(hatvalues(gam_model), cooks.distance(gam_model), main = "Residuals vs Leverage", xlab = "Leverage", ylab = "Cook's distance")
-abline(h = 4/length(CE[CE$metric=="3% OTU",]$value), col = "red", lty = 2)
-# Print summary of the linear model
-summary(gam_model)                                    
-                         
-######################################################                         
-# Shown as a log10 function
-jpeg("../Figures/turnover-edge-center_v3.jpg", width = 1000, height = 1000)  # Increase the width                       
-ggplot(data = CE[CE$metric == "3% OTU", ], aes(x = Area, y = dist)) + 
-  geom_smooth(method = "lm", formula = y ~ poly(log10(x), 2), se = FALSE, size=1, alpha=0.20, col="black") +
-  geom_point(colour = "#6699CC", fill = "#332288", alpha = 0.70, size = 8, shape = 21, stroke = 7) + 
-  labs(x = "Kipuka area (" ~ m^2 ~ ")", y = "3% OTU beta diversity") +
-  KipukaTheme +
-  # coord_cartesian(ylim = c(0.4, 1)) +
-  guides(colour = "none") +
-  scale_x_continuous(trans = 'identity', expand = c(0.05, 0.02))  +  # Adjust the expand parameter
-  scale_y_continuous(expand = c(0.005, 0.05))  +  # Adjust the expand parameter
-  theme(strip.text = element_text(size = 45), 
-        panel.grid.major = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted", 
-          size = 1),   
-        panel.grid.minor = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted", 
-          size = 0.5), 
-        axis.title.y = element_text(size = 45), 
-        axis.title.x = element_text(size = 45, margin = margin(-25, 0, 0, 0)), 
-        axis.text = element_text(size = 40), 
-        plot.title = element_text(size = 45), 
-        legend.text = element_text(size = 40), 
-        legend.title = element_text(size = 40),
-        legend.position = "top",
-        plot.margin = margin(1, 15, 1, 1))  
-dev.off()
