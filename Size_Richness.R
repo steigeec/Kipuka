@@ -12,13 +12,14 @@ library(lmtest)
 library(dplyr)
 library(vegan)
 library(lme4)
+library(tidyr)
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933")
 
 KipukaTheme <- theme(axis.title=element_text(size=50), 
-        axis.text = element_text(size=25, angle=50), 
+        axis.text = element_text(size=50, angle=45), 
         plot.title=element_text(size=50), 
         legend.text=element_text(size=40), 
         legend.key.height = unit(1, "cm"), 
@@ -37,6 +38,7 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
 richness <- read.csv("merged_by_site_2.csv")
 OTUtoKeep<-as.data.frame(t(richness[17:nrow(richness), 33:ncol(richness)]))
 names(OTUtoKeep)[1]<- c("OTU")
+names(OTUtoKeep)[2]<- c("zOTU")
 
 # Exclude blank (NA or empty string) values and create a table for the 17th column
 OTUtoKeep <- OTUtoKeep[grepl("OTU", OTUtoKeep[[1]]), ]
@@ -284,3 +286,77 @@ b<-ggplot() +
 jpeg("../Figures/Figure3.jpg", width=2000, height=1000)
 plot_grid(a, b, ncol = 2, rel_widths = c(1, 1.1))
 dev.off()                     
+
+
+
+#############################################################
+# Species accumulation curves
+
+# 3% OTU
+OTU_matrix <- OTUtoKeep %>%
+  mutate(across(3:ncol(OTUtoKeep), as.numeric)) %>%
+  group_by(OTU) %>%  # Group by the first column
+  summarise(across(2:(ncol(summary_data)-1), sum, na.rm = TRUE))  # Sum counts across OTU
+OTU_matrix <- t(OTU_matrix[-1])
+# Split data by habitat type
+habitat <- richness[19:nrow(richness), c(1,9)]
+names(habitat) <- c("ID", "Site")
+habitat$Site<-gsub("Stainbeck","Stainback",as.character(habitat$Site))                     
+OTU_matrix <- cbind(OTU_matrix, habitat)                     
+habitat_types <- split(OTU_matrix[,1:(ncol(OTU_matrix)-2)], OTU_matrix$Site)
+# Compute accumulation curves for each habitat type
+accum_curves <- lapply(habitat_types, specaccum)
+accum_data <- do.call(rbind, lapply(names(accum_curves), function(habitat) {
+  curve <- accum_curves[[habitat]]
+  data.frame(Sites = curve$sites, Species = curve$richness, Habitat = habitat)
+}))
+A <- ggplot(accum_data, aes(x = Sites, y = Species, color = Habitat)) +
+  geom_line(size = 2) +
+  scale_colour_manual(values = SiteColors) +                   
+  labs(    x = "Number of Sites",
+    y = "3% radius OTU richness"
+  ) +
+  theme_minimal() +
+KipukaTheme +
+theme(legend.position = "none")                     
+
+# zOTU
+richness <- read.csv("merged_by_site_2.csv")
+zOTUtoKeep<-as.data.frame(t(richness[17:nrow(richness), 33:ncol(richness)]))
+names(zOTUtoKeep)[1]<- c("OTU")
+names(zOTUtoKeep)[2]<- c("zOTU")                     
+zOTU_matrix <- zOTUtoKeep %>%
+  mutate(across(3:ncol(zOTUtoKeep), as.numeric)) %>%
+  group_by(zOTU) %>%  # Group by the first column
+  summarise(across(2:(ncol(summary_data)-1), sum, na.rm = TRUE))  # Sum counts across OTU
+zOTU_matrix <- t(zOTU_matrix[-1])
+# Split data by habitat type
+habitat_zOTU <- richness[19:nrow(richness), c(1,9)]
+names(habitat_zOTU) <- c("ID", "Site")
+habitat_zOTU$Site<-gsub("Stainbeck","Stainback",as.character(habitat_zOTU$Site))                     
+zOTU_matrix <- cbind(zOTU_matrix, habitat_zOTU)                     
+habitat_zOTU_types <- split(zOTU_matrix[,1:(ncol(zOTU_matrix)-2)], zOTU_matrix$Site)
+# Compute accumulation curves for each habitat_zOTU type
+accum_curves_zOTU <- lapply(habitat_zOTU_types, specaccum)
+accum_data_zOTU <- do.call(rbind, lapply(names(accum_curves_zOTU), function(habitat_zOTU) {
+  curve <- accum_curves_zOTU[[habitat_zOTU]]
+  data.frame(Sites = curve$sites, Species = curve$richness, Habitat = habitat_zOTU)
+}))
+
+B <- ggplot(accum_data_zOTU, aes(x = Sites, y = Species, color = Habitat)) +
+  geom_line(size = 2) +
+  scale_colour_manual(values = SiteColors) +                   
+  labs(    x = "Number of Sites",
+    y = "zOTU richness"
+  ) +
+  theme_minimal() +
+KipukaTheme +
+theme(legend.position = "none")      
+                     
+jpeg("../Figures/Accum_Curve.jpg", width=2000, height=1000)
+plot_grid(A, B, ncol = 2, rel_widths = c(1, 1))               
+dev.off()   
+
+
+
+                     
