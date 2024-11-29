@@ -9,16 +9,17 @@ library(tidyverse)
 library(scales)
 library(car)
 library(lmtest)
-
-richness <- read.csv("merged_by_site_2.csv")
-richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
+library(dplyr)
+library(vegan)
+library(lme4)
+library(tidyr)
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
 SiteColors <- c("Center" = "#332288", "Edge" = "#6699CC", "Lava"="#888888", "Kona"="#117733", "Stainback"="#999933")
 
 KipukaTheme <- theme(axis.title=element_text(size=50), 
-        axis.text = element_text(size=25, angle=50), 
+        axis.text = element_text(size=50, angle=45), 
         plot.title=element_text(size=50), 
         legend.text=element_text(size=40), 
         legend.key.height = unit(1, "cm"), 
@@ -33,10 +34,56 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
 
-#Weight zoTU by OTU richness per site
-richness$zOTU<-richness$SR/richness$SROTU
 
-richness_mod_2 <- melt(richness, idvars = c("SiteID", "Site"), measure = c("zOTU", "SROTU"))
+richness <- read.csv("merged_by_site_2.csv")
+OTUtoKeep<-as.data.frame(t(richness[17:nrow(richness), 33:ncol(richness)]))
+names(OTUtoKeep)[1]<- c("OTU")
+names(OTUtoKeep)[2]<- c("zOTU")
+
+# Exclude blank (NA or empty string) values and create a table for the 17th column
+OTUtoKeep <- OTUtoKeep[grepl("OTU", OTUtoKeep[[1]]), ]
+# Identify the values in column 1 that occur more than once
+values_to_keep <- names(which(table(OTUtoKeep[[1]]) > 1))
+
+# Subset the dataframe to keep only rows where column 1 matches those values
+OTUtoKeep_filtered <- OTUtoKeep[OTUtoKeep[[1]] %in% values_to_keep, ]
+
+OTUtoKeep_filtered <- OTUtoKeep_filtered %>%
+  mutate(across(3:ncol(OTUtoKeep_filtered), as.numeric))
+
+summary_data <- OTUtoKeep_filtered %>%
+  # Ensure columns 3:ncol(OTUtoKeep_filtered) are numeric
+  mutate(across(3:ncol(OTUtoKeep_filtered), as.numeric)) %>%
+  # Transform values greater than 0 to 1
+  mutate(across(3:ncol(OTUtoKeep_filtered), ~ ifelse(. > 0, 1, 0)))
+names(summary_data)[1]<- c("OTU")
+
+# OTU counts per site...
+siteOTU <- as.list(OTUtoKeep %>%
+  mutate(across(3:ncol(OTUtoKeep), as.numeric)) %>%
+  mutate(across(3:ncol(OTUtoKeep), ~ ifelse(. > 0, 1, 0))) %>%                
+  group_by(OTU) %>%  # Group by the first column
+  summarise(across(2:(ncol(summary_data)-1), ~ max(.x, na.rm = TRUE)), .groups = "drop") %>%  # Take max in each group 
+  summarise(across(2:(ncol(summary_data)-1), sum, na.rm = TRUE)))  # Sum the max values across groups 
+
+# zOTU counts per site... 
+sitezOTU <- as.list(summary_data %>%
+  summarise(across(3:ncol(summary_data), sum, na.rm = TRUE)))
+# OTU counts for zOTU weighting...  
+zOTUotu <- as.list(summary_data %>%
+  group_by(OTU) %>%  # Group by the first column
+  summarise(across(2:(ncol(summary_data)-1), ~ max(.x, na.rm = TRUE)), .groups = "drop") %>%  # Take max in each group 
+  summarise(across(2:(ncol(summary_data)-1), sum, na.rm = TRUE)))  # Sum the max values across groups 
+
+richness_mod_2 <- as.data.frame(cbind(richness$X[19:nrow(richness)], richness$X.8[19:nrow(richness)], richness$X.9[19:nrow(richness)], siteOTU, sitezOTU, zOTUotu))
+names(richness_mod_2) <- c("my_ID", "Site", "Area", "SROTU", "unweighted_zOTU", "OTU")
+richness_mod_2$Area<-as.numeric(gsub(",","",as.character(richness_mod_2$Area)))
+richness_mod_2$Site<-gsub("Stainbeck","Stainback",as.character(richness_mod_2$Site))
+richness_mod_2[, 3:6] <- lapply(richness_mod_2[, 3:6], as.numeric)
+#Weight zoTU by OTU richness per site
+richness_mod_2$zOTU<-richness_mod_2$unweighted_zOTU/richness_mod_2$OTU
+
+richness_mod_2 <- melt(richness_mod_2, idvars = c("my_ID", "Site","Area", "OTU", "unweighted_zOTU"), measure = c("zOTU", "SROTU"))
 richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
 
 # New facet label names for supp variable
@@ -44,7 +91,16 @@ supp.labs <- c("zOTU richness", "3% OTU richness")
 names(supp.labs) <- c("zOTU", "SROTU")                   
 
 #Reorder facets
-richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("zOTU", "SROTU")))                     
+richness_mod_2$variable <- factor(richness_mod_2$variable, levels = rev(c("zOTU", "SROTU")))   
+richness_mod_2$Site <- factor(richness_mod_2$Site, levels = unique(richness_mod_2$Site))
+richness_mod_2$my_ID <- factor(richness_mod_2$my_ID, levels = unique(richness_mod_2$my_ID))
+richness_mod_2 <- richness_mod_2 %>%
+  mutate(alpha_value = ifelse(variable == "SROTU", 0.2, 0))
+richness_mod_2 <- richness_mod_2 %>%
+  mutate(group = case_when(
+    Site %in% c("Kona", "Stainback") ~ "forest",
+    Site %in% c("Center", "Edge") ~ "kipuka",
+    Site %in% c("Lava") ~ "lava"  ))
 
 #################################################################################
 # TEST:  ANOVA to check whether 3%OTU and the zOTU is different for each "area type" ( lava, edge, center, Stainback, Kona)
@@ -82,6 +138,17 @@ for (i in 1:length(unique(richness_mod_2$variable))){
               print(tukey_result)
         }
 }
+
+
+
+
+# Fit a linear mixed model (example)
+model <- lmer(value ~ group + (1 | Site), data = richness_mod_2[richness_mod_2$variable=="SROTU",])
+
+# Check summary
+summary(model)
+
+
 
 ###############################################################################################
 # Linear regression for size vs. richness
@@ -156,9 +223,9 @@ a <- ggplot() +
   scale_fill_manual(values=SiteColors) +
   labs(title="A.", x="") +
   KipukaTheme +
-  theme(strip.text = element_text(size = 35), 
-        axis.text.y = element_text(angle=45, size=45), 
-        axis.text.x = element_text(angle=45, size=45, vjust=0.6), 
+  theme(strip.text = element_text(size = 53), 
+        axis.text.y = element_text(angle=45, size=55), 
+        axis.text.x = element_text(angle=45, size=55, vjust=0.6), 
         axis.title.y = element_blank(), 
         panel.grid.major = element_line(
         rgb(105, 105, 105, maxColorValue = 255),
@@ -169,50 +236,206 @@ a <- ggplot() +
         rgb(105, 105, 105, maxColorValue = 255),
         linetype = "dotted", 
         size = 0.5), 
-       axis.title=element_text(size=50), 
-        plot.title=element_text(size=50), 
-        legend.text=element_text(size=45, hjust=0.4), 
+       axis.title=element_text(size=55), 
+        plot.title=element_text(size=55), 
+        legend.text=element_text(size=55, hjust=0.4), 
         legend.title = element_blank(),
         legend.key.width = unit(0.6,"cm"), 
-       legend.position = "top")                           
+       legend.position = "none")                           
 
 b<-ggplot() + 
-  geom_smooth(method='lm', data=richness_mod_2[richness_mod_2$Site=="Center",], aes(x=Area, y=value, colour=Site, fill=Site, linetype=variable), size=1, alpha=0.20)+  
-  geom_point(data=richness_mod_2[richness_mod_2$Site=="Center",],aes(x=Area, y=value, colour=Site, shape=variable), alpha=0.70, size=6, stroke = 3) + 
-  scale_shape_manual("Site", values=c("zOTU" = 0, "SROTU"=15), labels=c("zOTU"="zOTU","SROTU"="3% OTU")) +
-  scale_colour_manual(values=SiteColors) +
-  scale_fill_manual(values=SiteColors)+ 
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x)))  +                 
-  facet_wrap(~variable, scales="free")+                 
-  labs(title="B.", x="Kipuka area ("~m^2~")", y="OTU richness") +
+  geom_smooth(method='lm', 
+              data = richness_mod_2[richness_mod_2$Site %in% c("Center", "Edge"),], 
+              aes(x = Area, y = value, colour = Site, fill = Site, linetype = variable, alpha = alpha_value), 
+              size = 1.5) +  # Set a default alpha of 0.2 for smoothing line
+  geom_point(data = richness_mod_2[richness_mod_2$Site %in% c("Center", "Edge"),], 
+             aes(x = Area, y = value, colour = Site, shape = variable), 
+             size = 4.5, stroke = 3) +  # Use alpha_value for points only
+  scale_shape_manual("Site", values = c("zOTU" = 0, "SROTU" = 15), labels = c("zOTU" = "zOTU", "SROTU" = "3% OTU")) +
+  scale_colour_manual(values = SiteColors) +
+  scale_fill_manual(values = SiteColors) + 
+  scale_alpha_identity() +  # Use alpha_identity to apply the alpha value directly
+  scale_x_continuous(trans = 'log10',
+                     breaks = trans_breaks('log10', function(x) 10^x),
+                     labels = trans_format('log10', math_format(10^.x)))  +                 
+  facet_wrap(~variable, scales = "free", 
+             labeller = labeller(variable = supp.labs)) +                 
+  labs(title = "B.", x = "Kipuka area ("~m^2~")", y = "OTU richness") +
   KipukaTheme +
-  guides(color="none", fill="none", linetype="none") + 
-  theme(strip.text = element_text(size = 45), 
+  guides(color = "none", fill = "none", linetype = "none") + 
+  theme(strip.text = element_text(size = 53), 
         panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=1),   
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 1),   
         plot.margin = unit(c(0, 0, 0, 0), "cm"), 
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.5), 
-       axis.title.y=element_text(size=50, vjust=-0.5, margin=margin(r=10)), 
-       axis.title.x=element_text(size=50, vjust=2, margin=margin(t=10)), 
-        axis.text.y = element_text(size=45), 
-        axis.text.x = element_text(size=45, vjust=1), 
-        plot.title=element_text(size=50), 
-        #legend.key.width = unit(7,"cm"), 
-        legend.text=element_text(size=45, hjust=0.5), 
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 0.5), 
+        axis.title.y = element_text(size = 55, vjust = -0.5, margin = margin(r = 10)), 
+        axis.title.x = element_text(size = 55, vjust = 2, margin = margin(t = 10)), 
+        axis.text.y = element_text(size = 55), 
+        axis.text.x = element_text(size = 55, vjust = 1, hjust=1.2), 
+        plot.title = element_text(size = 55), 
+        legend.text = element_text(size = 55, hjust = 0.5), 
         legend.title = element_blank(),
-       legend.position = "top")
-
-                     
-
-                     
+        legend.position = "none")
+                 
 
 jpeg("../Figures/Figure3.jpg", width=2000, height=1000)
-plot_grid(a, b, ncol = 2, rel_widths = c(1, 2))
+plot_grid(a, b, ncol = 2, rel_widths = c(1, 1.1))
 dev.off()                     
+
+
+
+#############################################################
+# Species accumulation curves
+
+# 3% OTU
+OTU_matrix <- OTUtoKeep %>%
+  mutate(across(3:ncol(OTUtoKeep), as.numeric)) %>%
+  group_by(OTU) %>%  # Group by the first column
+  summarise(across(2:(ncol(OTUtoKeep)-1), sum, na.rm = TRUE))  # Sum counts across OTU
+OTU_matrix <- t(OTU_matrix[-1])
+# Split data by habitat type
+habitat <- richness[19:nrow(richness), c(1,9)]
+names(habitat) <- c("ID", "Site")
+habitat$Site<-gsub("Stainbeck","Stainback",as.character(habitat$Site))                     
+OTU_matrix <- cbind(OTU_matrix, habitat)                     
+habitat_types <- split(OTU_matrix[,1:(ncol(OTU_matrix)-2)], OTU_matrix$Site)
+# Compute accumulation curves for each habitat type
+accum_curves <- lapply(habitat_types, specaccum)
+accum_data <- do.call(rbind, lapply(names(accum_curves), function(habitat) {
+  curve <- accum_curves[[habitat]]
+  data.frame(Sites = curve$sites, Species = curve$richness, Habitat = habitat)
+}))
+A <- ggplot(accum_data, aes(x = Sites, y = Species, color = Habitat)) +
+  geom_line(size = 2) +
+  scale_colour_manual(values = SiteColors) +                   
+  labs(    x = "Number of Sites",
+    y = "3% radius OTU richness"
+  ) +
+  theme_minimal() +
+KipukaTheme +
+theme(legend.position = "none")                     
+
+# zOTU
+richness <- read.csv("merged_by_site_2.csv")
+zOTUtoKeep<-as.data.frame(t(richness[17:nrow(richness), 33:ncol(richness)]))
+names(zOTUtoKeep)[1]<- c("OTU")
+names(zOTUtoKeep)[2]<- c("zOTU")                     
+zOTU_matrix <- zOTUtoKeep %>%
+  mutate(across(3:ncol(zOTUtoKeep), as.numeric)) %>%
+  group_by(zOTU) %>%  # Group by the first column
+  summarise(across(2:(ncol(summary_data)-1), sum, na.rm = TRUE))  # Sum counts across OTU
+zOTU_matrix <- t(zOTU_matrix[-1])
+# Split data by habitat type
+habitat_zOTU <- richness[19:nrow(richness), c(1,9)]
+names(habitat_zOTU) <- c("ID", "Site")
+habitat_zOTU$Site<-gsub("Stainbeck","Stainback",as.character(habitat_zOTU$Site))                     
+zOTU_matrix <- cbind(zOTU_matrix, habitat_zOTU)                     
+habitat_zOTU_types <- split(zOTU_matrix[,1:(ncol(zOTU_matrix)-2)], zOTU_matrix$Site)
+# Compute accumulation curves for each habitat_zOTU type
+accum_curves_zOTU <- lapply(habitat_zOTU_types, specaccum)
+accum_data_zOTU <- do.call(rbind, lapply(names(accum_curves_zOTU), function(habitat_zOTU) {
+  curve <- accum_curves_zOTU[[habitat_zOTU]]
+  data.frame(Sites = curve$sites, Species = curve$richness, Habitat = habitat_zOTU)
+}))
+
+B <- ggplot(accum_data_zOTU, aes(x = Sites, y = Species, color = Habitat)) +
+  geom_line(size = 2) +
+  scale_colour_manual(values = SiteColors) +                   
+  labs(    x = "Number of Sites",
+    y = "zOTU richness"
+  ) +
+  theme_minimal() +
+KipukaTheme +
+theme(legend.position = "none")      
+                     
+jpeg("../Figures/Accum_Curve.jpg", width=2000, height=1000)
+plot_grid(A, B, ncol = 2, rel_widths = c(1, 1))               
+dev.off()   
+
+
+################################################################
+# To what extent does 3% OTU accumulation relate to species accumulation in spiders?
+                     
+richness <- read.csv("merged_by_site_2.csv")
+OTUtoKeep<-as.data.frame(t(richness[c(12, 14:15, 17:nrow(richness)), 33:ncol(richness)]))
+names(OTUtoKeep)[1:5]<- c("Order", "Genus", "Species", "OTU", "zOTU")
+OTUtoKeep <- OTUtoKeep[grepl("OTU", OTUtoKeep$OTU), ]                     
+# Keep only Araneae
+OTUtoKeep <- OTUtoKeep[OTUtoKeep$Order=="Araneae",]      
+OTUtoKeep$Species <- paste0(OTUtoKeep$Genus, "_", OTUtoKeep$Species)                     
+                     
+# 3% OTU
+OTU_matrix <- as.data.frame(OTUtoKeep %>%
+  mutate(across(6:ncol(OTUtoKeep), as.numeric)) %>%
+  group_by(OTU) %>%  # Group by the first column
+  summarise(across(6:(ncol(OTUtoKeep)-1), sum, na.rm = TRUE)))  # Sum counts across OTU
+OTU_matrix <- as.data.frame(t(OTU_matrix[-1]))                    
+OTU_matrix[] <- lapply(OTU_matrix[], as.numeric)                     
+# Compute accumulation curve
+# Compute the species accumulation curve
+spec_accum <- specaccum(OTU_matrix)
+# Extract relevant data from the specaccum object
+accum_data_OTU <- data.frame(
+  Sites = spec_accum$sites,
+  OTU = spec_accum$richness,
+  LowerCI = spec_accum$richness - spec_accum$sd,
+  UpperCI = spec_accum$richness + spec_accum$sd
+)
+# species
+OTU_matrix <- as.data.frame(OTUtoKeep %>%
+  mutate(across(6:ncol(OTUtoKeep), as.numeric)) %>%
+  group_by(Species) %>%  # Group by the first column
+  summarise(across(6:(ncol(OTUtoKeep)-1), sum, na.rm = TRUE)))  # Sum counts across OTU
+OTU_matrix <- as.data.frame(t(OTU_matrix[-1]))                    
+OTU_matrix[] <- lapply(OTU_matrix[], as.numeric)                     
+# Compute accumulation curve
+# Compute the species accumulation curve
+spec_accum <- specaccum(OTU_matrix)
+# Extract relevant data from the specaccum object
+accum_data_species <- data.frame(
+  Sites = spec_accum$sites,
+  species = spec_accum$richness,
+  LowerCI = spec_accum$richness - spec_accum$sd,
+  UpperCI = spec_accum$richness + spec_accum$sd
+)                     
+# zOTU
+OTU_matrix <- as.data.frame(OTUtoKeep %>%
+  mutate(across(6:ncol(OTUtoKeep), as.numeric)) %>%
+  group_by(zOTU) %>%  # Group by the first column
+  summarise(across(6:(ncol(OTUtoKeep)-1), sum, na.rm = TRUE)))  # Sum counts across OTU
+OTU_matrix <- as.data.frame(t(OTU_matrix[-1]))                    
+OTU_matrix[] <- lapply(OTU_matrix[], as.numeric)                     
+# Compute accumulation curve
+# Compute the species accumulation curve
+spec_accum <- specaccum(OTU_matrix)
+# Extract relevant data from the specaccum object
+accum_data_zOTU <- data.frame(
+  Sites = spec_accum$sites,
+  zOTU = spec_accum$richness,
+  LowerCI = spec_accum$richness - spec_accum$sd,
+  UpperCI = spec_accum$richness + spec_accum$sd
+) 
+accum_data <- merge(accum_data_OTU[1:2], accum_data_zOTU[1:2], by="Sites")  
+accum_data <- merge(accum_data, accum_data_species[1:2], by="Sites")                       
+                     
+jpeg("../Figures/Spider_Species-OTU.jpg", width = 1000, height = 1000)
+
+ggplot() +
+    geom_line(data = accum_data, aes(x = Sites, y = zOTU), size = 2, col = "black", linetype = 1) +
+    geom_line(data = accum_data, aes(x = Sites, y = OTU), size = 2, col = "black", linetype = 2) +
+    geom_line(data = accum_data, aes(x = Sites, y = species), size = 2, col = "black", linetype = 3) +
+    labs(
+        x = "Number of Sites",
+        y = "Richness"
+    ) +
+    theme_minimal() +
+    KipukaTheme +
+    theme(legend.position = "none")
+
+dev.off()
+
