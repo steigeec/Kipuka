@@ -7,7 +7,7 @@ library(dplyr)
 
 otu <- read.csv("OTUs.csv")
                    
-OTU <- otu[14:nrow(otu), 29:ncol(otu)] 
+OTU <- otu[17:nrow(otu), 32:ncol(otu)] 
 rownames(OTU) <- OTU[,1]
 OTU <- as.data.frame(t(OTU[,-1]))
 names(OTU)[1:2] <- c("OTU", "zOTU")
