@@ -31,8 +31,8 @@ KipukaTheme <- theme(axis.title=element_text(size=70),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
 
-richness <- read.csv("NatNonNat.csv")               
-OTU <- richness[2:nrow(richness),29:814] 
+richness <- read.csv("Merged_by_site_2.csv")               
+OTU <- richness[2:nrow(richness),32:814] 
 #Make first column the row names
 OTU["16",1]<-"ZotuID"
 OTU["18",1]<-"3%OTU"
