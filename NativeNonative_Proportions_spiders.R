@@ -87,9 +87,9 @@ plotA$Site <- factor(plotA$Site, levels = rev(c("Kona","Stainback",  "Center", "
 ####################################################################################################
 #Also do in terms of species richness of nat/non-nat
 
-richness <- read.csv("NatNonNat.csv")
+richness <- read.csv("Merged_by_site_2.csv")
                 
-OTU <- richness[2:nrow(richness),29:814] 
+OTU <- richness[2:nrow(richness),32:814] 
 #Make first column the row names
 OTU["16",1]<-"ZotuID"
 OTU["18",1]<-"3%OTU"
