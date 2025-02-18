@@ -374,7 +374,7 @@ reserved <- ggplot() +
   scale_colour_manual(values=SiteColors, limits=c("Center", "Edge", "Lava", "Kona", "Stainback")) +
   scale_shape_manual("Site", values=c("Center" = 16, "Edge" = 16, "Lava"=3, "Kona"=2, "Stainback"=2)) +
   scale_size_continuous("Kipuka area ("~m^2~")", range=c(2,32), breaks=seq(2,32,5), labels=round((10*seq(2,32,5))^2,100)) +
-  labs(title="C.", x="NMDS1", y="NMDS2") +
+  labs(x="NMDS1", y="NMDS2") +
   #coord_equal() +
   scale_x_continuous(breaks=seq(-2,1.5,0.5), limits=c(-1.5, 1.5)) +
   scale_y_continuous(limits=c(-1, 1)) +
@@ -425,6 +425,11 @@ d<- ggplot() +
 jpeg("../Figures/NMDS-turnovers.jpg", width=5000, height=1500) 
 plot_grid(a,b,d, nrow=1, ncol=3, rel_widths=c(1.75, 2, 2))                         
 dev.off()                                 
+
+jpeg("../Figures/NMDS-zOTU-supplements.jpg", width=1500, height=1500) 
+plot_grid(reserved)                         
+dev.off()  
+
 
 # and formally test these differences...
 
