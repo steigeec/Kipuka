@@ -82,6 +82,77 @@ richness_mod_2[, 3:6] <- lapply(richness_mod_2[, 3:6], as.numeric)
 #Weight zoTU by OTU richness per site
 richness_mod_2$zOTU<-richness_mod_2$unweighted_zOTU/richness_mod_2$OTU
 
+#################################
+# look at zOTU : 3% radius OTU correlation:
+
+a <- ggplot() + 
+  # geom_smooth(method='lm', data = richness_mod_2, aes(x = Area, y = value, colour = Site, fill = Site, linetype = variable, alpha = alpha_value), size = 1.5) +  # Set a default alpha of 0.2 for smoothing line
+  geom_point(data = richness_mod_2, aes(x = OTU, y = unweighted_zOTU, colour = Site), size = 4.5, stroke = 3) +  # Use alpha_value for points only
+  scale_colour_manual(values = SiteColors) +
+  scale_fill_manual(values = SiteColors) + 
+  # scale_alpha_identity() +  # Use alpha_identity to apply the alpha value directly
+  scale_x_continuous(trans = 'log10', breaks = trans_breaks('log10', function(x) 10^x), labels = trans_format('log10', math_format(10^.x)))  +                 
+  labs(title = "A.", x = "3% radius OTU richness", y = "unweighted zOTU richness") +
+  KipukaTheme +
+  guides(color = "none", fill = "none", linetype = "none") + 
+  theme(strip.text = element_text(size = 53), 
+        panel.grid.major = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 1),   
+        plot.margin = unit(c(0, 0, 0, 0), "cm"), 
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 0.5), 
+        axis.title.y = element_text(size = 55, vjust = -0.5, margin = margin(r = 10)), 
+        axis.title.x = element_text(size = 55, vjust = 2, margin = margin(t = 10)), 
+        axis.text.y = element_text(size = 55), 
+        axis.text.x = element_text(size = 55, vjust = 1, hjust=1.2), 
+        plot.title = element_text(size = 55), 
+        legend.text = element_text(size = 55, hjust = 0.5), 
+        legend.title = element_blank(),
+        legend.position = "none")
+
+b <- ggplot() + 
+  # geom_smooth(method='lm', data = richness_mod_2, aes(x = Area, y = value, colour = Site, fill = Site, linetype = variable, alpha = alpha_value), size = 1.5) +  # Set a default alpha of 0.2 for smoothing line
+  geom_point(data = richness_mod_2, aes(x = OTU, y = zOTU, colour = Site), size = 4.5, stroke = 3) +  # Use alpha_value for points only
+  scale_colour_manual(values = SiteColors) +
+  scale_fill_manual(values = SiteColors) + 
+  # scale_alpha_identity() +  # Use alpha_identity to apply the alpha value directly
+  scale_x_continuous(trans = 'log10', breaks = trans_breaks('log10', function(x) 10^x), labels = trans_format('log10', math_format(10^.x)))  +                 
+  labs(title = "B.", x = "3% radius OTU richness", y = "weighted zOTU richness") +
+  KipukaTheme +
+  guides(color = "none", fill = "none", linetype = "none") + 
+  theme(strip.text = element_text(size = 53), 
+        panel.grid.major = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 1),   
+        plot.margin = unit(c(0, 0, 0, 0), "cm"), 
+        panel.grid.minor = element_line(
+          rgb(105, 105, 105, maxColorValue = 255),
+          linetype = "dotted", 
+          size = 0.5), 
+        axis.title.y = element_text(size = 55, vjust = -0.5, margin = margin(r = 10)), 
+        axis.title.x = element_text(size = 55, vjust = 2, margin = margin(t = 10)), 
+        axis.text.y = element_text(size = 55), 
+        axis.text.x = element_text(size = 55, vjust = 1, hjust=1.2), 
+        plot.title = element_text(size = 55), 
+        legend.text = element_text(size = 55, hjust = 0.5), 
+        legend.title = element_blank(),
+        legend.position = "none")
+                         
+
+jpeg("../Figures/zOTU-OTU-correlation.jpg", width=2000, height=1000)
+plot_grid(a, b, ncol = 2, rel_widths = c(1, 1.1))
+dev.off() 
+
+
+
+
+###########################
+
 richness_mod_2 <- melt(richness_mod_2, idvars = c("my_ID", "Site","Area", "OTU", "unweighted_zOTU"), measure = c("zOTU", "SROTU"))
 richness_mod_2 <- richness_mod_2[order(richness_mod_2$value, decreasing = TRUE),]  
 
@@ -100,6 +171,8 @@ richness_mod_2 <- richness_mod_2 %>%
     Site %in% c("Kona", "Stainback") ~ "forest",
     Site %in% c("Center", "Edge") ~ "kipuka",
     Site %in% c("Lava") ~ "lava"  ))
+
+
 
 #################################################################################
 # TEST:  ANOVA to check whether 3%OTU and the zOTU is different for each "area type" ( lava, edge, center, Stainback, Kona)
