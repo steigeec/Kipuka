@@ -6,16 +6,21 @@ library(vegan)
 library(dplyr)
 
 otu <- read.csv("OTUs.csv")
-                   
-OTU <- otu[17:nrow(otu), 32:ncol(otu)] 
+richness <- read.csv("merged_by_site_2.csv")
+
+# Grab site name, site type, and coordinate data for later use
+site_data<-as.data.frame(richness[19:nrow(richness), c(9,27,28,29)])
+names(site_data)<-c("Site", "my_ID", "Latitude", "Longitude")
+site_data$Site<-gsub("Stainbeck","Stainback",as.character(site_data$Site))
+
+# Clean up OTU table for use in distance matrix calculation
+OTU <- otu[14:nrow(otu), 29:ncol(otu)] 
 rownames(OTU) <- OTU[,1]
 OTU <- as.data.frame(t(OTU[,-1]))
 names(OTU)[1:2] <- c("OTU", "zOTU")
 # Exclude blank (NA or empty string) values 
 OTUtoKeep <- OTU[grepl("OTU", OTU[[1]]), ]
 OTUtoKeep[3:ncol(OTUtoKeep)] <- lapply(OTUtoKeep[3:ncol(OTUtoKeep)], as.numeric)
-
-
 
 # OTU
 OTU3 <- OTUtoKeep %>%
@@ -25,17 +30,48 @@ OTU3 <- OTU3[,-1]
 OTU3 <- as.data.frame(t(OTU3))
 OTU3[] <- lapply(OTU3, as.numeric)     
 
-zOTUbeta <- vegdist(OTU3, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
-zOTUbeta<-as.matrix(zOTUbeta)
-zOTUbeta<-as.data.frame(zOTUbeta)
-dist_long <- melt(as.matrix(zOTUbeta))
+# Create B-C distance matrix
+OTUbeta <- vegdist(OTU3, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
+# Now, convert to long-form, and export for use in questions of beta diversity. 
+OTUbeta<-as.matrix(OTUbeta)
+OTUbeta<-as.data.frame(OTUbeta)
+dist_long <- melt(as.matrix(OTUbeta))
 write.csv(dist_long, "OTU3_Bray.csv", quote=F, row.names=F)
 
-zOTUbeta <- vegdist(OTU3, method="jaccard", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
-zOTUbeta<-as.matrix(zOTUbeta)
-zOTUbeta<-as.data.frame(zOTUbeta)
-dist_long <- melt(as.matrix(zOTUbeta))
+# Create Jaccard distance matrix
+OTUbeta <- vegdist(OTU3, method="jaccard", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
+# Now, convert to long-form, and export for use in questions of beta diversity. 
+OTUbeta<-as.matrix(OTUbeta)
+OTUbeta<-as.data.frame(OTUbeta)
+dist_long <- melt(as.matrix(OTUbeta))
 write.csv(dist_long, "OTU3_jaccard.csv", quote=F, row.names=F)
+
+# Mantel test for spatial autocorrelation based on 3% radius OTU matrix 
+# FIrst, join the OTU3 data with the site data... 
+mantel<-OTU3
+mantel$my_ID<-rownames(OTU3)
+mantel<-merge(mantel, site_data, by="my_ID")
+mantel<-mantel[,-1]
+# Now, iterate through each site type
+for (X in 1:length(unique(mantel$Site))){
+  SITE <- unique(mantel$Site)[X]
+  # Subset OTU matrix and coordinates for that site type
+  INDICES <- which(mantel$Site==SITE)
+  SUB_MAT <- mantel[INDICES,INDICES]
+  SUB_MAT[1:ncol(SUB_MAT)] <- lapply(SUB_MAT[1:ncol(SUB_MAT)], as.numeric)
+  SUB_COORDS <- mantel[INDICES, c("Latitude", "Longitude")]
+  coords <- cbind(as.numeric(SUB_COORDS$Longitude), as.numeric(SUB_COORDS$Latitude))
+  # Create a distance matrix from subset coordinates
+  dist_matrix <- dist(coords)  
+  # Create a B-C distance matrix from OTUs
+  OTUbeta <- vegdist(SUB_MAT, method="bray", binary=FALSE, na.rm=T)
+  print(paste0("3% OTU and Bray-Curtis at site type ", SITE))
+  print(mantel(dist_matrix, OTUbeta))
+  # Create a Jaccard distance matrix from OTUs
+  OTUbeta <- vegdist(SUB_MAT, method="jaccard", binary=FALSE, na.rm=T)
+  print(paste0("3% OTU and Jaccard at site type ", SITE))
+  print(mantel(dist_matrix, OTUbeta))
+}
 
 
 
