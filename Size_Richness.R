@@ -12,6 +12,7 @@ library(dplyr)
 library(vegan)
 library(lme4)
 library(tidyr)
+library(spdep)
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -33,23 +34,26 @@ KipukaTheme <- theme(axis.title=element_text(size=50),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
 
-
 richness <- read.csv("merged_by_site_2.csv")
 OTUtoKeep<-as.data.frame(t(richness[17:nrow(richness), 33:ncol(richness)]))
 names(OTUtoKeep)[1]<- c("OTU")
 names(OTUtoKeep)[2]<- c("zOTU")
+# Grab coordinates for later use
+coords<-as.data.frame(richness[19:nrow(richness), 27:29])
+names(coords)<-c("Site", "Latitude", "Longitude")
 
 # Exclude blank (NA or empty string) values and create a table for the 17th column
 OTUtoKeep <- OTUtoKeep[grepl("OTU", OTUtoKeep[[1]]), ]
-# Identify the values in column 1 that occur more than once
-values_to_keep <- names(which(table(OTUtoKeep[[1]]) > 1))
 
-# Subset the dataframe to keep only rows where column 1 matches those values
+# ID values in column 1 that occur more than once (3& OTU represented by multiple zOTU), then filter dataframe to those values
+values_to_keep <- names(which(table(OTUtoKeep[[1]]) > 1))
 OTUtoKeep_filtered <- OTUtoKeep[OTUtoKeep[[1]] %in% values_to_keep, ]
 
+# Make sure ricness counts are datatype numeric
 OTUtoKeep_filtered <- OTUtoKeep_filtered %>%
   mutate(across(3:ncol(OTUtoKeep_filtered), as.numeric))
 
+# Create summary_data, an object that will allow us to count zOTUs per site. 
 summary_data <- OTUtoKeep_filtered %>%
   # Ensure columns 3:ncol(OTUtoKeep_filtered) are numeric
   mutate(across(3:ncol(OTUtoKeep_filtered), as.numeric)) %>%
@@ -57,7 +61,7 @@ summary_data <- OTUtoKeep_filtered %>%
   mutate(across(3:ncol(OTUtoKeep_filtered), ~ ifelse(. > 0, 1, 0)))
 names(summary_data)[1]<- c("OTU")
 
-# OTU counts per site...
+# Count OTU richness (counts) per site...
 siteOTU <- as.list(OTUtoKeep %>%
   mutate(across(3:ncol(OTUtoKeep), as.numeric)) %>%
   mutate(across(3:ncol(OTUtoKeep), ~ ifelse(. > 0, 1, 0))) %>%                
@@ -82,6 +86,24 @@ richness_mod_2[, 3:6] <- lapply(richness_mod_2[, 3:6], as.numeric)
 #Weight zoTU by OTU richness per site
 richness_mod_2$zOTU<-richness_mod_2$unweighted_zOTU/richness_mod_2$OTU
 
+# Test for spatial auto-correlation of richness 
+richness_mod_2$my_ID <- as.character(richness_mod_2$my_ID) # correct my_ID, which was coding as a list...
+richness_mod_2<-merge(richness_mod_2, coords, by.x="my_ID", by.y="Site")
+
+# ADD THAT I CHECK IF SITE IS LAVA AND EXIT IF IT IS
+for (X in 1:length(unique(richness_mod_2$Site))){
+        SITE <- length(unique(richness_mod_2$Site))[X]
+        SUBSET <- richness_mod_2[richness_mod_2$Site==SITE,]
+        coords <- cbind(as.numeric(SUBSET$Longitude), as.numeric(SUBSET$Latitude))
+        nb <- knn2nb(knearneigh(coords, k = 5))  # Create neighborhood structure
+        listw <- nb2listw(nb, style = "W")  
+        # First, let's test 3% OTU richness... 
+        print(paste0("Moran test for 3% radius OTU and", SITE))
+        moran.test(SUBSET$OTU, listw) # 
+        # Now, let's test zOTU richness... 
+        print(paste0("Moran test for zOTU and", SITE))
+        moran.test(SUBSET$zOTU, listw) # 
+}
 #################################
 # look at zOTU : 3% radius OTU correlation:
 
