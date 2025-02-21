@@ -92,18 +92,32 @@ richness_mod_2<-merge(richness_mod_2, coords, by.x="my_ID", by.y="Site")
 
 # ADD THAT I CHECK IF SITE IS LAVA AND EXIT IF IT IS
 for (X in 1:length(unique(richness_mod_2$Site))){
-        SITE <- length(unique(richness_mod_2$Site))[X]
+        SITE <- unique(richness_mod_2$Site)[X]
+        if (SITE == "lava") {
+                next  # Skip this iteration if SITE is "lava"
+            }
         SUBSET <- richness_mod_2[richness_mod_2$Site==SITE,]
         coords <- cbind(as.numeric(SUBSET$Longitude), as.numeric(SUBSET$Latitude))
-        nb <- knn2nb(knearneigh(coords, k = 5))  # Create neighborhood structure
+        # Ensure k is valid (at least 1 neighbor)
+        k_value <- min(5, nrow(SUBSET) - 1)
+        nb <- knn2nb(knearneigh(coords, k = k_value))  # Create neighborhood structure
         listw <- nb2listw(nb, style = "W")  
         # First, let's test 3% OTU richness... 
-        print(paste0("Moran test for 3% radius OTU and", SITE))
-        moran.test(SUBSET$OTU, listw) # 
+        print(paste0("Moran test for 3% radius OTU and ", SITE))
+        print(moran.test(SUBSET$OTU, listw)) # 
         # Now, let's test zOTU richness... 
-        print(paste0("Moran test for zOTU and", SITE))
-        moran.test(SUBSET$zOTU, listw) # 
+        print(paste0("Moran test for zOTU and ", SITE))
+        print(moran.test(SUBSET$zOTU, listw)) # 
 }
+#Moran’s I statistic: Ranges from -1 to +1
+#~1 → Strong positive spatial autocorrelation (similar values cluster together)
+#0 → No spatial autocorrelation (random spatial distribution)
+#~-1 → Strong negative spatial autocorrelation (neighboring values are dissimilar)
+#p-value:
+#p < 0.05 → Significant spatial autocorrelation (reject null hypothesis of random spatial pattern)
+#p > 0.05 → No significant spatial pattern
+
+
 #################################
 # look at zOTU : 3% radius OTU correlation:
 
