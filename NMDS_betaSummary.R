@@ -15,6 +15,8 @@ library(vegan)
 #BiocManager::install("phyloseq")
 library(phyloseq)
 library(tidyr)
+library(vegan)
+
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -50,6 +52,11 @@ names(richness) <- richness[18,]
 richness <- richness[19:nrow(richness),]
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))
 richness$Site<-gsub("Stainbeck","Stainback",as.character(richness$Site))
+
+# Grab coordinates for later use
+coords<-as.data.frame(richness[19:nrow(richness), 27:29])
+names(coords)<-c("Site", "Latitude", "Longitude")
+
 # beta diversity for 3 % OTU for within-area
 otu <- read.csv("OTU3_Bray.csv")
 # beta diversity for zOTU for within-area
@@ -61,7 +68,7 @@ nmds$Site<-gsub("Stainbeck","Stainback",as.character(nmds$Site))
 
 #######
 
-#Wrangel geographic distances
+#Wrangle geographic distances
 rownames(geo_dist) <- geo_dist[,1]
 geo_dist <- geo_dist[,-1]
 #remove x from all the column names
@@ -116,6 +123,16 @@ zOTUbeta <- zOTUbeta[zOTUbeta$Var2 != zOTUbeta$Var1,]
 
 zOTUbeta <- zOTUbeta %>%
   arrange(Var2, Var1)
+
+
+
+
+# Mantel test for spatial autocorrelation... 
+dist_matrix <- dist(coords)
+comp_matrix <- vegdist(data$species_composition, method = "bray")
+mantel(dist_matrix, comp_matrix)
+
+
 
 
 
