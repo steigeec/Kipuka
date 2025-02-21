@@ -7,16 +7,15 @@ library(cowplot)
 library(tidyverse)
 library(scales)
 library(mgcv)
-#install.packages("remotes")
-#remotes::install_github("Jtrachsel/funfuns")
-library(funfuns)
 library(BiocManager)
 library(vegan)
 #BiocManager::install("phyloseq")
 library(phyloseq)
 library(tidyr)
 library(vegan)
-
+#install.packages("remotes")
+#remotes::install_github("Jtrachsel/funfuns")
+library(funfuns)
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -43,7 +42,6 @@ KipukaTheme <- theme(axis.title=element_text(size=70),
         legend.box.background = element_rect(fill = "white", color = "black"), 
         legend.spacing.y = unit(0.1,"cm")) 
 
-                   
 #################################################################################
 # Read in required data... 
 
@@ -123,19 +121,6 @@ zOTUbeta <- zOTUbeta[zOTUbeta$Var2 != zOTUbeta$Var1,]
 
 zOTUbeta <- zOTUbeta %>%
   arrange(Var2, Var1)
-
-
-
-
-# Mantel test for spatial autocorrelation... 
-dist_matrix <- dist(coords)
-comp_matrix <- vegdist(data$species_composition, method = "bray")
-mantel(dist_matrix, comp_matrix)
-
-
-
-
-
 
 #############################################################################
 # Compare the dissimilarity within small edges to that within big edges,
