@@ -35,16 +35,16 @@ OTUbeta <- vegdist(OTU3, method="bray", binary=FALSE, diag=FALSE, upper=FALSE, n
 # Now, convert to long-form, and export for use in questions of beta diversity. 
 OTUbeta<-as.matrix(OTUbeta)
 OTUbeta<-as.data.frame(OTUbeta)
-dist_long <- melt(as.matrix(OTUbeta))
-write.csv(dist_long, "OTU3_Bray.csv", quote=F, row.names=F)
+dist_long_3OTU <- melt(as.matrix(OTUbeta))
+write.csv(dist_long_3OTU, "OTU3_Bray.csv", quote=F, row.names=F)
 
 # Create Jaccard distance matrix
 OTUbeta <- vegdist(OTU3, method="jaccard", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
 # Now, convert to long-form, and export for use in questions of beta diversity. 
 OTUbeta<-as.matrix(OTUbeta)
 OTUbeta<-as.data.frame(OTUbeta)
-dist_long <- melt(as.matrix(OTUbeta))
-write.csv(dist_long, "OTU3_jaccard.csv", quote=F, row.names=F)
+dist_long_3OTU <- melt(as.matrix(OTUbeta))
+write.csv(dist_long_3OTU, "OTU3_jaccard.csv", quote=F, row.names=F)
 
 # Mantel test for spatial autocorrelation based on 3% radius OTU matrix 
 # FIrst, join the OTU3 data with the site data... 
@@ -95,10 +95,8 @@ write.csv(dist_long, "zOTU_Bray.csv", quote=F, row.names=F)
 zOTUbeta <- vegdist(OTUtoKeep_filtered, method="jaccard", binary=FALSE, diag=FALSE, upper=FALSE, na.rm=T)
 zOTUbeta<-as.matrix(zOTUbeta)
 zOTUbeta<-as.data.frame(zOTUbeta)
-dist_long <- melt(as.matrix(zOTUbeta))
+dist_long_zOTU <- melt(as.matrix(zOTUbeta))
 write.csv(dist_long, "zOTU_jaccard.csv", quote=F, row.names=F)
-
-
 
 
 
