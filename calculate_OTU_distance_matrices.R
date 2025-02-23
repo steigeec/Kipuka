@@ -57,7 +57,7 @@ for (X in 1:length(unique(mantel$Site))){
   SITE <- unique(mantel$Site)[X]
   # Subset OTU matrix and coordinates for that site type
   INDICES <- which(mantel$Site==SITE)
-  SUB_MAT <- mantel[INDICES,INDICES]
+  SUB_MAT <- mantel[INDICES,]
   SUB_MAT[1:ncol(SUB_MAT)] <- lapply(SUB_MAT[1:ncol(SUB_MAT)], as.numeric)
   SUB_COORDS <- mantel[INDICES, c("Latitude", "Longitude")]
   coords <- cbind(as.numeric(SUB_COORDS$Longitude), as.numeric(SUB_COORDS$Latitude))
@@ -97,6 +97,33 @@ zOTUbeta<-as.matrix(zOTUbeta)
 zOTUbeta<-as.data.frame(zOTUbeta)
 dist_long_zOTU <- melt(as.matrix(zOTUbeta))
 write.csv(dist_long, "zOTU_jaccard.csv", quote=F, row.names=F)
+
+# Mantel test for spatial autocorrelation based on 3% radius OTU matrix 
+# FIrst, join the OTU3 data with the site data... 
+mantel<-OTUtoKeep_filtered
+mantel$my_ID<-rownames(OTUtoKeep_filtered)
+mantel<-merge(mantel, site_data, by="my_ID")
+mantel<-mantel[,-1]
+# Now, iterate through each site type
+for (X in 1:length(unique(mantel$Site))){
+  SITE <- unique(mantel$Site)[X]
+  # Subset OTU matrix and coordinates for that site type
+  INDICES <- which(mantel$Site==SITE)
+  SUB_MAT <- mantel[INDICES,]
+  SUB_MAT[1:ncol(SUB_MAT)] <- lapply(SUB_MAT[1:ncol(SUB_MAT)], as.numeric)
+  SUB_COORDS <- mantel[INDICES, c("Latitude", "Longitude")]
+  coords <- cbind(as.numeric(SUB_COORDS$Longitude), as.numeric(SUB_COORDS$Latitude))
+  # Create a distance matrix from subset coordinates
+  dist_matrix <- dist(coords)  
+  # Create a B-C distance matrix from OTUs
+  OTUbeta <- vegdist(SUB_MAT, method="bray", binary=FALSE, na.rm=T)
+  print(paste0("3% OTU and Bray-Curtis at site type ", SITE))
+  print(mantel(dist_matrix, OTUbeta))
+  # Create a Jaccard distance matrix from OTUs
+  OTUbeta <- vegdist(SUB_MAT, method="jaccard", binary=FALSE, na.rm=T)
+  print(paste0("3% OTU and Jaccard at site type ", SITE))
+  print(mantel(dist_matrix, OTUbeta))
+}
 
 
 
