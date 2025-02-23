@@ -89,8 +89,6 @@ richness_mod_2$zOTU<-richness_mod_2$unweighted_zOTU/richness_mod_2$OTU
 # Test for spatial auto-correlation of richness 
 richness_mod_2$my_ID <- as.character(richness_mod_2$my_ID) # correct my_ID, which was coding as a list...
 richness_mod_2<-merge(richness_mod_2, coords, by.x="my_ID", by.y="Site")
-
-# ADD THAT I CHECK IF SITE IS LAVA AND EXIT IF IT IS
 for (X in 1:length(unique(richness_mod_2$Site))){
         SITE <- unique(richness_mod_2$Site)[X]
         if (SITE == "lava") {
