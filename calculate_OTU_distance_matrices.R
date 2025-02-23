@@ -66,11 +66,7 @@ for (X in 1:length(unique(mantel$Site))){
   # Create a B-C distance matrix from OTUs
   OTUbeta <- vegdist(SUB_MAT, method="bray", binary=FALSE, na.rm=T)
   print(paste0("3% OTU and Bray-Curtis at site type ", SITE))
-  print(mantel(dist_matrix, OTUbeta))
-  # Create a Jaccard distance matrix from OTUs
-  OTUbeta <- vegdist(SUB_MAT, method="jaccard", binary=FALSE, na.rm=T)
-  print(paste0("3% OTU and Jaccard at site type ", SITE))
-  print(mantel(dist_matrix, OTUbeta))
+  print(mantel(OTUbeta, dist_matrix))
 }
 
 
@@ -78,10 +74,10 @@ for (X in 1:length(unique(mantel$Site))){
 
 # zOTU
 # Identify the values in column 1 that occur more than once
-values_to_keep <- names(which(table(OTUtoKeep[[1]]) > 1))
+#values_to_keep <- names(which(table(OTUtoKeep[[1]]) > 1))
 
 # Subset the dataframe to keep only rows where column 1 matches those values
-OTUtoKeep_filtered <- OTUtoKeep[OTUtoKeep[[1]] %in% values_to_keep, ]
+OTUtoKeep_filtered <- OTUtoKeep#[OTUtoKeep[[1]] %in% values_to_keep, ]
 OTUtoKeep_filtered <- OTUtoKeep_filtered[,-c(1,2)]
 OTUtoKeep_filtered <- as.data.frame(t(OTUtoKeep_filtered))
 OTUtoKeep_filtered[] <- lapply(OTUtoKeep_filtered, as.numeric)
@@ -98,31 +94,34 @@ zOTUbeta<-as.data.frame(zOTUbeta)
 dist_long_zOTU <- melt(as.matrix(zOTUbeta))
 write.csv(dist_long, "zOTU_jaccard.csv", quote=F, row.names=F)
 
-# Mantel test for spatial autocorrelation based on 3% radius OTU matrix 
+# Mantel test for spatial autocorrelation based on zOTU matrix 
 # FIrst, join the OTU3 data with the site data... 
-mantel<-OTUtoKeep_filtered
-mantel$my_ID<-rownames(OTUtoKeep_filtered)
-mantel<-merge(mantel, site_data, by="my_ID")
-mantel<-mantel[,-1]
+zantel<-OTUtoKeep_filtered
+zantel$my_ID<-rownames(OTUtoKeep_filtered)
+zantel<-merge(zantel, site_data, by="my_ID")
+zantel<-zantel[,-1]
 # Now, iterate through each site type
-for (X in 1:length(unique(mantel$Site))){
-  SITE <- unique(mantel$Site)[X]
+for (X in 1:length(unique(zantel$Site))){
+  SITE <- unique(zantel$Site)[X]
   # Subset OTU matrix and coordinates for that site type
-  INDICES <- which(mantel$Site==SITE)
-  SUB_MAT <- mantel[INDICES,]
+  INDICES <- which(zantel$Site==SITE)
+  SUB_MAT <- zantel[INDICES,]
   SUB_MAT[1:ncol(SUB_MAT)] <- lapply(SUB_MAT[1:ncol(SUB_MAT)], as.numeric)
-  SUB_COORDS <- mantel[INDICES, c("Latitude", "Longitude")]
+  SUB_COORDS <- zantel[INDICES, c("Latitude", "Longitude")]
   coords <- cbind(as.numeric(SUB_COORDS$Longitude), as.numeric(SUB_COORDS$Latitude))
   # Create a distance matrix from subset coordinates
   dist_matrix <- dist(coords)  
-  # Create a B-C distance matrix from OTUs
-  OTUbeta <- vegdist(SUB_MAT, method="bray", binary=FALSE, na.rm=T)
-  print(paste0("3% OTU and Bray-Curtis at site type ", SITE))
-  print(mantel(dist_matrix, OTUbeta))
+  # Subset 3OTU matrix also for that site type
+  INDICES <- which(mantel$Site==SITE)
+  MAT3 <- mantel[INDICES,]
+  MAT3[1:ncol(MAT3)] <- lapply(MAT3[1:ncol(MAT3)], as.numeric)
   # Create a Jaccard distance matrix from OTUs
-  OTUbeta <- vegdist(SUB_MAT, method="jaccard", binary=FALSE, na.rm=T)
-  print(paste0("3% OTU and Jaccard at site type ", SITE))
-  print(mantel(dist_matrix, OTUbeta))
+  zOTUdist <- vegdist(SUB_MAT, method="jaccard", binary=FALSE, na.rm=T)
+  OTUdist <- vegdist(MAT3, method="jaccard", binary=FALSE, na.rm=T)
+  print(paste0("zOTU and Jaccard at site type ", SITE))
+  print(mantel(dist_matrix, zOTUdist))
+  partial_mantel_result <- mantel.partial(zOTUdist, dist_matrix, OTUdist, method = "pearson", permutations = 999)
+  print(partial_mantel_result)
 }
 
 
