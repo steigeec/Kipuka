@@ -11,6 +11,8 @@ library(lmtest)
 library(dplyr)
 library(vegan)
 library(lme4)
+library(MASS)
+
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -184,36 +186,50 @@ for (j in 1:length(unique(richness_mod_0$variable))) {
                 # Fit linear regression model
                 glm_model <- glm(value ~ log10(Area), data = test, family = poisson)
                 # pseudo R2
-                null_model <- glm(value ~ 1, data = test, family = poisson)
-                McFadden_R2 <- 1 - (glm_model$deviance / glm(null_model)$deviance)
-                print(paste0("McFadden r2 is ",McFadden_R2))                
-                # 1. Linearity Check (Use Residuals vs. Fitted plot)
-                par(mar = c(1, 1, 1, 1))
-                plot(glm_model, which = 1)                
-                # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
-                plot(glm_model, which = 3)
-                # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
-                qqnorm(resid(glm_model))
-                qqline(resid(glm_model))
+                null_model <- glm(value ~ 1, data = test, family = poisson)             
                 # 4. Overdispersion -- if the ratio is much larger than 1, there might be overdispersion
                 df_resid <- df.residual(glm_model)
                 dev_over_df <- deviance(glm_model) / df_resid
                 print(paste0("overdispersion ratio is ",dev_over_df))
-                # 5. Influence and outliers -- cook's distance                
-                infl <- influence.measures(glm_model)
-                cooks_d <- cooks.distance(glm_model)
-                # Plot Cook's distances
-                plot(cooks_d, type = "h", 
-                     main = "Cook's Distances", 
-                     ylab = "Cook's Distance", 
-                     xlab = "Observation Index",
-                     col = "blue")    
-      
-                # 6. goodness-of-fit tests, such as the Pearson or deviance goodness-of-fit tests. A high p-value suggests good fit.
-                p<-pchisq(deviance(glm_model), df = df_resid, lower.tail = FALSE)
-                print(paste0("goodness of fit p-val is ",p))             
-                print(paste0("linear regression for ", level, type))
-                print(summary(glm_model))                  
+                if (dev_over_df>1) {
+                        print("was overispersed... used negative binomial model instead")
+                        glm_nb <- glm.nb(value ~ log10(Area), data = test)
+                        # 1. Linearity Check (Use Residuals vs. Fitted plot)
+                        par(mar = c(1, 1, 1, 1))
+                        plot(glm_nb, which = 1)                
+                        # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
+                        plot(glm_nb, which = 3)
+                        # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
+                        qqnorm(resid(glm_nb))
+                        qqline(resid(glm_nb))
+                        print(summary(glm_nb))
+                        null_nb <- glm.nb(value ~ 1, data = test)  # Null model (intercept only)
+                        num_params <- length(coef(glm_nb))  # Number of parameters
+                        Adj_McFadden_R2 <- 1 - ((glm_nb$deviance - num_params) / null_nb$deviance)
+                        print(paste0("mcfadden's adjusted r2 is", Adj_McFadden_R2))
+                }
+                else {
+                        # 1. Linearity Check (Use Residuals vs. Fitted plot)
+                        par(mar = c(1, 1, 1, 1))
+                        plot(glm_model, which = 1)                
+                        # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
+                        plot(glm_model, which = 3)
+                        # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
+                        qqnorm(resid(glm_model))
+                        qqline(resid(glm_model))
+                        # 5. Influence and outliers -- cook's distance                
+                        infl <- influence.measures(glm_model)
+                        cooks_d <- cooks.distance(glm_model)
+                        # Plot Cook's distances
+                        plot(cooks_d, type = "h", main = "Cook's Distances", ylab = "Cook's Distance", xlab = "Observation Index", col = "blue")    
+                        # 6. goodness-of-fit tests, such as the Pearson or deviance goodness-of-fit tests. A high p-value suggests good fit.
+                        p<-pchisq(deviance(glm_model), df = df_resid, lower.tail = FALSE)
+                        print(paste0("goodness of fit p-val is ",p))             
+                        print(paste0("linear regression for ", level, type))
+                        print(summary(glm_model))  
+                        McFadden_R2 <- 1 - (glm_model$deviance / glm(null_model)$deviance)
+                        print(paste0("McFadden r2 is ",McFadden_R2))   
+                }
         }
 }
 
