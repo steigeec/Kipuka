@@ -258,7 +258,7 @@ summary(model)
 
 ###############################################################################################
 # Linear regression for size vs. richness
-
+# GLM VERSION
 for (j in 1:length(unique(richness_mod_2$variable))) {
         level<-unique(richness_mod_2$variable)[j]
         print(level)        
@@ -267,7 +267,7 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 print(type)
                 test<-richness_mod_2[richness_mod_2$Site==type & richness_mod_2$variable==level,]
                 # First, test assumptions:  
-                # Fit linear regression model
+                # Fit linear regression model      
                 glm_model <- glm(value ~ log10(Area), data = test, family = poisson)
                 # pseudo R2
                 null_model <- glm(value ~ 1, data = test, family = poisson)
@@ -293,11 +293,7 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 infl <- influence.measures(glm_model)
                 cooks_d <- cooks.distance(glm_model)
                 # Plot Cook's distances
-                plot(cooks_d, type = "h", 
-                     main = "Cook's Distances", 
-                     ylab = "Cook's Distance", 
-                     xlab = "Observation Index",
-                     col = "blue")
+                plot(cooks_d, type = "h", main = "Cook's Distances", ylab = "Cook's Distance", xlab = "Observation Index",col = "blue")
                 # Add a reference line for a threshold (commonly 4/n)
                 abline(h = 4 / nrow(glm_model$model), col = "red", lty = 2)                
                 which(cooks_d > (4 / nrow(glm_model$model)))
@@ -306,6 +302,47 @@ for (j in 1:length(unique(richness_mod_2$variable))) {
                 print(paste0("goodness of fit p-val is ",p))                  
                 print(paste0("linear regression for ", level, type))
                 print(summary(glm_model))                  
+        }
+}
+
+# gam                                                             
+for (j in 1:length(unique(richness_mod_2$variable))) {
+        level<-unique(richness_mod_2$variable)[j]
+        print(level)        
+        for (i in 1:length(c("Center", "Edge"))){  
+                type<-c("Center", "Edge")[i]
+                print(type)
+                test<-richness_mod_2[richness_mod_2$Site==type & richness_mod_2$variable==level,]
+                # First, test assumptions:  
+                # Fit linear regression model
+                gam_model <- gam(value ~ s(log10(Area)), family = nb(), data = test)
+                null_model <- gam(value ~ 1, data = test, family = nb())
+                plot(gam_model)
+                # check for overdisepersion... 
+                rdf <- df.residual(gam_model)
+                deviance <- deviance(gam_model)
+                # Overdispersion ratio
+                ratio <- deviance / rdf      # should not be >1.5
+                # p-value: if p < 0.05, significant overdispersion
+                p_value <- pchisq(deviance, df = rdf, lower.tail = FALSE)
+                cat("Overdispersion ratio:", ratio, "\n")
+                cat("p-value:", p_value, "\n")
+                # Check assumptions
+                # 1. Residuals vs Fitted Values Plot
+                par(mar = c(1, 1, 1, 1))                         
+                plot(residuals(gam_model) ~ fitted(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values",ylab = "Residuals")
+                abline(h = 0, col = "red", lty = 2)
+                # 2. Normal Q-Q Plot
+                qqnorm(residuals(gam_model))
+                qqline(residuals(gam_model), col = "red")
+                # 3. Scale-Location (Spread-Location) Plot
+                plot(sqrt(abs(residuals(gam_model))) ~ fitted(gam_model), main = "Scale-Location Plot", xlab = "Fitted Values", ylab = "sqrt(|Residuals|)")
+                abline(h = 0, col = "red", lty = 2)
+                # 4. Residuals vs Leverage Plot (Cook's distance)
+                plot(hatvalues(gam_model), cooks.distance(gam_model), main = "Residuals vs Leverage", xlab = "Leverage", ylab = "Cook's distance")
+                abline(h = 4/length(CE[CE$metric=="3% OTU",]$value), col = "red", lty = 2)
+                # Print summary of the linear model
+                print(summary(gam_model))      
         }
 }
 
