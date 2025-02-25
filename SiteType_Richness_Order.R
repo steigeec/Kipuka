@@ -171,9 +171,25 @@ for (i in 1:length(unique(richness_mod_0$variable))){
 
 ################################################################################################
 
-# Regressions against size...
-richness_mod_0 <- richness_mod_0[richness_mod_0$Site %in% c("Center", "Edge"),]
-richness_mod_0$Area <- as.numeric(richness_mod_0$Area)
+# REGRESS RICHNESS BY SIZE
+
+# Create a data version with unweighted zOTU and 3% OTU
+row.names(zOTUotu)<-paste0(zOTUotu[,1], "_zOTU")
+zOTUotu <- zOTUotu[,-1]
+row.names(siteOTU)<-paste0(row.names(siteOTU), "_3OTU")
+richness_mod <- as.data.frame(cbind(richness$X[19:nrow(richness)], richness$X.8[19:nrow(richness)], richness$X.9[19:nrow(richness)], t(siteOTU)))
+names(richness_mod)[1:3] <- c("my_ID", "Site", "Area")
+richness_mod$Area<-as.numeric(gsub(",","",as.character(richness_mod$Area)))
+richness_mod[, 4:ncol(richness_mod)] <- lapply(richness_mod[, 4:ncol(richness_mod)], as.numeric)
+richness_mod <- richness_mod[richness_mod$Site %in% c("Center", "Edge"),]
+richness_mod$Area <- as.numeric(richness_mod$Area)
+richness_mod_4 <- as.data.frame(cbind(richness$X[19:nrow(richness)], richness$X.8[19:nrow(richness)], richness$X.9[19:nrow(richness)], t(zOTUotu)))
+names(richness_mod_4)[1:3] <- c("my_ID", "Site", "Area")
+richness_mod_4$Area<-as.numeric(gsub(",","",as.character(richness_mod_4$Area)))
+richness_mod_4[, 4:ncol(richness_mod)] <- lapply(richness_mod_4[, 4:ncol(richness_mod_4)], as.numeric)
+richness_mod_4 <- richness_mod_4[richness_mod_4$Site %in% c("Center", "Edge"),]
+richness_mod_4$Area <- as.numeric(richness_mod_4$Area)
+
 
 for (j in 1:length(unique(richness_mod_0$variable))) {
         level<-unique(richness_mod_0$variable)[j]
@@ -191,7 +207,7 @@ for (j in 1:length(unique(richness_mod_0$variable))) {
                 df_resid <- df.residual(glm_model)
                 dev_over_df <- deviance(glm_model) / df_resid
                 print(paste0("overdispersion ratio is ",dev_over_df))
-                if (dev_over_df>1) {
+                if (dev_over_df>1.5 | dev_over_df<0.5) {
                         print("was overispersed... used negative binomial model instead")
                         glm_nb <- glm.nb(value ~ log10(Area), data = test)
                         # 1. Linearity Check (Use Residuals vs. Fitted plot)
@@ -206,7 +222,7 @@ for (j in 1:length(unique(richness_mod_0$variable))) {
                         null_nb <- glm.nb(value ~ 1, data = test)  # Null model (intercept only)
                         num_params <- length(coef(glm_nb))  # Number of parameters
                         Adj_McFadden_R2 <- 1 - ((glm_nb$deviance - num_params) / null_nb$deviance)
-                        print(paste0("mcfadden's adjusted r2 is", Adj_McFadden_R2))
+                        print(paste0("mcfadden's adjusted r2 is ", Adj_McFadden_R2))
                 }
                 else {
                         # 1. Linearity Check (Use Residuals vs. Fitted plot)
@@ -227,8 +243,9 @@ for (j in 1:length(unique(richness_mod_0$variable))) {
                         print(paste0("goodness of fit p-val is ",p))             
                         print(paste0("linear regression for ", level, type))
                         print(summary(glm_model))  
-                        McFadden_R2 <- 1 - (glm_model$deviance / glm(null_model)$deviance)
-                        print(paste0("McFadden r2 is ",McFadden_R2))   
+                        num_params <- length(coef(glm_nb))  # Number of parameters
+                        Adj_McFadden_R2 <- 1 - ((glm_nb$deviance - num_params) / null_nb$deviance)
+                        print(paste0("mcfadden's adjusted r2 is ", Adj_McFadden_R2))
                 }
         }
 }
