@@ -14,6 +14,7 @@ library(lme4)
 library(tidyr)
 library(spdep)
 library(mgcv)
+library(MASS)
 
 #Establish some color schemes up top to apply to all
 #Colors are from color-blind friendly, rcartocolor "Safe" palette
@@ -374,8 +375,6 @@ for (i in 1:length(c("Center", "Edge"))){
         which(cooks_d > (4 / nrow(lm_model$model)))
         print(summary(lm_model)) 
 
-        #r2
-        print(paste0("adjusted r2 is", summary(lm_model)$adj.r.squared))
 }
 
 
