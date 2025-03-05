@@ -80,8 +80,8 @@ colnames(otu)[3:ncol(otu)] <- gsub("value", "OTU", colnames(otu)[3:ncol(otu)])
 zOTUbeta <- merge(zOTUbeta[,3:ncol(zOTUbeta)], otu, by="index")
 
 # Join on size data, because we will only use kipuka > 5000 m^2
-zOTUbeta <- merge (zOTUbeta, richness[,c(1,9,10)], by.x="Var1", by.y="ID", all.x=T)
-zOTUbeta <- merge (zOTUbeta, richness[,c(1,9,10)], by.x="Var2", by.y="ID", all.x=T)
+zOTUbeta <- merge (zOTUbeta, richness[,c(1,9,10)], by.x="Var1", by.y="Name", all.x=T)
+zOTUbeta <- merge (zOTUbeta, richness[,c(1,9,10)], by.x="Var2", by.y="Name", all.x=T)
 
 # We need a category for coloring our box and whisker plots... 
 zOTUbeta <- zOTUbeta %>%
