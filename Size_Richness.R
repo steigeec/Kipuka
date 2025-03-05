@@ -273,78 +273,78 @@ for (i in 1:length(c("Center", "Edge"))){
         print("3% OTU")
         test<-richness_mod[richness_mod$Site==type & richness_mod$variable=="SROTU",]
         # Fit linear regression model      
-        glm_model <- glm(value ~ log10(Area), data = test, family = poisson)
-        null_model <- glm(value ~ 1, data = test, family = poisson)
+        model <- glm(value ~ log10(Area), data = test, family = poisson)
+        null <- glm(value ~ 1, data = test, family = poisson)
         # Overdispersion -- if the ratio is much larger than 1, there might be overdispersion
-        dispersion_ratio <- sum(residuals(glm_model, type = "pearson")^2) / df.residual(glm_model)
+        dispersion_ratio <- sum(residuals(model, type = "pearson")^2) / df.residual(model)
         print(paste0("dispersion ratio is ",dispersion_ratio))
         
         if (dispersion_ratio>1.5) {
                 print("was over-dispersed... used negative binomial model instead")
-                glm_nb <- glm.nb(value ~ log10(Area), data = test)
-                null_nb <- glm.nb(value ~ 1, data = test)  # Null model (intercept only)                
+                model <- glm.nb(value ~ log10(Area), data = test)
+                null <- glm.nb(value ~ 1, data = test)  # Null model (intercept only)                
                 # 1. Linearity Check (Use Residuals vs. Fitted plot)
                 par(mar = c(1, 1, 1, 1))
-                plot(glm_nb, which = 1)                
+                plot(model, which = 1)                
                 # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
-                plot(glm_nb, which = 3)
+                plot(model, which = 3)
                 # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
-                qqnorm(resid(glm_nb))
-                qqline(resid(glm_nb))
-                print(summary(glm_nb))
+                qqnorm(resid(model))
+                qqline(resid(model))
+                print(summary(model))
                 # Calculate adjusted McFadden's r2
-                adjusted_r2_nb <- 1 - (logLik(glm_nb) / logLik(null_nb))
+                adjusted_r2_nb <- 1 - (logLik(model) / logLik(null))
                 print(paste0("mcfadden's r2 is ", adjusted_r2_nb))
                 }
         else if (dispersion_ratio<0.5) {
                 print("was under-dispersed... used gam instead")
-                gam_model <- gam(value ~ s(log10(Area)), family = poisson, data = test)
-                null_gam <- gam(value ~ 1, family = poisson, data = test)  # Null model (intercept only)                
-                print(summary(gam_model))
+                model <- gam(value ~ s(log10(Area)), family = poisson, data = test)
+                null <- gam(value ~ 1, family = poisson, data = test)  # Null model (intercept only)                
+                print(summary(model))
                 # 1. Linearity Check (Use Residuals vs. Fitted plot)
-                plot(gam_model, residuals = TRUE, pch = 20, main = "Smoothed Relationship: log10(Area)")                
+                plot(model, residuals = TRUE, pch = 20, main = "Smoothed Relationship: log10(Area)")                
                 # 3. Homoscedasticity Check (Use Residuals vs. Fitted plot)
-                plot(fitted(gam_model), residuals(gam_model), main = "Residuals vs Fitted", xlab = "Fitted Values", ylab = "Residuals", pch = 20)
+                plot(fitted(model), residuals(model), main = "Residuals vs Fitted", xlab = "Fitted Values", ylab = "Residuals", pch = 20)
                 abline(h = 0, col = "red", lty = 2)
                 # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
-                qqnorm(residuals(gam_model))
-                qqline(residuals(gam_model), col = "red") 
+                qqnorm(residuals(model))
+                qqline(residuals(model), col = "red") 
                 # Calculate adjusted McFadden's r2
-                logLik_gam <- logLik(gam_model)[1]  # Extract log-likelihood
-                logLik_null <- logLik(null_gam)[1]  # Extract log-likelihood of null model
-                k_gam <- gam_model$df.residual  # Effective degrees of freedom
+                logLik_gam <- logLik(model)[1]  # Extract log-likelihood
+                logLik_null <- logLik(null)[1]  # Extract log-likelihood of null model
+                k_gam <- model$df.residual  # Effective degrees of freedom
                 # Compute Adjusted McFadden's R²
-                adjusted_r2_gam <- 1 - (logLik(glm_nb) / logLik(null_gam))
+                adjusted_r2_gam <- 1 - (logLik(model) / logLik(null))
                 print(paste0("mcfadden's r2 is: ", round(adjusted_r2_gam, 4)))
         }
         else {               
         # 1. Linearity Check (Use Residuals vs. Fitted plot)
         # points should be randomly scattered above/below
         par(mar = c(1, 1, 1, 1))
-        plot(glm_model, which = 1)                
+        plot(model, which = 1)                
         # 2. Homoscedasticity Check (Use Residuals vs. Fitted plot)
         # no funnel or cone shape should be visible here
-        plot(glm_model, which = 3)
+        plot(model, which = 3)
         # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
         # points should fall along the line
-        qqnorm(resid(glm_model))
-        qqline(resid(glm_model))
+        qqnorm(resid(model))
+        qqline(resid(model))
         # 5. Influence and outliers -- cook's distance                
-        infl <- influence.measures(glm_model)
-        cooks_d <- cooks.distance(glm_model)
+        infl <- influence.measures(model)
+        cooks_d <- cooks.distance(model)
         # Plot Cook's distances
         plot(cooks_d, type = "h", main = "Cook's Distances", ylab = "Cook's Distance", xlab = "Observation Index",col = "blue")
         # Add a reference line for a threshold (commonly 4/n)
-        abline(h = 4 / nrow(glm_model$model), col = "red", lty = 2)                
-        which(cooks_d > (4 / nrow(glm_model$model)))
+        abline(h = 4 / nrow(model$model), col = "red", lty = 2)                
+        which(cooks_d > (4 / nrow(model$model)))
         # 6. goodness-of-fit tests, such as the Pearson or deviance goodness-of-fit tests. A high p-value suggests good fit.
-        p<-pchisq(deviance(glm_model), df = df_resid, lower.tail = FALSE)
+        p<-pchisq(deviance(model), df = df_resid, lower.tail = FALSE)
         print(paste0("goodness of fit p-val is ",p))                  
         print(paste0("linear regression for ", level, type))
-        print(summary(glm_model)) 
+        print(summary(model)) 
         #McFadden_R2 <- 1 - (glm_model$deviance / glm(null_model)$deviance)
         #print(McFadden_adj_R2)
-        McFadden_adj_R2 <- 1 - (logLik(glm_nb) / logLik(null_model))
+        McFadden_adj_R2 <- 1 - (logLik(model) / logLik(null))
         print(paste0("mcfadden's r2 is ",McFadden_adj_R2)) 
         }
 
@@ -352,28 +352,28 @@ for (i in 1:length(c("Center", "Edge"))){
         print("zOTU")
         test<-richness_mod[richness_mod$Site==type & richness_mod$variable=="zOTU",]
         # Fit linear regression model. Because zOTU is now continuous, we can't use poisson...       
-        lm_model <- lm(value ~ log10(Area), data = test)  # Equivalent to Gaussian GLM
+        model <- lm(value ~ log10(Area), data = test)  # Equivalent to Gaussian GLM
         
         # 1. Linearity Check (Use Residuals vs. Fitted plot)
         # points should be randomly scattered above/below
         par(mar = c(1, 1, 1, 1))
-        plot(lm_model, which = 1)                
+        plot(model, which = 1)                
         # 2. Homoscedasticity Check (Use Residuals vs. Fitted plot)
         # no funnel or cone shape should be visible here
-        plot(lm_model, which = 3)
+        plot(model, which = 3)
         # 3. normality of residuals-- Q-Q plot -- for Poisson models, migt not perfectly follow normal distribution
         # points should fall along the line
-        qqnorm(resid(lm_model))
-        qqline(resid(lm_model))
+        qqnorm(resid(model))
+        qqline(resid(model))
         # 5. Influence and outliers -- cook's distance                
-        infl <- influence.measures(lm_model)
-        cooks_d <- cooks.distance(lm_model)
+        infl <- influence.measures(model)
+        cooks_d <- cooks.distance(model)
         # Plot Cook's distances
         plot(cooks_d, type = "h", main = "Cook's Distances", ylab = "Cook's Distance", xlab = "Observation Index",col = "blue")
         # Add a reference line for a threshold (commonly 4/n)
-        abline(h = 4 / nrow(lm_model$model), col = "red", lty = 2)                
-        which(cooks_d > (4 / nrow(lm_model$model)))
-        print(summary(lm_model)) 
+        abline(h = 4 / nrow(model$model), col = "red", lty = 2)                
+        which(cooks_d > (4 / nrow(model$model)))
+        print(summary(model)) 
 
 }
 
@@ -392,6 +392,9 @@ r2 = format(summary(m)$r.squared, digits = 3)))
 ################################################################################################
 # Plot it 
 
+richness_mod_2$linetype<-"dashed"
+richness_mod_2$linetype[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Center"]<-"solid"
+                                                            
 a <- ggplot() + 
   geom_boxplot(data=richness_mod_2,aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
   facet_wrap(~variable, scales="free", 
@@ -422,15 +425,16 @@ a <- ggplot() +
 b<-ggplot() + 
   geom_smooth(method='lm', 
               data = richness_mod_2[richness_mod_2$Site %in% c("Center", "Edge"),], 
-              aes(x = Area, y = value, colour = Site, fill = Site, linetype = variable, alpha = alpha_value), 
+              aes(x = Area, y = value, colour = Site, fill = Site, linetype = linetype, alpha = linetype), 
               size = 1.5) +  # Set a default alpha of 0.2 for smoothing line
   geom_point(data = richness_mod_2[richness_mod_2$Site %in% c("Center", "Edge"),], 
              aes(x = Area, y = value, colour = Site, shape = variable), 
              size = 4.5, stroke = 3) +  # Use alpha_value for points only
   scale_shape_manual("Site", values = c("zOTU" = 0, "SROTU" = 15), labels = c("zOTU" = "zOTU", "SROTU" = "3% OTU")) +
+  scale_linetype_manual(values = c("solid" = 1, "dashed" = 2)) +
+  scale_alpha_manual(values = c("solid" = 0.4, "dashed" = 0))+                                                          
   scale_colour_manual(values = SiteColors) +
   scale_fill_manual(values = SiteColors) + 
-  scale_alpha_identity() +  # Use alpha_identity to apply the alpha value directly
   scale_x_continuous(trans = 'log10',
                      breaks = trans_breaks('log10', function(x) 10^x),
                      labels = trans_format('log10', math_format(10^.x)))  +                 
