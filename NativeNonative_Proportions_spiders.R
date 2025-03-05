@@ -75,7 +75,7 @@ richness<-richness[19:nrow(richness),]
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))                       
 
 richness<-richness[1:11]
-OTU<-merge(richness, otu, by.x="ID", by.y="Site")
+OTU<-merge(richness, otu, by.x="Name", by.y="Site")
 
 #Order as I want panels to appear in plot
 OTU$variable <- factor(OTU$variable, levels = rev(c("p_nat", "p_non")))                 
@@ -147,7 +147,7 @@ richness<-richness[19:nrow(richness),]
 richness$Area<-as.numeric(gsub(",","",as.character(richness$Area)))                       
 
 richness<-richness[1:11]
-OTU<-merge(richness, otu, by.x="ID", by.y="Site")
+OTU<-merge(richness, otu, by.x="Name", by.y="Site")
 
 #Order as I want panels to appear in plot
 OTU$Site <- factor(OTU$Site, levels = rev(c("Kona","Stainback",  "Center", "Edge", "Lava"))) 
