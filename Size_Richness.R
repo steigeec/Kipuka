@@ -107,7 +107,12 @@ for (X in 1:length(unique(richness_mod_2$Site))){
         print(moran.test(SUBSET$OTU, listw)) # 
         # Now, let's test zOTU richness... 
         print(paste0("Moran test for zOTU and ", SITE))
-        print(moran.test(SUBSET$zOTU, listw)) # 
+        # Step 1: Regress unweighted_zOTU on OTU
+        residual_model <- lm(unweighted_zOTU ~ OTU, data = SUBSET)
+        # Step 2: Extract residuals
+        residuals_subset <- residuals(residual_model)
+        # Step 3: Perform Moran's I test on residuals
+        print(moran.test(residuals_subset, listw))        
 }
 #Moran’s I statistic: Ranges from -1 to +1
 #~1 → Strong positive spatial autocorrelation (similar values cluster together)
