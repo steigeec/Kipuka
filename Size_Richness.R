@@ -401,28 +401,22 @@ richness_mod_2$linetype<-"dashed"
 richness_mod_2$linetype[richness_mod_2$variable=="SROTU" & richness_mod_2$Site=="Center"]<-"solid"
                                                             
 a <- ggplot() + 
-  geom_boxplot(data=richness_mod_2,aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=.25)+
+  geom_boxplot(data=richness_mod_2,aes(x=reorder(Site, value), y=value, fill=Site), color="black", size=1)+
   facet_wrap(~variable, scales="free", 
              labeller = labeller(variable = supp.labs)) +
   scale_fill_manual(values=SiteColors) +
   labs(title="A.", x="") +
   KipukaTheme +
-  theme(strip.text = element_text(size = 7), 
-        axis.text.y = element_text(angle=45, size=8), 
-        axis.text.x = element_text(angle=45, size=8, vjust=0.6), 
-        axis.title.y = element_blank(), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=.25), 
+  theme(strip.text = element_text(size = 25), 
+      axis.text.y = element_text(angle=45, size=25), 
+      axis.text.x = element_text(angle=45, size=25, vjust=0.6), 
+      axis.title.y = element_blank(), 
+      panel.grid.major = element_line(color = "gray70", linetype = "dotted", size = 0.5), 
+      panel.grid.minor = element_line(color = "gray80", linetype = "dotted", size = 0.3), 
       plot.margin = unit(c(0, 0, 0, 0), "cm"), 
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.2), 
-       axis.title=element_text(size=8), 
-        plot.title=element_text(size=8), 
-        legend.text=element_text(size=8, hjust=0.4), 
+       axis.title.x=element_text(size=25), 
+        plot.title=element_text(size=25), 
+        legend.text=element_text(size=25, hjust=0.4), 
         legend.title = element_blank(),
         legend.key.width = unit(0.6,"cm"), 
        legend.position = "none")                           
@@ -431,10 +425,10 @@ b<-ggplot() +
   geom_smooth(method='lm', 
               data = richness_mod_2[richness_mod_2$Site %in% c("Center", "Edge"),], 
               aes(x = Area, y = value, colour = Site, fill = Site, linetype = linetype, alpha = linetype), 
-              size = .5) +  # Set a default alpha of 0.2 for smoothing line
+              size = 1.5) +  # Set a default alpha of 0.2 for smoothing line
   geom_point(data = richness_mod_2[richness_mod_2$Site %in% c("Center", "Edge"),], 
              aes(x = Area, y = value, colour = Site, shape = variable), 
-             size = 1, stroke = .5) +  # Use alpha_value for points only
+             size = 4, stroke = 1) +  # Use alpha_value for points only
   scale_shape_manual("Site", values = c("zOTU" = 0, "SROTU" = 15), labels = c("zOTU" = "zOTU", "SROTU" = "3% OTU")) +
   scale_linetype_manual(values = c("solid" = 1, "dashed" = 2)) +
   scale_alpha_manual(values = c("solid" = 0.4, "dashed" = 0))+                                                          
@@ -448,29 +442,24 @@ b<-ggplot() +
   labs(title = "B.", x = "Kipuka area ("~m^2~")", y = "OTU richness") +
   KipukaTheme +
   guides(color = "none", fill = "none", linetype = "none") + 
-  theme(strip.text = element_text(size = 7), 
-        panel.grid.major = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size=.25), 
+  theme(strip.text = element_text(size = 25), 
+      axis.text.y = element_text(angle=45, size=25), 
+      axis.text.x = element_text(angle=45, size=25, vjust=0.6), 
+      axis.title.y = element_blank(), 
+      panel.grid.major = element_line(color = "gray70", linetype = "dotted", size = 0.5), 
+      panel.grid.minor = element_line(color = "gray80", linetype = "dotted", size = 0.3), 
       plot.margin = unit(c(0, 0, 0, 0), "cm"), 
-      panel.grid.minor = element_line(
-        rgb(105, 105, 105, maxColorValue = 255),
-        linetype = "dotted", 
-        size = 0.2), 
-        axis.title.y = element_text(size = 8, vjust = -0.5, margin = margin(r = 4)), 
-        axis.title.x = element_text(size = 8, vjust = 2, margin = margin(t = 4)), 
-        axis.text.y = element_text(size = 8), 
-        axis.text.x = element_text(size = 8, vjust = 1, hjust=1.2), 
-        plot.title = element_text(size = 8), 
-        legend.text = element_text(size = 8, hjust = 0.5), 
+        axis.title.x = element_text(size = 25, vjust = 2, margin = margin(t = 4)), 
+        plot.title = element_text(size = 25), 
+        legend.text = element_text(size = 25, hjust = 0.5), 
         legend.title = element_blank(),
         legend.position = "none")
                  
 
-jpeg("../Figures/Figure3.jpg", width = 2400, height = 1500, res=600)
+pdf("../Figures/Figure2.pdf", width = 14, height = 7.5)  # Adjusted for aspect ratio
 plot_grid(a, b, ncol = 2, rel_widths = c(1, 1.1))
-dev.off()                     
+dev.off()
+                   
 
 
                      
