@@ -534,125 +534,104 @@ for (i in 1:length(unique(acari_beta$Site.x))){
 # Now plot it
 
 a <- ggplot(data = acari_beta[acari_beta$group=="Kipuka",], aes(x = dist, y = OTU, colour = Site.x)) +
-  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = .5, alpha = 0.2) +
-  geom_point(alpha = 0.70, size = 1, shape = 15) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1.5, alpha = 0.2) +
+  geom_point(alpha = 0.70, size = 4, shape = 15) +
   scale_colour_manual(values = SiteColors) +
   scale_fill_manual(values = SiteColors) +
   labs(title = "A.", y = "3% OTU beta diversity") +
   KipukaTheme +
   guides(color = "none", shape = "none", fill = "none", linetype = "none") +
   scale_y_continuous(limits = c(0.2, 0.9)) +
-  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
-  theme(strip.text = element_text(size = 8),
-        panel.grid.major = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted",
-          size = 0.25),
-        panel.grid.minor = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted",
-          size = 0.20),
+  scale_x_continuous(breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 25),
+      panel.grid.major = element_line(color = "gray70", linetype = "dotted", size = 0.5), 
+      panel.grid.minor = element_line(color = "gray80", linetype = "dotted", size = 0.3), 
         axis.title.x = element_blank(),
-        axis.title.y = element_text(size = 8, margin = margin(0, -5, 0, 0)),
-        axis.text = element_text(size = 8),
-        plot.title = element_text(size = 8),
-        legend.text = element_text(size = 8),
-        legend.title = element_text(size = 8),
+        axis.title.y = element_text(size =25, margin = margin(0, -5, 0, 0)),
+        axis.text = element_text(size =25),
+        plot.title = element_text(size = 25),
+        legend.text = element_text(size = 25),
+        legend.title = element_text(size = 25),
         legend.position = "none",
-        plot.margin = margin(.8, .8, 0, .8))
+        plot.margin = margin(0, 0, 0, 0))
 
 b <- ggplot(data = acari_beta[acari_beta$group=="Continuous forest",], aes(x = dist, y = OTU, colour = Site.x)) +
-  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = .5, alpha = 0.2) +
-  geom_point(alpha = 0.70, size = 1, shape = 15) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1.5, alpha = 0.2) +
+  geom_point(alpha = 0.70, size = 4, shape = 15) +
   scale_colour_manual(values = SiteColors) +
   scale_fill_manual(values = SiteColors) +
   labs(title = "B.") +
   KipukaTheme +
   guides(color = "none", shape = "none", fill = "none", linetype = "none") +
   scale_y_continuous(limits = c(0.2, 0.9)) +
-  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
-  theme(strip.text = element_text(size = 8),
-        panel.grid.major = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted",
-          size = 0.25),
-        panel.grid.minor = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted",
-          size = 0.20),
+  scale_x_continuous(breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 25),
+      panel.grid.major = element_line(color = "gray70", linetype = "dotted", size = 0.5), 
+      panel.grid.minor = element_line(color = "gray80", linetype = "dotted", size = 0.3), 
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        axis.text = element_text(size = 8),
-        plot.title = element_text(size = 8),
-        legend.text = element_text(size = 8),
-        legend.title = element_text(size = 8),
+        axis.text = element_text(size = 25),
+        plot.title = element_text(size = 25),
+        legend.text = element_text(size = 25),
+        legend.title = element_text(size = 25),
         legend.position = "none",
-        plot.margin = margin(.8, .8, 0, .8))
+        plot.margin = margin(0, 0, 0, 0))
 
 c <- ggplot(data = acari_beta[acari_beta$group=="Kipuka",], aes(x = dist, y = zOTU, colour = Site.x)) +
-  geom_point(, alpha = 0.70, size = 1, shape = 0, stroke = .5) +
-  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = .5, alpha = 0.2) +
+  geom_point(, alpha = 0.70, size = 4, shape = 0, stroke = 1) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1.5, alpha = 0.2) +
   scale_colour_manual(values = SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
   labs(title = "C.", y = "zOTU beta diversity") +
   KipukaTheme +
   guides(color = guide_legend(title = "Sites", nrow = 1)) +
   scale_y_continuous(limits = c(0.2, 0.95)) +
-  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
-  theme(strip.text = element_text(size = 8),
-        panel.grid.major = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted",
-          size = 0.25),
-        panel.grid.minor = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted",
-          size = 0.20),
+  scale_x_continuous(breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 25),
+      panel.grid.major = element_line(color = "gray70", linetype = "dotted", size = 0.5), 
+      panel.grid.minor = element_line(color = "gray80", linetype = "dotted", size = 0.3), 
         axis.title.x = element_blank(),
-        axis.title.y = element_text(size = 8, margin = margin(0, -5, 0, 0)),
-        axis.text = element_text(size = 8),
-        plot.title = element_text(size = 8),
-        legend.text = element_text(size = 8),
-        legend.title = element_text(size = 8),
+        axis.title.y = element_text(size = 25, margin = margin(0, -5, 0, 0)),
+        axis.text = element_text(size = 25),
+        plot.title = element_text(size = 25),
+        legend.text = element_text(size = 25),
+        legend.title = element_text(size = 25),
         legend.position = "none",
-        plot.margin = margin(.8, .8, .8, .8))
+        plot.margin = margin(0, 0, 0, 0))
 
 d <- ggplot(data = acari_beta[acari_beta$group=="Continuous forest",], aes(x = dist, y = zOTU, colour = Site.x)) +
-  geom_point(, alpha = 0.70, size = 1, shape = 0, stroke = .5) +
-  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = .5, alpha = 0.2) +
+  geom_point(, alpha = 0.70, size = 4, shape = 0, stroke = 1) +
+  geom_smooth(method = 'lm', formula = y ~ log10(x), se = FALSE, size = 1.5, alpha = 0.2) +
   scale_colour_manual(values = SiteColors, limits = c("Center", "Edge", "Kona", "Stainback")) +
   labs(title = "D.") +
   KipukaTheme +
   guides(color = guide_legend(title = "Sites", nrow = 1)) +
   scale_y_continuous(limits = c(0.2, 0.95)) +
-  scale_x_continuous(expand = c(0.1, 0.1), breaks=seq(0, 10000, 2000)) +
-  theme(strip.text = element_text(size = 8),
-        panel.grid.major = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted",
-          size = 0.25),
-        panel.grid.minor = element_line(
-          rgb(105, 105, 105, maxColorValue = 255),
-          linetype = "dotted",
-          size = 0.20),
+  scale_x_continuous(breaks=seq(0, 10000, 2000)) +
+  theme(strip.text = element_text(size = 25),
+      panel.grid.major = element_line(color = "gray70", linetype = "dotted", size = 0.5), 
+      panel.grid.minor = element_line(color = "gray80", linetype = "dotted", size = 0.3), 
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        axis.text = element_text(size = 8),
-        plot.title = element_text(size = 8),
-        legend.text = element_text(size = 8),
-        legend.title = element_text(size = 8),
+        axis.text = element_text(size = 25),
+        plot.title = element_text(size = 25),
+        legend.text = element_text(size = 25),
+        legend.title = element_text(size = 25),
         legend.position = "none",
-        plot.margin = margin(.8, .8, .8, .8))
+        plot.margin = margin(0, 0, 0, 0))
 
 
 # Save the plot
-jpeg("../Figures/Fig_4.jpg", width = 1800, height = 1800, res=600)
-plot_grid(a, b, c, d, nrow = 2, ncol=2, rel_widths = c(0.5, 1)) +  
-draw_label("Distance (m)", x = 0.5, y=0, vjust = -0.5, size = 8, fontfamily = "serif") # Add the x-axis title
+pdf("../Figures/Figure4_v2.pdf", width = 14, height = 7.5)  # Adjusted for aspect ratio
+plot_grid(a, b, c, d, 
+          nrow = 2, ncol = 2, 
+          rel_widths = c(1, 1),   # Keep equal width
+          rel_heights = c(.70, .70),  # Ensure equal height, reducing extra space
+          align = "hv",           # Align plots horizontally and vertically
+          axis = "tblr") +        # Ensures proper axis alignment
+draw_label("Distance (m)", x = 0.5, y=0, vjust = 0, size = 25, fontfamily = "serif") # Add the x-axis title
 dev.off()
 
-
-
-
+                 
 
 
 
